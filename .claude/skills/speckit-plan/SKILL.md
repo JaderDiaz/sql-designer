@@ -167,3 +167,16 @@ Command ends after Phase 1 design. Report branch, IMPL_PLAN path, and generated 
 - [ ] Plan workflow executed and design artifacts generated
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with branch, plan path, and generated artifacts
+
+## Memoria obligatoria (Engram)
+
+Antes de reportar el resultado de esta fase **debes** llamar a `mem_save`
+(`mcp__engram__mem_save`) registrando las decisiones técnicas tomadas y las alternativas descartadas.
+
+- `type`: `architecture`
+- `topic_key`: `architecture/plan-<slug-feature>`, donde `<slug-feature>` es el nombre del directorio de la
+  feature en `specs/`.
+- `content`: formato `**What**` / `**Why**` / `**Where**` / `**Learned**`, con
+  rutas relativas al repositorio.
+
+Si la llamada no se hizo, la fase no está completa. Ver `CLAUDE.md`.

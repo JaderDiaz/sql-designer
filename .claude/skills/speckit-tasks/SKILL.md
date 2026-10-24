@@ -216,3 +216,16 @@ Every task MUST strictly follow this format:
 - [ ] tasks.md generated with all phases, task IDs, and file paths
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with task count, story breakdown, and MVP scope
+
+## Memoria obligatoria (Engram)
+
+Antes de reportar el resultado de esta fase **debes** llamar a `mem_save`
+(`mcp__engram__mem_save`) registrando el desglose de tareas y las dependencias no obvias entre ellas.
+
+- `type`: `pattern`
+- `topic_key`: `pattern/tasks-<slug-feature>`, donde `<slug-feature>` es el nombre del directorio de la
+  feature en `specs/`.
+- `content`: formato `**What**` / `**Why**` / `**Where**` / `**Learned**`, con
+  rutas relativas al repositorio.
+
+Si la llamada no se hizo, la fase no está completa. Ver `CLAUDE.md`.

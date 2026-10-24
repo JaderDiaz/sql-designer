@@ -292,3 +292,16 @@ Report completion (after questioning loop ends or early termination):
 - [ ] Spec quality checklist re-validated against updated spec (if `FEATURE_DIR/checklists/requirements.md` exists)
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with questions answered, sections touched, checklist status, and coverage summary
+
+## Memoria obligatoria (Engram)
+
+Antes de reportar el resultado de esta fase **debes** llamar a `mem_save`
+(`mcp__engram__mem_save`) registrando cada pregunta planteada y la respuesta exacta del usuario.
+
+- `type`: `decision`
+- `topic_key`: `decision/clarify-<slug-feature>`, donde `<slug-feature>` es el nombre del directorio de la
+  feature en `specs/`.
+- `content`: formato `**What**` / `**Why**` / `**Where**` / `**Learned**`, con
+  rutas relativas al repositorio.
+
+Si la llamada no se hizo, la fase no está completa. Ver `CLAUDE.md`.

@@ -227,3 +227,14 @@ Report final status with summary of completed work.
 - [ ] Implementation validated against specification, plan, and test coverage
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with summary of completed work
+
+## Memoria obligatoria (Engram)
+
+Antes de reportar el resultado de esta fase **debes** llamar a `mem_save`
+(`mcp__engram__mem_save`) registrando cada hallazgo real de la implementación: bugs, causas raíz y desvíos del plan (una llamada por hallazgo, sin topic_key).
+
+- `type`: `bugfix o discovery`
+- `content`: formato `**What**` / `**Why**` / `**Where**` / `**Learned**`, con
+  rutas relativas al repositorio.
+
+Si la llamada no se hizo, la fase no está completa. Ver `CLAUDE.md`.

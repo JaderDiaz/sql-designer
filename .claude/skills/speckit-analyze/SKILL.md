@@ -260,3 +260,16 @@ After reporting, check if `.specify/extensions.yml` exists in the project root.
 ## Context
 
 $ARGUMENTS
+
+## Memoria obligatoria (Engram)
+
+Antes de reportar el resultado de esta fase **debes** llamar a `mem_save`
+(`mcp__engram__mem_save`) registrando las inconsistencias encontradas entre spec.md, plan.md y tasks.md.
+
+- `type`: `discovery`
+- `topic_key`: `discovery/analyze-<slug-feature>`, donde `<slug-feature>` es el nombre del directorio de la
+  feature en `specs/`.
+- `content`: formato `**What**` / `**Why**` / `**Where**` / `**Learned**`, con
+  rutas relativas al repositorio.
+
+Si la llamada no se hizo, la fase no está completa. Ver `CLAUDE.md`.

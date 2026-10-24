@@ -346,3 +346,16 @@ Success criteria must be:
 - [ ] Specification written to `SPEC_FILE` and validated against quality checklist
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
 - [ ] Completion reported to user with feature directory, spec file path, and checklist results
+
+## Memoria obligatoria (Engram)
+
+Antes de reportar el resultado de esta fase **debes** llamar a `mem_save`
+(`mcp__engram__mem_save`) registrando la feature, su alcance, los no-objetivos y la ruta del spec.md generado.
+
+- `type`: `decision`
+- `topic_key`: `decision/spec-<slug-feature>`, donde `<slug-feature>` es el nombre del directorio de la
+  feature en `specs/`.
+- `content`: formato `**What**` / `**Why**` / `**Where**` / `**Learned**`, con
+  rutas relativas al repositorio.
+
+Si la llamada no se hizo, la fase no está completa. Ver `CLAUDE.md`.
