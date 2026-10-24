@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sql-designer.local/schemas/preferences-1.json",
+  "title": "Preferencias de SQL Designer",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "theme", "showWelcomeOnStart"],
+  "properties": {
+    "formatVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Version del formato del archivo. Un valor mayor se trata como no legible."
+    },
+    "theme": {
+      "enum": ["system", "light", "dark"],
+      "default": "system"
+    },
+    "showWelcomeOnStart": {
+      "type": "boolean",
+      "default": true
+    },
+    "window": {
+      "description": "Geometria recordada. null significa sin geometria: ventana centrada con tamano por defecto.",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y", "width", "height"],
+          "properties": {
+            "x": { "type": "integer" },
+            "y": { "type": "integer" },
+            "width": { "type": "integer", "minimum": 1024 },
+            "height": { "type": "integer", "minimum": 720 }
+          }
+        }
+      ],
+      "default": null
+    },
+    "lastModelPath": {
+      "description": "Ruta absoluta del ultimo modelo abierto. En el Incremento 0 solo se lee y se preserva.",
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "minLength": 1 }
+      ],
+      "default": null
+    }
+  }
+}
