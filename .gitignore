@@ -26,3 +26,16 @@ Thumbs.db
 *.swp
 .vscode/*
 !.vscode/extensions.json
+
+# Rust / Tauri
+src-tauri/target/
+*.rs.bk
+
+# Tests
+coverage/
+
+# Tauri generado
+src-tauri/gen/
+
+# Playwright MCP
+.playwright-mcp/

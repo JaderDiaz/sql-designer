@@ -1,0 +1,45 @@
+@import './fonts.css';
+@import './tokens.css';
+@import './aura.css';
+@import './screens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Reglas de ventana: el documento nunca desplaza (RS-01, FR-011); quien
+ * desplaza es `src/components/layout/ScrollRegion.tsx`. El fondo es el lienzo
+ * de Aura, sobre el que se dibuja la ventana de la aplicación.
+ */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  html {
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* La ventana va sin decoración: el fondo y las esquinas los pinta
+     `AppShell`, así que el documento se queda transparente. */
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: transparent;
+    color: var(--label);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 18px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+}

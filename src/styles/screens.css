@@ -1,0 +1,184 @@
+/*
+ * Clases de las pantallas, copiadas de los artboards del lienzo
+ * «SQL Designer · Diseño de Pantallas» (`Main.dc.html` para la Bienvenida y
+ * `Editor.dc.html` para Ajustes). Son composición de pantalla, no del sistema
+ * de diseño: por eso viven aquí y no en `aura.css`.
+ */
+
+/* ---------- Luces de semáforo de la ventana ---------- */
+.sm-traffic {
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  cursor: default;
+}
+.sm-traffic:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- Filas de acción y filas de lista ---------- */
+.sm-act,
+.sm-row {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  color: var(--label);
+  font-family: var(--font-sans);
+  cursor: default;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    transform var(--duration-instant) var(--easing-standard);
+}
+.sm-act:hover,
+.sm-row:hover {
+  background: var(--fill-hover);
+}
+.sm-act:active,
+.sm-row:active {
+  background: var(--fill-pressed);
+  transform: scale(0.985);
+}
+.sm-act:focus-visible,
+.sm-row:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- Ventana de Bienvenida y diálogo de Ajustes ---------- */
+@keyframes sm-start-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sm-start {
+  animation: sm-start-in var(--duration-slow) var(--easing-spring-soft) both;
+}
+
+@keyframes sm-dlg {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes sm-scrim {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.sm-dialog {
+  animation: sm-dlg var(--duration-slow) var(--easing-spring-soft) both;
+}
+.sm-scrim {
+  animation: sm-scrim var(--duration-base) var(--easing-out) both;
+}
+
+/* ---------- Ajustes: pestañas y rejilla del formulario ---------- */
+.sm-ptab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  min-width: 96px;
+  height: 52px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 500;
+  color: var(--label-secondary);
+  cursor: default;
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+.sm-ptab:hover {
+  background: var(--fill-hover);
+}
+.sm-ptab.is-on {
+  background: var(--fill-selected);
+  color: var(--label);
+}
+.sm-ptab.is-on .au-icon {
+  color: var(--indigo);
+}
+.sm-ptab:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.sm-pform {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 18px;
+  align-items: start;
+  padding: 24px 28px 28px;
+}
+.sm-plabel {
+  text-align: right;
+  font-size: 13px;
+  line-height: 28px;
+  color: var(--label);
+}
+.sm-phint {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--label-secondary);
+}
+
+/* ---------- Carga: barra indeterminada de la pantalla de arranque ---------- */
+.sm-splash-track {
+  position: relative;
+  width: 140px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--bg-inset);
+}
+.sm-splash-bar {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 42px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  animation: sm-splash 1100ms var(--easing-standard) infinite;
+}
+@keyframes sm-splash {
+  from {
+    transform: translateX(-42px);
+  }
+  to {
+    transform: translateX(140px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-splash-bar {
+    animation: none;
+    width: 100%;
+    opacity: 0.4;
+  }
+}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+src-tauri/target/
+src/assets/fonts/
+src-tauri/gen/
+dist/
+
+# Documentos que no se reformatean: los mantiene Spec Kit o el equipo
+.claude/
+.specify/
+specs/
+CLAUDE.md
