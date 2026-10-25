@@ -30,8 +30,8 @@
           "properties": {
             "x": { "type": "integer" },
             "y": { "type": "integer" },
-            "width": { "type": "integer", "minimum": 1024 },
-            "height": { "type": "integer", "minimum": 720 }
+            "width": { "type": "integer", "minimum": 820 },
+            "height": { "type": "integer", "minimum": 500 }
           }
         }
       ],

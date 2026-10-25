@@ -1,0 +1,27 @@
+[package]
+name = "sql-designer"
+version = "1.0.0"
+description = "Diseñador visual de bases de datos relacionales"
+authors = ["Jader Luis Diaz E."]
+edition = "2021"
+rust-version = "1.75"
+
+[[bin]]
+name = "sql-designer"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+
+[dependencies]
+tauri = { version = "2", features = ["macos-private-api"] }
+tauri-plugin-log = "2"
+tauri-plugin-window-state = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4"
+
+[profile.release]
+strip = true
+lto = true

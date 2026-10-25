@@ -1,0 +1,18 @@
+{
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "SQL Designer",
+        "width": 820,
+        "height": 500,
+        "minWidth": 820,
+        "minHeight": 500,
+        "resizable": true,
+        "center": true,
+        "decorations": false,
+        "transparent": true
+      }
+    ]
+  }
+}

@@ -69,14 +69,14 @@ copia `.bak`) y el recorte de geometría contra monitores simulados.
 
 ### Historia 3 · Ventana (P3)
 
-1. Reduce la ventana hasta el mínimo: no debe poder bajar de 1024 × 720 y el contenido
+1. Reduce la ventana hasta el mínimo: no debe poder bajar de 820 × 500 y el contenido
    debe seguir legible, sin recortes ni superposiciones.
 2. En una pantalla de 1920 × 1080, y luego con la ventana reducida al mínimo, comprueba
    que solo desplaza la sección que no cabe; la ventana completa nunca desplaza y el
    documento tampoco (RS-01, SC-005).
-3. En macOS: botones del sistema a la izquierda, con su comportamiento nativo (incluido
-   pantalla completa y su menú contextual). En Windows: minimizar, maximizar y cerrar a la
-   derecha, con el estilo de la app.
+3. En los dos sistemas: cerrar y minimizar arriba a la izquierda, con el estilo de la
+   app; el símbolo aparece al pasar el cursor y cada botón hace lo que dice. No hay
+   control de maximizar.
 4. Arrastra por la zona de la barra de título: la ventana debe moverse. Doble clic debe
    comportarse como en cualquier ventana del sistema.
 5. Mueve y redimensiona la ventana, cierra y vuelve a abrir: debe reaparecer con ese

@@ -98,20 +98,20 @@ sistema, y contenido que no se desordena cuando no cabe.
 siguientes (RS-01); se verifica sobre la única pantalla disponible.
 
 **Independent Test**: se prueba reduciendo la ventana hasta que el contenido no cabe y
-comparando los controles de ventana con la convención de cada sistema.
+comprobando que los controles de ventana están donde los pide el diseño y hacen lo que
+dicen.
 
 **Acceptance Scenarios**:
 
 1. **Dado** que estoy en cualquier pantalla, **cuando** su contenido no cabe,
    **entonces** se desplaza solo la sección que lo necesita y el resto de la ventana se
    queda quieto; la ventana completa no se desplaza (RS-01).
-2. **Dado** macOS, **entonces** los controles de ventana (cerrar, minimizar, pantalla
-   completa) están a la izquierda con la convención del sistema.
-3. **Dado** Windows, **entonces** los controles de ventana (minimizar, maximizar,
-   cerrar) están a la derecha con la convención del sistema.
-4. **Dado** cualquiera de los dos sistemas, **cuando** arrastro la zona de la barra de
-   título, **entonces** la ventana se mueve; y al hacer doble clic en ella responde como
-   una ventana del sistema.
+2. **Dado** cualquiera de los dos sistemas, **entonces** los controles de cerrar y
+   minimizar están arriba a la izquierda, en el sitio que marca el diseño, y cada uno
+   hace lo que dice.
+3. **Dado** que la Bienvenida no se maximiza, **entonces** no hay control de maximizar.
+4. **Dado** cualquiera de los dos sistemas, **cuando** arrastro una zona libre de la
+   barra lateral o de la cabecera, **entonces** la ventana se mueve.
 5. **Dado** que redimensiono la ventana por debajo de su tamaño mínimo, **entonces** la
    ventana no permite reducirse más y el contenido sigue legible, sin recortes ni
    superposiciones.
@@ -174,9 +174,9 @@ comparando los controles de ventana con la convención de cada sistema.
   sistema pide reducir el movimiento (RS-11).
 - **FR-011**: Cuando el contenido de una sección no cabe, MUST desplazarse solo esa
   sección; la ventana MUST NOT desplazarse ni crecer para acomodar contenido (RS-01).
-- **FR-012**: Los controles de ventana MUST seguir la convención de cada sistema: a la
-  izquierda en macOS, a la derecha en Windows, con el mismo comportamiento de
-  arrastrar, minimizar, maximizar o pantalla completa y cerrar.
+- **FR-012**: La ventana MUST llevar controles propios de cerrar y minimizar, arriba a
+  la izquierda en los dos sistemas, en la posición que marca el diseño, y MUST poder
+  moverse arrastrando una zona libre. La Bienvenida MUST NOT ofrecer maximizar.
 - **FR-013**: La ventana MUST tener un tamaño mínimo por debajo del cual no se puede
   reducir, y MUST abrirse dentro del área visible de un monitor conectado.
 - **FR-014**: Toda acción y control de la Bienvenida y de Ajustes MUST ser alcanzable y
@@ -251,8 +251,9 @@ comparando los controles de ventana con la convención de cada sistema.
   permita abrir uno.
 - **Sin lista de recientes**: la Bienvenida de este incremento no muestra recientes; la
   lista aparece cuando hay modelos que listar (Incremento 1).
-- **Tamaño de referencia**: las pantallas se diseñan a 1920 × 1080 (RS-01); el tamaño
-  mínimo de la ventana se fija para que la Bienvenida quepa sin recortes.
+- **Tamaño de referencia**: los artboards del diseño se dibujan sobre un monitor
+  simulado de 1920 × 1080 (RS-01); la ventana de la Bienvenida es la pieza de 820 × 500
+  que aparece centrada en ellos, y ese es a la vez su tamaño por defecto y su mínimo.
 - **Idioma**: la interfaz es en español y los símbolos de atajo se adaptan al sistema
   (RS-12).
 - **Un solo modelo a la vez**: la aplicación no abre varias ventanas de modelo en

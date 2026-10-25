@@ -1,0 +1,12 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permiso mínimo del Incremento 0. core:event:default: escuchar `preferences://open`, que emite el menú nativo (FR-020). log:default: escribir el registro local de errores en el directorio de logs (FR-019). window-state:default: guardar y restaurar tamaño y posición de la ventana (FR-018). core:window:allow-start-dragging: mover la ventana arrastrando las zonas marcadas con `data-tauri-drag-region`, que es la única forma de moverla sin barra de título del sistema (FR-012). Los comandos propios de la aplicación no necesitan permiso: ya pasan por `invoke_handler`.",
+  "windows": ["main"],
+  "permissions": [
+    "core:event:default",
+    "core:window:allow-start-dragging",
+    "log:default",
+    "window-state:default"
+  ]
+}

@@ -1,0 +1,17 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3c"/><stop offset="1" stop-color="#1c1c1e"/></linearGradient>
+<clipPath id="d"><path d="M14 9.5 H26 A22.5 22.5 0 0 1 26 54.5 H14 A4 4 0 0 1 10 50.5 V13.5 A4 4 0 0 1 14 9.5 Z"/></clipPath>
+</defs>
+<g transform="translate(100 100) scale(8.5833333)">
+<rect width="96" height="96" rx="22" fill="url(#g)"/>
+<rect x="0.5" y="0.5" width="95" height="95" rx="21.5" fill="none" stroke="rgba(255,255,255,0.14)"/>
+<g transform="translate(18.75 16)"><g clip-path="url(#d)">
+<rect x="10" y="9.5" width="42" height="7" fill="#7d7bff"/>
+<rect x="10" y="19" width="7" height="7" fill="#ffffff"/><rect x="19.5" y="19" width="32" height="7" fill="#ffffff"/>
+<rect x="10" y="28.5" width="7" height="7" fill="#ffffff"/><rect x="19.5" y="28.5" width="32" height="7" fill="#ffffff"/>
+<rect x="10" y="38" width="7" height="7" fill="#ffffff"/><rect x="19.5" y="38" width="32" height="7" fill="#ffffff"/>
+<rect x="10" y="47.5" width="7" height="7" fill="#ffffff"/><rect x="19.5" y="47.5" width="32" height="7" fill="#ffffff"/>
+</g></g>
+</g>
+</svg>
