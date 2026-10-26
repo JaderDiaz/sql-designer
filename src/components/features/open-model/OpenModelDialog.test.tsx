@@ -159,6 +159,8 @@ describe('Abrir modelo (FR-012 a FR-017)', () => {
     expect(within(preview).getByRole('alert')).toHaveTextContent(
       'Este archivo tiene errores y no se puede abrir.',
     )
+    // Sin nombre de modelo que mostrar, el del archivo sale una sola vez.
+    expect(within(preview).getAllByText('facturacion.yaml')).toHaveLength(1)
     expect(screen.getByRole('button', { name: 'Abrir' })).toBeDisabled()
 
     await act(async () => {

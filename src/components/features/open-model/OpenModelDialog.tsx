@@ -138,9 +138,13 @@ function PreviewPanel({ preview, onOpen }: PreviewPanelProps) {
 
       <div className="flex flex-col items-center gap-0.5 text-center">
         <span className="text-[15px] font-semibold leading-5">{preview.name}</span>
-        <span className="font-mono text-[11px] leading-[14px] text-label-secondary">
-          {preview.fileName}
-        </span>
+        {/* Un archivo con errores no tiene nombre de modelo que mostrar, así
+            que lleva el del archivo arriba; repetirlo debajo no dice nada. */}
+        {preview.name === preview.fileName ? null : (
+          <span className="font-mono text-[11px] leading-[14px] text-label-secondary">
+            {preview.fileName}
+          </span>
+        )}
       </div>
 
       {preview.invalid ? (
