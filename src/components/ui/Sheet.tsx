@@ -78,9 +78,10 @@ export function Sheet({
       </div>
       {/* El cuerpo es lo único que se desplaza: en una ventana baja, la
           cabecera y los botones siguen a la vista. El margen negativo con su
-          relleno deja sitio al anillo de foco, que se sale 3 px del campo y
-          lo recortaría el propio desplazamiento. */}
-      <div className="-mx-2 min-h-0 flex-1 overflow-y-auto px-2">{children}</div>
+          relleno deja sitio al anillo de foco por los cuatro lados: se sale
+          3 px del campo y lo recortaría el propio desplazamiento, que recorta
+          en los dos ejes aunque solo se pida en uno. */}
+      <div className="-m-2 min-h-0 flex-1 overflow-y-auto p-2">{children}</div>
       {footer ? <div className="flex justify-end gap-2 pt-1">{footer}</div> : null}
     </>
   )
