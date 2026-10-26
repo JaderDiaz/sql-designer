@@ -405,6 +405,30 @@ export async function esperarSinMenu() {
 }
 
 /**
+ * Trae la ventana al frente y espera a que WebKit la dé por visible.
+ *
+ * Una ventana tapada por otra cuenta como oculta (`document.hidden`), y
+ * entonces WebKit suspende `requestAnimationFrame`: la animación de entrada no
+ * avanza nunca y la aplicación se queda en la pantalla de carga. Con la ventana
+ * al frente los fotogramas vuelven.
+ */
+export async function alFrente() {
+  await browser.execute(`
+    const ventana = window.__TAURI__.window.getCurrentWindow()
+    void Promise.resolve()
+      .then(() => ventana.unminimize())
+      .then(() => ventana.show())
+      .then(() => ventana.setFocus())
+      .catch(() => undefined)
+  `)
+
+  await browser.waitUntil(
+    async () => (await browser.execute('return document.hidden')) === false,
+    { timeout: ESPERA_MS, timeoutMsg: 'La ventana siguió oculta: WebKit no pinta fotogramas así.' },
+  )
+}
+
+/**
  * Deja la aplicación en la Bienvenida antes de que el recorrido empiece.
  *
  * Cada archivo de escenario abre su propia ventana, pero no un estado propio:
@@ -415,6 +439,8 @@ export async function esperarSinMenu() {
  * nada— hasta volver a la Bienvenida.
  */
 export async function desdeLaBienvenida() {
+  await alFrente()
+
   await browser.waitUntil(async () => (await texto()).length > 0, {
     timeout: ESPERA_MS,
     timeoutMsg: 'La ventana no llegó a pintar nada.',
