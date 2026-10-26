@@ -202,6 +202,46 @@ SQL_DESIGNER_MEDIR=1 npm run tauri dev
    1 000 ms (SC-003).
 3. Sin la variable de entorno, el registro no debe traer ninguna de esas líneas.
 
+## Resultados de la validación
+
+### Comprobaciones automáticas · 2026-10-26
+
+| Puerta | Comando | Resultado |
+| ------ | ------- | --------- |
+| Tipos | `npm run typecheck` | Sin errores |
+| Capas e `invoke` (puerta 7) | `npm run lint` | 100 archivos revisados, sin avisos |
+| Pruebas del frontend | `npx vitest run` | 188 pruebas en 32 archivos, todas en verde |
+| Compilación del frontend | `npm run build` | Correcta |
+| Rust (puerta 1) | `cargo check` | Sin avisos |
+| Pruebas de Rust | `cargo test` | 58 pruebas, todas en verde |
+
+### Revisión de superficies · 2026-10-26
+
+- Las nueve superficies modales de `data-model.md` §3 (Nuevo modelo, Elegir carpeta,
+  Abrir modelo, Renombrar, Guardar los cambios, Archivo con errores, No encontrado,
+  Mover a la papelera y Archivo cambiado por fuera) se montan sobre `Sheet` o
+  `BrowserDialog`, que son Radix: cierran con Esc, atrapan el foco y se describen
+  con su título. Ninguna trae colores literales; los únicos valores fuera de
+  tokens del repositorio siguen siendo el dibujo del icono de la aplicación y el
+  trazo de los controles de ventana, que ya venían del Incremento 0.
+- Las filas de Recientes animan su entrada con `prefers-reduced-motion` respetado
+  en `src/styles/screens.css`, y el resto del movimiento pasa por `MotionConfig`
+  con `reducedMotion="user"`.
+- Ninguna superficie pasa de 780 × 456, así que todas caben en la ventana mínima de
+  820 × 500; lo que no cabe desplaza dentro de su sección
+  (`src/components/layout/ScrollRegion.tsx`, y la lista de Recientes con su propio
+  `overflow-y`).
+- Todo texto visible nuevo está en español y los símbolos de atajo salen de
+  `src/lib/platform.ts`.
+
+### Pendiente de una persona delante de la aplicación
+
+- Escenarios 1 a 8 de este documento en macOS, con la aplicación arrancada.
+- Escenario 8 con `SQL_DESIGNER_MEDIR=1` para anotar SC-002 y SC-003 sobre
+  `modelo-50-tablas.yaml`.
+- El recorrido completo en Windows: no hubo máquina Windows al cerrar el
+  incremento el 2026-10-26, igual que en el Incremento 0.
+
 ## Validación en las dos plataformas
 
 Los escenarios 1 a 8 se ejecutan en macOS y en Windows. Lo que cambia por sistema y

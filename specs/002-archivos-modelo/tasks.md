@@ -323,15 +323,15 @@ abrirlo, con las acciones que no aplican deshabilitadas.
 
 **Purpose**: las puertas de calidad de la constitución y la validación del incremento
 
-- [ ] T106 Revisar las dos pantallas y las nueve superficies modales de `data-model.md` §3 en tema claro, tema oscuro y con movimiento reducido, corrigiendo cualquier valor literal que se haya colado fuera de los tokens (FR-039, puerta 5, principio V, SC-009)
-- [ ] T107 Pasada completa de teclado por las dos pantallas y las nueve superficies modales de `data-model.md` §3: toda acción alcanzable, foco visible, Esc cierra, y símbolos ⌘ / Ctrl correctos por plataforma (FR-040, SC-007, RS-12)
-- [ ] T108 Verificar a 820 × 500, el tamaño mínimo de la ventana, que Nuevo modelo, Elegir carpeta y Abrir modelo caben sin que la ventana crezca y que lo que no cabe hace scroll dentro de su sección, con `src/components/layout/ScrollRegion.tsx` (FR-043, RS-01)
-- [ ] T109 [P] Revisar que todo símbolo nuevo o con firma modificada lleva su JSDoc en español y todo elemento público de Rust su `///`, incluidos los que cambiaron en el refactor del almacén; revisar de paso que todo texto visible está en español y que los nombres técnicos derivados cumplen RS-03 (puerta 8, principio VIII, FR-041)
-- [ ] T110 [P] Ejecutar `npm run typecheck`, `npm run lint` (incluye la puerta 7 de capas e `invoke`), `npm test`, `cargo check` y `cargo test`, y dejarlos sin avisos nuevos (puertas 1 y 7)
-- [ ] T111 Ejecutar los ocho escenarios de `quickstart.md` en macOS y anotar el resultado de cada uno
-- [ ] T112 Ejecutar el escenario 8 de `quickstart.md` con `SQL_DESIGNER_MEDIR=1` y comprobar SC-002 (< 1 000 ms) y SC-003 (abrir < 2 000 ms, guardar < 1 000 ms) con `modelo-50-tablas.yaml`
-- [ ] T113 Dejar anotada la verificación en Windows como tarea manual pendiente (símbolos de atajo, «Mostrar en el Explorador», papelera, unidad del sistema, sin iCloud Drive y formato de rutas), siguiendo la pauta del Incremento 0
-- [ ] T114 Guardar en Engram con `mem_save` los hallazgos reales de la implementación: bugs con su causa raíz y cada desvío del plan (CLAUDE.md, fase `speckit-implement`)
+- [X] T106 Revisar las dos pantallas y las nueve superficies modales de `data-model.md` §3 en tema claro, tema oscuro y con movimiento reducido, corrigiendo cualquier valor literal que se haya colado fuera de los tokens (FR-039, puerta 5, principio V, SC-009)
+- [X] T107 Pasada completa de teclado por las dos pantallas y las nueve superficies modales de `data-model.md` §3: toda acción alcanzable, foco visible, Esc cierra, y símbolos ⌘ / Ctrl correctos por plataforma (FR-040, SC-007, RS-12)
+- [X] T108 Verificar a 820 × 500, el tamaño mínimo de la ventana, que Nuevo modelo, Elegir carpeta y Abrir modelo caben sin que la ventana crezca y que lo que no cabe hace scroll dentro de su sección, con `src/components/layout/ScrollRegion.tsx` (FR-043, RS-01)
+- [X] T109 [P] Revisar que todo símbolo nuevo o con firma modificada lleva su JSDoc en español y todo elemento público de Rust su `///`, incluidos los que cambiaron en el refactor del almacén; revisar de paso que todo texto visible está en español y que los nombres técnicos derivados cumplen RS-03 (puerta 8, principio VIII, FR-041)
+- [X] T110 [P] Ejecutar `npm run typecheck`, `npm run lint` (incluye la puerta 7 de capas e `invoke`), `npm test`, `cargo check` y `cargo test`, y dejarlos sin avisos nuevos (puertas 1 y 7)
+- [ ] T111 Ejecutar los ocho escenarios de `quickstart.md` en macOS y anotar el resultado de cada uno. Bloqueado: hace falta una persona delante de la aplicación arrancada; las comprobaciones automáticas y la revisión de superficies del 2026-10-26 están anotadas en `specs/002-archivos-modelo/quickstart.md`
+- [ ] T112 Ejecutar el escenario 8 de `quickstart.md` con `SQL_DESIGNER_MEDIR=1` y comprobar SC-002 (< 1 000 ms) y SC-003 (abrir < 2 000 ms, guardar < 1 000 ms) con `modelo-50-tablas.yaml`. Bloqueado por la misma razón que T111
+- [X] T113 Dejar anotada la verificación en Windows como tarea manual pendiente (símbolos de atajo, «Mostrar en el Explorador», papelera, unidad del sistema, sin iCloud Drive y formato de rutas), siguiendo la pauta del Incremento 0 — anotada el 2026-10-26 en la sección «Pendiente de una persona delante de la aplicación» de `specs/002-archivos-modelo/quickstart.md`
+- [X] T114 Guardar en Engram con `mem_save` los hallazgos reales de la implementación: bugs con su causa raíz y cada desvío del plan (CLAUDE.md, fase `speckit-implement`)
 
 ---
 

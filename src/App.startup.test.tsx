@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App, { resolveStartupScreen } from '@/App'
@@ -33,11 +33,30 @@ describe('decisión de arranque (FR-006)', () => {
     vi.mocked(windowApplySavedGeometry).mockResolvedValue({ applied: false, clamped: false })
   })
 
-  it('sin modelo recordado muestra la Bienvenida y no cambia la preferencia', () => {
+  it('sin modelo recordado muestra la Bienvenida y no cambia la preferencia', async () => {
     render(<App />)
 
-    expect(screen.getByRole('heading', { level: 1, name: /sql designer/i })).toBeInTheDocument()
+    // Se espera a que el suelo de la pantalla de carga pase: cuánto queda
+    // depende de lo que haya tardado el arranque de la propia prueba.
+    expect(
+      await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 }),
+    ).toBeInTheDocument()
     expect(useAppStore.getState().preferences.showWelcomeOnStart).toBe(false)
+  })
+
+  it('con un modelo recordado lo abre al arrancar', async () => {
+    const openModel = vi.fn().mockResolvedValue(true)
+    resetStore({
+      platform: WINDOWS,
+      preferences: { showWelcomeOnStart: false, lastModelPath: '/Users/ada/modelo.yaml' },
+    })
+    useAppStore.setState({ openModel })
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(openModel).toHaveBeenCalledWith('/Users/ada/modelo.yaml')
+    })
   })
 
   it('resuelve la pantalla inicial según la casilla y el último modelo', () => {

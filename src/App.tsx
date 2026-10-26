@@ -1,5 +1,5 @@
 import { AnimatePresence, MotionConfig } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { ChooseFolderDialog } from '@/components/features/choose-folder/ChooseFolderDialog'
 import { ConfirmCloseDialog } from '@/components/features/editor/ConfirmCloseDialog'
@@ -35,9 +35,9 @@ export type StartupScreen = 'welcome' | 'last-model'
  * hay ninguno, se muestra la Bienvenida **sin** cambiar la preferencia, para
  * que el usuario no pierda su elección por un archivo que ya no está.
  *
- * Mientras abrir un modelo no esté implementado, `last-model` acaba igual que
- * `welcome`: la decisión ya está aquí y quien la consume es la historia de
- * abrir, que lleva la pantalla a `'editor'` por su cuenta.
+ * Con `last-model` la aplicación abre ese archivo por su cuenta; si ya no se
+ * puede leer o no es un modelo válido, el aviso lo dice y la pantalla se queda
+ * en la Bienvenida, con la preferencia intacta.
  *
  * @param preferences Preferencias cargadas al arrancar.
  */
@@ -66,6 +66,8 @@ export default function App() {
   const screen = useAppStore((state) => state.screen)
   const isDirty = useAppStore((state) => state.isDirty)
   const requestQuit = useAppStore((state) => state.requestQuit)
+  const preferences = useAppStore((state) => state.preferences)
+  const openModel = useAppStore((state) => state.openModel)
 
   // El suelo se cuenta desde que la página empezó a cargar, no desde que monta
   // React: las preferencias pueden llegar antes del primer fotograma, y con un
@@ -86,6 +88,18 @@ export default function App() {
   }, [isDirty])
 
   useEffect(() => onCloseRequested(requestQuit), [requestQuit])
+
+  // El modelo recordado se abre una sola vez, cuando las preferencias ya están
+  // cargadas: después manda `screen`, que es lo que mueven crear, abrir y
+  // cerrar (FR-006 del Incremento 0).
+  const startupOpened = useRef(false)
+  useEffect(() => {
+    if (!isLoaded || startupOpened.current) return
+    startupOpened.current = true
+    const path = preferences.lastModelPath
+    if (path === null || resolveStartupScreen(preferences) !== 'last-model') return
+    void openModel(path)
+  }, [isLoaded, openModel, preferences])
 
   useEffect(() => {
     void windowApplySavedGeometry().catch(() => undefined)
@@ -122,10 +136,6 @@ export default function App() {
         <AnimatePresence mode="wait" initial={false}>
           {isReady ? (
             <ScrollRegion key="screen" label="Contenido de la pantalla">
-              {/*
-                `startup` solo decide la pantalla del arranque; a partir de ahí
-                manda `screen`, que es lo que mueven crear, abrir y cerrar.
-              */}
               {screen === 'editor' ? <EditorScreen /> : <WelcomeScreen />}
             </ScrollRegion>
           ) : (
