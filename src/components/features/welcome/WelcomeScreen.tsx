@@ -67,10 +67,16 @@ export function WelcomeScreen() {
           <h1 className="mt-5 text-[26px] font-semibold leading-8 tracking-[-0.01em] text-label">
             {identity?.name ?? 'SQL Designer'}
           </h1>
-          <p className="mt-1 flex items-baseline gap-1 text-[12px] leading-4 text-label-secondary [font-variant-numeric:tabular-nums]">
-            <span className="font-medium">Versión {identity?.version ?? '1.0.0'}</span>
-            <span className="text-[10px] leading-[13px]">({identity?.buildDate ?? ''})</span>
-          </p>
+          {/* La versión la dice el binario: escribir un número aquí lo deja
+              atrasado en cuanto sube el del incremento siguiente. Mientras no
+              llega, la línea no se pinta; cuando el arranque termina, la
+              identidad ya está. */}
+          {identity === null ? null : (
+            <p className="mt-1 flex items-baseline gap-1 text-[12px] leading-4 text-label-secondary [font-variant-numeric:tabular-nums]">
+              <span className="font-medium">Versión {identity.version}</span>
+              <span className="text-[10px] leading-[13px]">({identity.buildDate})</span>
+            </p>
+          )}
         </motion.div>
 
         <WelcomeActions
