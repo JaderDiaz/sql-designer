@@ -1,11 +1,6 @@
 import { fileNameOf, summarizeModel, type ModelPreview } from '@/lib/model/summary'
 import type { Engine } from '@/lib/model/types'
-import {
-  fsCreateDirectory,
-  fsListDirectory,
-  fsUserPlaces,
-  modelRead,
-} from '@/lib/tauri/commands'
+import { fsCreateDirectory, fsListDirectory, fsUserPlaces, modelRead } from '@/lib/tauri/commands'
 import type { DirectoryEntry, ListOnly, Place } from '@/lib/tauri/types'
 import type { AppSlice } from '@/store/types'
 
@@ -77,6 +72,14 @@ export interface BrowserSlice {
   draftFolder: string | null
   /** Para qué se abrió Elegir carpeta. */
   choosePurpose: ChoosePurpose
+  /**
+   * Nombre que se está escribiendo para una carpeta nueva, o `null` si no hay
+   * ninguna a medias (FR-010).
+   *
+   * La carpeta no existe en el disco hasta que se confirma el nombre: así
+   * cancelar no deja «carpeta sin título» tirada por ahí.
+   */
+  folderDraft: string | null
   loadPlaces: () => Promise<void>
   openNewModel: () => void
   openOpenModel: () => void
@@ -94,6 +97,10 @@ export interface BrowserSlice {
   setQuery: (query: string) => void
   select: (path: string | null) => Promise<void>
   createFolder: (name: string) => Promise<string | null>
+  startFolderDraft: () => void
+  setFolderDraftName: (name: string) => void
+  cancelFolderDraft: () => void
+  confirmFolderDraft: () => Promise<void>
 }
 
 /** Ubicación que se usa como carpeta inicial cuando no hay ninguna recordada. */
@@ -169,6 +176,7 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
   draftEngine: 'postgres',
   draftFolder: null,
   choosePurpose: 'new-model',
+  folderDraft: null,
 
   /** Carga las ubicaciones del usuario una sola vez por sesión. */
   async loadPlaces() {
@@ -283,6 +291,7 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
       query: '',
       selection: null,
       preview: null,
+      folderDraft: null,
       browseHistory: [],
       browseFuture: [],
       entries: [],
@@ -307,6 +316,7 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
       query: '',
       selection: null,
       preview: null,
+      folderDraft: null,
       placeId: places.find((place) => place.path === path)?.id ?? null,
     })
     await get().refreshEntries()
@@ -336,6 +346,7 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
       query: '',
       selection: null,
       preview: null,
+      folderDraft: null,
       placeId: places.find((place) => place.path === previous)?.id ?? null,
     })
     await get().refreshEntries()
@@ -353,6 +364,7 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
       query: '',
       selection: null,
       preview: null,
+      folderDraft: null,
       placeId: places.find((place) => place.path === next)?.id ?? null,
     })
     await get().refreshEntries()
@@ -456,6 +468,40 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
    * @param name Nombre pedido para la carpeta nueva.
    * @returns La ruta creada, o `null` si no se pudo crear.
    */
+  /** Empieza una carpeta nueva con el nombre del lienzo ya escrito (FR-010). */
+  startFolderDraft() {
+    if (get().browsePath === null) return
+    set({ folderDraft: NEW_FOLDER_NAME, query: '' })
+  },
+
+  /**
+   * Cambia el nombre que se está escribiendo.
+   *
+   * @param name Nombre tal como va quedando en el campo.
+   */
+  setFolderDraftName(name) {
+    if (get().folderDraft === null) return
+    set({ folderDraft: name })
+  },
+
+  /** Abandona la carpeta nueva; en el disco no se creó nada. */
+  cancelFolderDraft() {
+    set({ folderDraft: null })
+  },
+
+  /**
+   * Crea de verdad la carpeta con el nombre escrito (FR-010).
+   *
+   * Un nombre en blanco vale como «carpeta sin título», que es lo que propone
+   * el lienzo; el nombre definitivo lo decide Rust, que numera los repetidos.
+   */
+  async confirmFolderDraft() {
+    const draft = get().folderDraft
+    if (draft === null) return
+    set({ folderDraft: null })
+    await get().createFolder(draft.trim() === '' ? NEW_FOLDER_NAME : draft)
+  },
+
   async createFolder(name) {
     const { browsePath } = get()
     if (browsePath === null) return null
@@ -466,8 +512,7 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
       return created.path
     } catch (error) {
       set({
-        browseError:
-          error instanceof Error ? error.message : 'No se pudo crear la carpeta.',
+        browseError: error instanceof Error ? error.message : 'No se pudo crear la carpeta.',
       })
       return null
     }

@@ -16,6 +16,12 @@ export interface BrowserDialogProps {
   children: ReactNode
   /** Barra inferior con el formato y los botones. */
   footer?: ReactNode
+  /**
+   * Escape dentro del diálogo. Llamar a `preventDefault` lo deja abierto, que
+   * es lo que hace Elegir carpeta mientras se escribe el nombre de una carpeta
+   * nueva: ahí Escape cancela el nombre, no el diálogo.
+   */
+  onEscapeKeyDown?: (event: KeyboardEvent) => void
   className?: string
 }
 
@@ -37,6 +43,7 @@ export function BrowserDialog({
   height = 456,
   children,
   footer,
+  onEscapeKeyDown,
   className,
 }: BrowserDialogProps) {
   return (
@@ -45,6 +52,7 @@ export function BrowserDialog({
         <RadixDialog.Overlay className="sm-scrim fixed inset-0 bg-scrim" />
         <RadixDialog.Content
           aria-label={label}
+          onEscapeKeyDown={onEscapeKeyDown}
           style={{ width, height, marginLeft: -width / 2, marginTop: -height / 2 }}
           className={cn(
             // Margen negativo en vez de `translate`: la animación de entrada

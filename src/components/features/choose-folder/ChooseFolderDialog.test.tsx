@@ -124,24 +124,63 @@ describe('Elegir carpeta (FR-007 a FR-011)', () => {
     expect(state.draftName).toBe('Livy · Reservas')
   })
 
-  it('«Nueva carpeta» crea «carpeta sin título» y la deja seleccionada', async () => {
+  it('«Nueva carpeta» propone «carpeta sin título» y deja cambiar el nombre', async () => {
     const user = userEvent.setup()
     await renderOpen()
-    vi.mocked(fsListDirectory).mockResolvedValue([...ENTRIES, entry('carpeta sin título', true)])
+    vi.mocked(fsListDirectory).mockResolvedValue([...ENTRIES, entry('facturas', true)])
+    vi.mocked(fsCreateDirectory).mockResolvedValue({
+      path: `${PARENT}/facturas`,
+      name: 'facturas',
+    })
 
     await user.click(screen.getByRole('button', { name: 'Nueva carpeta' }))
 
+    const field = screen.getByRole('textbox', { name: 'Nombre de la carpeta nueva' })
+    expect(field).toHaveValue('carpeta sin título')
+    // Nada se ha creado todavía: la carpeta nace al confirmar el nombre.
+    expect(fsCreateDirectory).not.toHaveBeenCalled()
+
+    await user.clear(field)
+    await user.type(field, 'facturas{Enter}')
+
+    expect(fsCreateDirectory).toHaveBeenCalledWith(PARENT, 'facturas')
+    expect(useAppStore.getState().selection).toBe(`${PARENT}/facturas`)
+    expect(useAppStore.getState().folderDraft).toBeNull()
+  })
+
+  it('el nombre en blanco vale como «carpeta sin título»', async () => {
+    const user = userEvent.setup()
+    await renderOpen()
+    vi.mocked(fsCreateDirectory).mockResolvedValue({
+      path: `${PARENT}/carpeta sin título`,
+      name: 'carpeta sin título',
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Nueva carpeta' }))
+    await user.clear(screen.getByRole('textbox', { name: 'Nombre de la carpeta nueva' }))
+    await user.keyboard('{Enter}')
+
     expect(fsCreateDirectory).toHaveBeenCalledWith(PARENT, 'carpeta sin título')
-    expect(useAppStore.getState().selection).toBe(`${PARENT}/carpeta sin título`)
+  })
+
+  it('Escape deja la carpeta sin crear', async () => {
+    const user = userEvent.setup()
+    await renderOpen()
+
+    await user.click(screen.getByRole('button', { name: 'Nueva carpeta' }))
+    await user.keyboard('{Escape}')
+
+    expect(fsCreateDirectory).not.toHaveBeenCalled()
+    expect(useAppStore.getState().folderDraft).toBeNull()
+    // Escape se queda en el campo: el diálogo sigue abierto.
+    expect(useAppStore.getState().dialog).toBe('choose-folder')
   })
 
   it('una carpeta sin subcarpetas lo dice con su explicación', async () => {
     await renderOpen([])
 
     expect(screen.getByText('Carpeta vacía')).toBeInTheDocument()
-    expect(
-      screen.getByText('Crea una carpeta nueva o elige otra ubicación.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Crea una carpeta nueva o elige otra ubicación.')).toBeInTheDocument()
   })
 
   it('la búsqueda sin coincidencias dice «Sin resultados» con el texto buscado', async () => {

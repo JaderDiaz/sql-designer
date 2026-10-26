@@ -17,10 +17,19 @@ vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   }
 })
 
+/** Último manejador que registró `onMenuAction`, para dispararlo en la prueba. */
+let menuHandler: ((action: string) => void) | null = null
+
 vi.mock('@/lib/tauri/events', () => ({
   PREFERENCES_OPEN_EVENT: 'preferences://open',
   onPreferencesOpen: () => () => undefined,
   onCloseRequested: () => () => undefined,
+  onMenuAction: (handler: (action: string) => void) => {
+    menuHandler = handler
+    return () => {
+      menuHandler = null
+    }
+  },
 }))
 
 const { windowApplyMode, windowApplySavedGeometry } = await import('@/lib/tauri/commands')
@@ -174,5 +183,58 @@ describe('tamaño de la ventana según la pantalla (RS-01)', () => {
     await waitFor(() => {
       expect(windowApplyMode).toHaveBeenCalledWith('editor')
     })
+  })
+})
+
+describe('menú Archivo del sistema', () => {
+  beforeEach(() => {
+    resetStore({ platform: WINDOWS })
+    vi.mocked(windowApplySavedGeometry).mockResolvedValue({ applied: false, clamped: false })
+  })
+
+  it('crear y abrir pasan por la misma acción que los atajos', async () => {
+    const requestIntent = vi.fn()
+    render(<App />)
+    await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
+    act(() => {
+      useAppStore.setState({ requestIntent })
+    })
+
+    act(() => {
+      menuHandler?.('archivo://nuevo-modelo')
+      menuHandler?.('archivo://abrir-modelo')
+    })
+
+    expect(requestIntent).toHaveBeenNthCalledWith(1, 'new-model')
+    expect(requestIntent).toHaveBeenNthCalledWith(2, 'open-model')
+  })
+
+  it('guardar y cerrar solo hacen algo con el Editor delante', async () => {
+    const saveModel = vi.fn().mockResolvedValue(true)
+    const requestClose = vi.fn()
+    render(<App />)
+    await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
+    act(() => {
+      useAppStore.setState({ saveModel, requestClose })
+    })
+
+    act(() => {
+      menuHandler?.('archivo://guardar')
+      menuHandler?.('archivo://cerrar-modelo')
+    })
+
+    expect(saveModel).not.toHaveBeenCalled()
+    expect(requestClose).not.toHaveBeenCalled()
+
+    await act(async () => {
+      useAppStore.setState({ screen: 'editor' })
+    })
+    act(() => {
+      menuHandler?.('archivo://guardar')
+      menuHandler?.('archivo://cerrar-modelo')
+    })
+
+    expect(saveModel).toHaveBeenCalledTimes(1)
+    expect(requestClose).toHaveBeenCalledTimes(1)
   })
 })

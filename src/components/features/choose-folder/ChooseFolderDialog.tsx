@@ -2,7 +2,6 @@ import { BrowserDialog } from '@/components/features/browser/BrowserDialog'
 import { FileBrowser } from '@/components/features/browser/FileBrowser'
 import { Button } from '@/components/ui/Button'
 import { useAppStore } from '@/store'
-import { NEW_FOLDER_NAME } from '@/store/browser'
 
 /**
  * Diálogo Elegir carpeta, según `project/ElegirCarpeta.dc.html` del lienzo
@@ -21,7 +20,9 @@ export function ChooseFolderDialog() {
   const browsePath = useAppStore((state) => state.browsePath)
   const selection = useAppStore((state) => state.selection)
   const choosePurpose = useAppStore((state) => state.choosePurpose)
-  const createFolder = useAppStore((state) => state.createFolder)
+  const startFolderDraft = useAppStore((state) => state.startFolderDraft)
+  const folderDraft = useAppStore((state) => state.folderDraft)
+  const cancelFolderDraft = useAppStore((state) => state.cancelFolderDraft)
   const setDraftFolder = useAppStore((state) => state.setDraftFolder)
   const openDialog = useAppStore((state) => state.openDialog)
   const closeDialog = useAppStore((state) => state.closeDialog)
@@ -63,13 +64,16 @@ export function ChooseFolderDialog() {
       }
       width={700}
       height={440}
+      onEscapeKeyDown={(event) => {
+        // Con una carpeta nueva a medias, Escape cancela el nombre y el
+        // diálogo se queda donde estaba.
+        if (folderDraft === null) return
+        event.preventDefault()
+        cancelFolderDraft()
+      }}
       footer={
         <>
-          <Button
-            icon="folder-plus"
-            disabled={!canCreateFolder}
-            onClick={() => void createFolder(NEW_FOLDER_NAME)}
-          >
+          <Button icon="folder-plus" disabled={!canCreateFolder} onClick={startFolderDraft}>
             Nueva carpeta
           </Button>
           <span className="min-w-0 flex-1 truncate pl-2 font-mono text-[11px] leading-[14px] text-label-secondary">

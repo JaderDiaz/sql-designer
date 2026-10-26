@@ -16,6 +16,24 @@ export interface FileRow {
   disabled?: boolean
 }
 
+/**
+ * Fila que se está escribiendo: una carpeta nueva que todavía no existe en el
+ * disco, con su nombre editable (FR-010).
+ */
+export interface FileDraftRow {
+  /** Nombre escrito hasta ahora. */
+  name: string
+  icon: IconName
+  iconClassName?: string
+  /** Texto accesible del campo. */
+  label: string
+  onNameChange: (name: string) => void
+  /** Enter o salir del campo: el nombre queda. */
+  onCommit: () => void
+  /** Escape: la carpeta no llega a crearse. */
+  onCancel: () => void
+}
+
 /** Props de la lista de archivos. */
 export interface FileListProps {
   rows: FileRow[]
@@ -32,6 +50,8 @@ export interface FileListProps {
   metaWidth?: number
   /** Qué se ve cuando no hay ninguna fila. */
   empty?: ReactNode
+  /** Carpeta nueva a medias de escribir, si la hay. */
+  draft?: FileDraftRow | null
   className?: string
 }
 
@@ -52,6 +72,7 @@ export function FileList({
   metaLabel,
   metaWidth = 130,
   empty,
+  draft,
   className,
 }: FileListProps) {
   const container = useRef<HTMLDivElement>(null)
@@ -118,7 +139,33 @@ export function FileList({
             </button>
           )
         })}
-        {rows.length === 0 ? empty : null}
+        {draft ? (
+          <div className="sm-file is-sel">
+            <Icon name={draft.icon} size={16} className={draft.iconClassName ?? ''} />
+            <input
+              className="sm-file-name sm-file-input"
+              aria-label={draft.label}
+              value={draft.name}
+              autoFocus
+              onFocus={(event) => event.currentTarget.select()}
+              onChange={(event) => draft.onNameChange(event.target.value)}
+              onBlur={draft.onCommit}
+              onKeyDown={(event) => {
+                // El diálogo también escucha Escape y Enter: aquí se quedan.
+                event.stopPropagation()
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  draft.onCommit()
+                } else if (event.key === 'Escape') {
+                  event.preventDefault()
+                  draft.onCancel()
+                }
+              }}
+            />
+            <span className="sm-file-date" style={{ width: metaWidth }} />
+          </div>
+        ) : null}
+        {rows.length === 0 && !draft ? empty : null}
       </div>
     </>
   )

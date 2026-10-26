@@ -27,6 +27,19 @@ const EVENT_PREFERENCES_OPEN: &str = "preferences://open";
 /// Evento con el que la ventana pide permiso para cerrarse (FR-028).
 const EVENT_CLOSE_REQUESTED: &str = "window://close-requested";
 
+/// Identificadores de los elementos del menú Archivo.
+///
+/// La interfaz no tiene menús del navegador —se desactivan para que no salgan
+/// los del sistema—, así que las acciones del modelo viven en el menú nativo,
+/// que es donde un usuario de macOS las busca.
+const MENU_NEW_MODEL: &str = "archivo://nuevo-modelo";
+const MENU_OPEN_MODEL: &str = "archivo://abrir-modelo";
+const MENU_SAVE_MODEL: &str = "archivo://guardar";
+const MENU_CLOSE_MODEL: &str = "archivo://cerrar-modelo";
+
+/// Evento con la acción elegida en el menú Archivo; lleva el identificador.
+const EVENT_MENU_ACTION: &str = "menu://action";
+
 /// Arranca la aplicación.
 ///
 /// Pasos: registra el plugin de registro local y el de estado de ventana
@@ -169,6 +182,19 @@ fn install_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
         ],
     )?;
 
+    let file_menu = Submenu::with_items(
+        app,
+        "Archivo",
+        true,
+        &[
+            &MenuItem::with_id(app, MENU_NEW_MODEL, "Nuevo modelo…", true, Some(accelerator("N")))?,
+            &MenuItem::with_id(app, MENU_OPEN_MODEL, "Abrir modelo…", true, Some(accelerator("O")))?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, MENU_SAVE_MODEL, "Guardar", true, Some(accelerator("S")))?,
+            &MenuItem::with_id(app, MENU_CLOSE_MODEL, "Cerrar modelo", true, Some(accelerator("W")))?,
+        ],
+    )?;
+
     let edit_menu = Submenu::with_items(
         app,
         "Edición",
@@ -184,15 +210,29 @@ fn install_menu(app: &tauri::AppHandle) -> tauri::Result<()> {
         ],
     )?;
 
-    let menu = Menu::with_items(app, &[&app_menu, &edit_menu])?;
+    let menu = Menu::with_items(app, &[&app_menu, &file_menu, &edit_menu])?;
     app.set_menu(menu)?;
     app.on_menu_event(|app, event| {
-        if event.id() == MENU_PREFERENCES {
+        let id = event.id().as_ref();
+        if id == MENU_PREFERENCES {
             if let Err(error) = app.emit(EVENT_PREFERENCES_OPEN, ()) {
                 log::warn!(target: SCOPE_STARTUP, "no se pudo emitir {EVENT_PREFERENCES_OPEN}: {error}");
+            }
+            return;
+        }
+        if matches!(id, MENU_NEW_MODEL | MENU_OPEN_MODEL | MENU_SAVE_MODEL | MENU_CLOSE_MODEL) {
+            if let Err(error) = app.emit(EVENT_MENU_ACTION, id) {
+                log::warn!(target: SCOPE_STARTUP, "no se pudo emitir {EVENT_MENU_ACTION}: {error}");
             }
         }
     });
 
     Ok(())
+}
+
+/// Acelerador de un elemento del menú, con el modificador de cada sistema.
+///
+/// @param key Tecla del atajo, sin modificador.
+fn accelerator(key: &str) -> String {
+    format!("{}+{key}", if cfg!(target_os = "macos") { "Cmd" } else { "Ctrl" })
 }

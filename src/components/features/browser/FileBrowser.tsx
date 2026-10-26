@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/Button'
-import { FileList, type FileRow } from '@/components/ui/FileList'
+import { FileList, type FileDraftRow, type FileRow } from '@/components/ui/FileList'
 import { Icon } from '@/components/ui/Icon'
 import { SearchField } from '@/components/ui/SearchField'
 import { Sidebar, type SidebarItem, type SidebarSection } from '@/components/ui/Sidebar'
@@ -78,6 +78,10 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
   const goForward = useAppStore((state) => state.goForward)
   const goToFolder = useAppStore((state) => state.goToFolder)
   const goToPlace = useAppStore((state) => state.goToPlace)
+  const folderDraft = useAppStore((state) => state.folderDraft)
+  const setFolderDraftName = useAppStore((state) => state.setFolderDraftName)
+  const confirmFolderDraft = useAppStore((state) => state.confirmFolderDraft)
+  const cancelFolderDraft = useAppStore((state) => state.cancelFolderDraft)
 
   const onlyFolders = only === 'folders'
   const visible = filterEntries(entries, query)
@@ -98,6 +102,21 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
       disabled: !selectable && !entry.isDirectory,
     }
   })
+
+  // La carpeta nueva se escribe en la propia lista y no existe en el disco
+  // hasta que se confirma el nombre (FR-010).
+  const draft: FileDraftRow | null =
+    folderDraft === null
+      ? null
+      : {
+          name: folderDraft,
+          icon: 'folder',
+          iconClassName: 'text-blue',
+          label: 'Nombre de la carpeta nueva',
+          onNameChange: setFolderDraftName,
+          onCommit: () => void confirmFolderDraft(),
+          onCancel: cancelFolderDraft,
+        }
 
   /** Doble clic o Enter: entrar en la carpeta, o avisar al diálogo. */
   function activate(path: string) {
@@ -174,7 +193,10 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {browseError === null ? null : (
-            <p role="alert" className="m-0 bg-warning-soft px-5 py-2 text-[12px] leading-4 text-warning-text">
+            <p
+              role="alert"
+              className="m-0 bg-warning-soft px-5 py-2 text-[12px] leading-4 text-warning-text"
+            >
               {browseError}
             </p>
           )}
@@ -187,6 +209,7 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
             onValueChange={(id) => void select(id)}
             onActivate={activate}
             empty={empty}
+            draft={draft}
           />
         </div>
       </div>

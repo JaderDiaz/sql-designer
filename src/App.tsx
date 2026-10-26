@@ -17,10 +17,11 @@ import { WelcomeScreen } from '@/components/features/welcome/WelcomeScreen'
 import { AppShell } from '@/components/layout/AppShell'
 import { Toast } from '@/components/ui/Toast'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
+import { useContextMenuGuard } from '@/hooks/useContextMenuGuard'
 import { useAppShortcuts } from '@/hooks/useShortcut'
 import { useTheme } from '@/hooks/useTheme'
 import { measureStartupReady, windowApplyMode, windowSetCloseGuard } from '@/lib/tauri/commands'
-import { onCloseRequested, onPreferencesOpen } from '@/lib/tauri/events'
+import { onCloseRequested, onMenuAction, onPreferencesOpen } from '@/lib/tauri/events'
 import { useAppStore } from '@/store'
 import type { Preferences } from '@/lib/tauri/types'
 
@@ -67,6 +68,9 @@ export default function App() {
   const requestQuit = useAppStore((state) => state.requestQuit)
   const preferences = useAppStore((state) => state.preferences)
   const openModel = useAppStore((state) => state.openModel)
+  const requestIntent = useAppStore((state) => state.requestIntent)
+  const requestClose = useAppStore((state) => state.requestClose)
+  const saveModel = useAppStore((state) => state.saveModel)
 
   // El suelo se cuenta desde que la página empezó a cargar, no desde que monta
   // React: las preferencias pueden llegar antes del primer fotograma, y con un
@@ -77,6 +81,7 @@ export default function App() {
 
   useTheme()
   useAppShortcuts()
+  useContextMenuGuard()
 
   useEffect(() => onPreferencesOpen(openPreferences), [openPreferences])
 
@@ -87,6 +92,21 @@ export default function App() {
   }, [isDirty])
 
   useEffect(() => onCloseRequested(requestQuit), [requestQuit])
+
+  // El menú Archivo del sistema comparte las acciones con los atajos: la
+  // interfaz no tiene menús contextuales del navegador, así que este es el
+  // sitio donde se encuentran crear, abrir, guardar y cerrar.
+  useEffect(
+    () =>
+      onMenuAction((action) => {
+        if (action === 'archivo://nuevo-modelo') requestIntent('new-model')
+        else if (action === 'archivo://abrir-modelo') requestIntent('open-model')
+        else if (screen !== 'editor') return
+        else if (action === 'archivo://guardar') void saveModel()
+        else requestClose()
+      }),
+    [requestClose, requestIntent, saveModel, screen],
+  )
 
   // Cada pantalla tiene su ventana: la Bienvenida sale centrada con sus
   // 820 × 500 y el Editor, que es la zona de trabajo, abre maximizado (RS-01).
