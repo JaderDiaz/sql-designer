@@ -301,19 +301,19 @@ abrirlo, con las acciones que no aplican deshabilitadas.
 
 ### Tests for User Story 7
 
-- [ ] T096 [P] [US7] Escribir `src/components/features/welcome/RecentContextMenu.test.tsx`: las cinco acciones con clic derecho y con ⇧F10, recorrido con flechas, cierre con Esc, y los conjuntos deshabilitados de un reciente «No encontrado» (Abrir, Renombrar…, Mover a la papelera…) y de uno «Archivo con errores» (Renombrar…)
-- [ ] T097 [P] [US7] Escribir la prueba del renombrado desde Recientes en `src/store/recents.test.ts`: cambia `name` en el archivo y en la lista, el nombre del archivo no cambia, y un nombre vacío no se puede confirmar
+- [X] T096 [P] [US7] Escribir `src/components/features/welcome/RecentContextMenu.test.tsx`: las cinco acciones con clic derecho y con ⇧F10, recorrido con flechas, cierre con Esc, y los conjuntos deshabilitados de un reciente «No encontrado» (Abrir, Renombrar…, Mover a la papelera…) y de uno «Archivo con errores» (Renombrar…)
+- [X] T097 [P] [US7] Escribir la prueba del renombrado desde Recientes en `src/store/recents.test.ts`: cambia `name` en el archivo y en la lista, el nombre del archivo no cambia, y un nombre vacío no se puede confirmar
 
 ### Implementation for User Story 7
 
-- [ ] T098 [US7] Crear `src/components/features/welcome/RecentContextMenu.tsx` sobre `src/components/ui/ContextMenu.tsx` con «Abrir», «Renombrar…», «Copiar ruta», separador, «Quitar de recientes» y «Mover a la papelera…» en variante destructiva (FR-035, RS-09)
-- [ ] T099 [US7] Implementar `rename` en el slice `recents`: `model_read`, validar, cambiar `name`, `model_write` con el sello leído, `recents_touch`; si el archivo cambió por fuera, el mismo aviso de `model_stale` de la US4 (FR-036)
-- [ ] T100 [US7] Reutilizar el diálogo de renombrar de la US4 desde la Bienvenida, con la frase «El archivo sigue siendo <archivo>.» (FR-036)
-- [ ] T101 [US7] Implementar `clipboard_write_text` en `src-tauri/src/system.rs` (`pbcopy` en macOS, `powershell -NoProfile -Command Set-Clipboard` en Windows) y conectarlo a «Copiar ruta» con su aviso breve de confirmación (FR-035, escenario US7-3, research.md R8)
-- [ ] T102 [US7] Implementar `trash_move` en `src-tauri/src/system.rs` con el crate `trash`, devolviendo `trash_unavailable` sin borrar cuando falla, y conectarlo a «Mover a la papelera…» seguido de `recents_remove` (FR-037, RS-08)
-- [ ] T103 [US7] Crear `src/components/features/welcome/TrashConfirmDialog.tsx`: título «¿Mover «<archivo>» a la papelera?», descripción con la carpeta de origen y que se puede recuperar, y las acciones «Cancelar» y «Mover a la papelera» en variante destructiva (FR-037, RS-08)
-- [ ] T104 [US7] Implementar el estado deshabilitado de las acciones según el estado del reciente, con las dos combinaciones de FR-038
-- [ ] T105 [US7] Conectar «Quitar de recientes» a `recents_remove` dejando el archivo intacto (FR-035, escenario US7-4)
+- [X] T098 [US7] Crear `src/components/features/welcome/RecentContextMenu.tsx` sobre `src/components/ui/ContextMenu.tsx` con «Abrir», «Renombrar…», «Copiar ruta», separador, «Quitar de recientes» y «Mover a la papelera…» en variante destructiva (FR-035, RS-09)
+- [X] T099 [US7] Implementar `rename` en el slice `recents`: `model_read`, validar, cambiar `name`, `model_write` con el sello leído, `recents_touch`; si el archivo cambió por fuera, el mismo aviso de `model_stale` de la US4 (FR-036)
+- [X] T100 [US7] Reutilizar el diálogo de renombrar de la US4 desde la Bienvenida, con la frase «El archivo sigue siendo <archivo>.» (FR-036)
+- [X] T101 [US7] Implementar `clipboard_write_text` en `src-tauri/src/system.rs` (`pbcopy` en macOS, `powershell -NoProfile -Command Set-Clipboard` en Windows) y conectarlo a «Copiar ruta» con su aviso breve de confirmación (FR-035, escenario US7-3, research.md R8)
+- [X] T102 [US7] Implementar `trash_move` en `src-tauri/src/system.rs` con el crate `trash`, devolviendo `trash_unavailable` sin borrar cuando falla, y conectarlo a «Mover a la papelera…» seguido de `recents_remove` (FR-037, RS-08)
+- [X] T103 [US7] Crear `src/components/features/welcome/TrashConfirmDialog.tsx`: título «¿Mover «<archivo>» a la papelera?», descripción con la carpeta de origen y que se puede recuperar, y las acciones «Cancelar» y «Mover a la papelera» en variante destructiva (FR-037, RS-08)
+- [X] T104 [US7] Implementar el estado deshabilitado de las acciones según el estado del reciente, con las dos combinaciones de FR-038
+- [X] T105 [US7] Conectar «Quitar de recientes» a `recents_remove` dejando el archivo intacto (FR-035, escenario US7-4)
 
 **Checkpoint**: las siete historias funcionan de forma independiente.
 

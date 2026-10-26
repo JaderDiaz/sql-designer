@@ -14,10 +14,12 @@ vi.mock('@/lib/tauri/commands', async (importOriginal) => {
     recentsTouch: vi.fn(),
     recentsRemove: vi.fn(),
     modelRead: vi.fn(),
+    modelWrite: vi.fn(),
   }
 })
 
-const { modelRead, recentsList, recentsRemove, recentsTouch } = await import(
+const { CommandError } = await import('@/lib/tauri/commands')
+const { modelRead, modelWrite, recentsList, recentsRemove, recentsTouch } = await import(
   '@/lib/tauri/commands'
 )
 
@@ -163,5 +165,66 @@ describe('revalidación perezosa (FR-042)', () => {
     await useAppStore.getState().revalidateStale()
 
     expect(useAppStore.getState().recents[0]?.state).toBe('invalid')
+  })
+})
+
+describe('renombrar un reciente sin abrirlo (FR-036)', () => {
+  beforeEach(() => {
+    resetStore()
+    vi.mocked(recentsList).mockResolvedValue([record(PATH)])
+    vi.mocked(recentsTouch).mockResolvedValue([])
+    vi.mocked(modelRead).mockResolvedValue({
+      text: readFixture('modelo-postgres'),
+      stamp: { modifiedMs: 1_000, sizeBytes: 400 },
+    })
+    vi.mocked(modelWrite).mockResolvedValue({ stamp: { modifiedMs: 2_000, sizeBytes: 410 } })
+  })
+
+  it('cambia el nombre del modelo dentro del archivo, no el del archivo', async () => {
+    await useAppStore.getState().refreshRecents()
+    useAppStore.getState().startRenameRecent(PATH)
+
+    await useAppStore.getState().renameRecent(PATH, 'Livy · Reservas 2027')
+
+    const [writtenPath, text, stamp] = vi.mocked(modelWrite).mock.calls[0] ?? []
+    expect(writtenPath).toBe(PATH)
+    expect(text).toContain('name: Livy · Reservas 2027')
+    expect(stamp).toEqual({ modifiedMs: 1_000, sizeBytes: 400 })
+
+    const entry = useAppStore.getState().recents[0]
+    expect(entry?.name).toBe('Livy · Reservas 2027')
+    expect(entry?.fileName).toBe('modelo.yaml')
+    expect(useAppStore.getState().renameTarget).toBeNull()
+  })
+
+  it('refresca el caché de recientes con el nombre nuevo', async () => {
+    await useAppStore.getState().refreshRecents()
+
+    await useAppStore.getState().renameRecent(PATH, 'Livy · Reservas 2027')
+
+    expect(recentsTouch).toHaveBeenCalledWith(
+      expect.objectContaining({ path: PATH, name: 'Livy · Reservas 2027', invalid: false }),
+    )
+  })
+
+  it('un nombre vacío no escribe nada', async () => {
+    await useAppStore.getState().refreshRecents()
+
+    await useAppStore.getState().renameRecent(PATH, '   ')
+
+    expect(modelRead).not.toHaveBeenCalled()
+    expect(modelWrite).not.toHaveBeenCalled()
+  })
+
+  it('un archivo tocado por fuera avisa en lugar de pisarlo (FR-025)', async () => {
+    await useAppStore.getState().refreshRecents()
+    vi.mocked(modelWrite).mockRejectedValue(
+      new CommandError({ code: 'model_stale', message: 'El archivo cambió.' }),
+    )
+
+    await useAppStore.getState().renameRecent(PATH, 'Livy · Reservas 2027')
+
+    expect(useAppStore.getState().dialog).toBe('stale')
+    expect(useAppStore.getState().recents[0]?.name).toBe('Livy · Reservas')
   })
 })

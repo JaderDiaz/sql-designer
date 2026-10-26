@@ -12,6 +12,7 @@ import { OpenModelDialog } from '@/components/features/open-model/OpenModelDialo
 import { PreferencesWindow } from '@/components/features/preferences/PreferencesWindow'
 import { SplashScreen } from '@/components/features/splash/SplashScreen'
 import { RecentNotFoundDialog } from '@/components/features/welcome/RecentNotFoundDialog'
+import { TrashConfirmDialog } from '@/components/features/welcome/TrashConfirmDialog'
 import { WelcomeScreen } from '@/components/features/welcome/WelcomeScreen'
 import { AppShell } from '@/components/layout/AppShell'
 import { Toast } from '@/components/ui/Toast'
@@ -140,6 +141,7 @@ export default function App() {
         <StaleFileDialog />
         <ConfirmCloseDialog />
         <RecentNotFoundDialog />
+        <TrashConfirmDialog />
       </AppShell>
       <PreferencesWindow />
     </MotionConfig>

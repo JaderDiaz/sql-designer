@@ -24,8 +24,10 @@ export interface ContextMenuProps {
   /** Lo que se puede pulsar con el botón derecho. */
   children: ReactNode
   actions: ContextMenuAction[]
-  /** Título opcional encima de las acciones. */
-  title?: string
+  /** Título opcional encima de las acciones; admite dos líneas. */
+  title?: ReactNode
+  /** Se avisa al abrir, para que la lista marque la fila del menú. */
+  onOpen?: () => void
   className?: string
 }
 
@@ -62,9 +64,19 @@ function openFromKeyboard(event: KeyboardEvent<HTMLElement>): void {
  * {@link openFromKeyboard}, de modo que toda acción del menú es alcanzable sin
  * ratón (RS-09, principio V).
  */
-export function ContextMenu({ children, actions, title, className }: ContextMenuProps) {
+export function ContextMenu({
+  children,
+  actions,
+  title,
+  onOpen,
+  className,
+}: ContextMenuProps) {
   return (
-    <RadixContextMenu.Root>
+    <RadixContextMenu.Root
+      onOpenChange={(open) => {
+        if (open) onOpen?.()
+      }}
+    >
       <RadixContextMenu.Trigger
         className={cn('au-ctx-area', className)}
         onKeyDown={openFromKeyboard}
