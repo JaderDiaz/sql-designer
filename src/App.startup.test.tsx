@@ -167,11 +167,11 @@ describe('tamaño de la ventana según la pantalla (RS-01)', () => {
 
     await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
 
-    expect(windowApplyMode).toHaveBeenCalledWith('welcome')
+    expect(windowApplyMode).toHaveBeenCalledWith('welcome', false)
     expect(screen.queryByRole('button', { name: 'Ampliar' })).not.toBeInTheDocument()
   })
 
-  it('al entrar al Editor pide el modo zona de trabajo', async () => {
+  it('al entrar al Editor pide el modo zona de trabajo y la ventana se anima', async () => {
     render(<App />)
 
     await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
@@ -180,8 +180,35 @@ describe('tamaño de la ventana según la pantalla (RS-01)', () => {
       useAppStore.setState({ screen: 'editor' })
     })
 
+    // La ventana espera a que la Bienvenida se vaya: estirarla a la vista la
+    // deformaría mientras se recoloca.
+    expect(windowApplyMode).not.toHaveBeenCalledWith('editor', true)
     await waitFor(() => {
-      expect(windowApplyMode).toHaveBeenCalledWith('editor')
+      expect(windowApplyMode).toHaveBeenCalledWith('editor', true)
+    })
+  })
+
+  it('al volver a la Bienvenida la ventana espera a que el Editor se vaya', async () => {
+    render(<App />)
+
+    await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
+
+    await act(async () => {
+      useAppStore.setState({ screen: 'editor' })
+    })
+    await waitFor(() => {
+      expect(windowApplyMode).toHaveBeenCalledWith('editor', true)
+    })
+
+    vi.mocked(windowApplyMode).mockClear()
+    await act(async () => {
+      useAppStore.setState({ screen: 'welcome' })
+    })
+
+    // Encoger con el Editor todavía dentro apretaría su contenido a la vista.
+    expect(windowApplyMode).not.toHaveBeenCalled()
+    await waitFor(() => {
+      expect(windowApplyMode).toHaveBeenCalledWith('welcome', true)
     })
   })
 })

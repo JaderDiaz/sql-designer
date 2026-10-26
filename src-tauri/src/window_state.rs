@@ -95,6 +95,75 @@ pub fn to_logical(value: u32, scale_factor: f64) -> u32 {
     (f64::from(value) / scale_factor).round() as u32
 }
 
+/// Rectángulo de ventana en píxeles lógicos.
+///
+/// Se usa para llevar la ventana de una pantalla a otra: el cambio de modo no
+/// salta, recorre el camino entre el rectángulo de partida y el de destino.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Rect {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+/// Cuánto dura el paso de una pantalla a otra, en milisegundos.
+///
+/// Es el `--duration-base` de Aura más un poco: la ventana recorre bastante
+/// más camino que un elemento de la interfaz y con 260 ms se siente brusca.
+pub const MODE_ANIM_MS: u64 = 300;
+
+/// Cada cuánto se mueve la ventana mientras dura el cambio, en milisegundos.
+///
+/// Doce milisegundos dan unos 83 fotogramas por segundo: por encima de lo que
+/// se nota y por debajo de lo que satura al compositor con ventanas grandes.
+pub const MODE_ANIM_STEP_MS: u64 = 12;
+
+/// Cuántos pasos tiene el cambio de modo, al menos uno.
+pub fn mode_anim_steps() -> u32 {
+    ((MODE_ANIM_MS / MODE_ANIM_STEP_MS) as u32).max(1)
+}
+
+/// Curva de salida de Aura (`--easing-out`): arranca rápido y frena al final.
+///
+/// @param progress Avance entre 0 y 1; fuera de ese rango se recorta.
+pub fn ease_out(progress: f64) -> f64 {
+    let progress = progress.clamp(0.0, 1.0);
+    1.0 - (1.0 - progress).powi(3)
+}
+
+/// Punto del camino entre dos rectángulos.
+///
+/// @param from Rectángulo de partida.
+/// @param to Rectángulo de destino.
+/// @param progress Avance ya pasado por la curva, entre 0 y 1.
+pub fn lerp_rect(from: Rect, to: Rect, progress: f64) -> Rect {
+    let progress = progress.clamp(0.0, 1.0);
+    let mix = |a: f64, b: f64| a + (b - a) * progress;
+    Rect {
+        x: mix(from.x, to.x),
+        y: mix(from.y, to.y),
+        width: mix(from.width, to.width),
+        height: mix(from.height, to.height),
+    }
+}
+
+/// Rectángulo de ese tamaño centrado dentro de un área.
+///
+/// @param area Área de trabajo del monitor.
+/// @param width Ancho que se quiere, recortado al del área.
+/// @param height Alto que se quiere, recortado al del área.
+pub fn centered_in(area: Rect, width: f64, height: f64) -> Rect {
+    let width = width.min(area.width);
+    let height = height.min(area.height);
+    Rect {
+        x: area.x + (area.width - width) / 2.0,
+        y: area.y + (area.height - height) / 2.0,
+        width,
+        height,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -174,5 +243,62 @@ mod tests {
         assert_eq!(to_logical(2880, 2.0), 1440);
         assert_eq!(to_logical(1440, 1.0), 1440);
         assert_eq!(to_logical(1440, 0.0), 1440);
+    }
+
+    #[test]
+    fn la_curva_de_salida_va_de_cero_a_uno_sin_retroceder() {
+        assert_eq!(ease_out(0.0), 0.0);
+        assert_eq!(ease_out(1.0), 1.0);
+        assert_eq!(ease_out(-1.0), 0.0);
+        assert_eq!(ease_out(2.0), 1.0);
+
+        let mut previous = 0.0;
+        for step in 1..=20 {
+            let value = ease_out(f64::from(step) / 20.0);
+            assert!(value >= previous, "la curva retrocede en {step}");
+            previous = value;
+        }
+        // Arranca rápido: a mitad de camino ya ha recorrido más de la mitad.
+        assert!(ease_out(0.5) > 0.5);
+    }
+
+    #[test]
+    fn el_camino_entre_dos_rectangulos_empieza_y_acaba_donde_debe() {
+        let from = Rect { x: 0.0, y: 0.0, width: 820.0, height: 580.0 };
+        let to = Rect { x: 100.0, y: 50.0, width: 1620.0, height: 1000.0 };
+
+        assert_eq!(lerp_rect(from, to, 0.0), from);
+        assert_eq!(lerp_rect(from, to, 1.0), to);
+
+        let half = lerp_rect(from, to, 0.5);
+        assert_eq!(half.x, 50.0);
+        assert_eq!(half.width, 1220.0);
+    }
+
+    #[test]
+    fn el_rectangulo_centrado_reparte_el_sobrante_por_igual() {
+        let area = Rect { x: 0.0, y: 25.0, width: 1920.0, height: 1055.0 };
+
+        let rect = centered_in(area, 820.0, 580.0);
+
+        assert_eq!(rect.width, 820.0);
+        assert_eq!(rect.x, 550.0);
+        assert_eq!(rect.y - area.y, area.height - rect.height - (rect.y - area.y));
+    }
+
+    #[test]
+    fn el_rectangulo_centrado_nunca_pasa_del_area() {
+        let area = Rect { x: 0.0, y: 0.0, width: 700.0, height: 500.0 };
+
+        let rect = centered_in(area, 820.0, 580.0);
+
+        assert_eq!(rect.width, 700.0);
+        assert_eq!(rect.height, 500.0);
+        assert_eq!(rect.x, 0.0);
+    }
+
+    #[test]
+    fn el_cambio_de_modo_tiene_pasos_de_sobra_para_verse_fluido() {
+        assert!(mode_anim_steps() >= 20);
     }
 }

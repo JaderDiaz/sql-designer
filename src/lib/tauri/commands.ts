@@ -266,12 +266,17 @@ export function fsCreateDirectory(parent: string, name: string): Promise<Created
  * Ajusta la ventana al modo de la pantalla visible.
  *
  * La Bienvenida es un diálogo de tamaño fijo; el Editor es la zona de trabajo:
- * baja el mínimo, se puede ampliar y abre en grande la primera vez.
+ * baja el mínimo, se puede ampliar y llena el monitor.
+ *
+ * La promesa se resuelve cuando la ventana ya está en su sitio, animación
+ * incluida, para que la interfaz pueda encadenar lo que venga después.
  *
  * @param mode Pantalla que se va a mostrar.
+ * @param animate Si la ventana recorre el camino en vez de saltar; `false`
+ * cuando el sistema pide menos movimiento.
  */
-export function windowApplyMode(mode: WindowMode): Promise<void> {
-  return call<void>('window_apply_mode', { mode })
+export function windowApplyMode(mode: WindowMode, animate = true): Promise<void> {
+  return call<void>('window_apply_mode', { mode, animate })
 }
 
 /**

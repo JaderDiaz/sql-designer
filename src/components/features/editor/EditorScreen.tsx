@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { EditorChrome } from '@/components/layout/EditorChrome'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { Icon, type IconName } from '@/components/ui/Icon'
-import { riseIn, stagger } from '@/lib/motion'
+import { riseIn, screenIn } from '@/lib/motion'
 import { measureModelOpened } from '@/lib/tauri/commands'
 import { useAppStore } from '@/store'
 
@@ -81,9 +81,10 @@ export function EditorScreen() {
     <motion.section
       key="editor"
       aria-label={model ? `Editor de ${model.name}` : 'Editor'}
-      variants={stagger}
+      variants={screenIn}
       initial="hidden"
       animate="visible"
+      exit="exit"
       className="flex h-full min-h-0 w-full flex-col bg-canvas"
     >
       <EditorChrome />

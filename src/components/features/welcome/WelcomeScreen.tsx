@@ -6,7 +6,7 @@ import { ShowWelcomeToggle } from '@/components/features/welcome/ShowWelcomeTogg
 import { WelcomeActions } from '@/components/features/welcome/WelcomeActions'
 import { AppIcon } from '@/components/ui/AppIcon'
 import { Button } from '@/components/ui/Button'
-import { riseIn, slideInLeft, stagger } from '@/lib/motion'
+import { riseIn, screenIn, slideInLeft } from '@/lib/motion'
 import { useAppStore } from '@/store'
 
 /**
@@ -47,9 +47,10 @@ export function WelcomeScreen() {
     <motion.section
       key="welcome"
       aria-label="Bienvenido a SQL Designer"
-      variants={stagger}
+      variants={screenIn}
       initial="hidden"
       animate="visible"
+      exit="exit"
       className="flex h-full min-h-0 w-full bg-window"
     >
       <motion.aside

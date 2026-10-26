@@ -20,6 +20,7 @@ import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { useContextMenuGuard } from '@/hooks/useContextMenuGuard'
 import { useAppShortcuts } from '@/hooks/useShortcut'
 import { useTheme } from '@/hooks/useTheme'
+import { SCREEN_EXIT_MS } from '@/lib/motion'
 import { measureStartupReady, windowApplyMode, windowSetCloseGuard } from '@/lib/tauri/commands'
 import { onCloseRequested, onMenuAction, onPreferencesOpen } from '@/lib/tauri/events'
 import { useAppStore } from '@/store'
@@ -48,6 +49,16 @@ export function resolveStartupScreen(preferences: Preferences): StartupScreen {
 
 /** Tiempo mínimo que se ve la pantalla de carga, en milisegundos. */
 const SPLASH_MIN_MS = 650
+
+/**
+ * Si el sistema pide menos movimiento.
+ *
+ * Se consulta en cada cambio en vez de guardarse: el ajuste se puede cambiar
+ * con la aplicación abierta y el siguiente cambio de pantalla ya lo respeta.
+ */
+function prefersReducedMotion(): boolean {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+}
 
 /**
  * Orquestador de la interfaz: aplica el tema, registra los atajos, conecta el
@@ -109,11 +120,28 @@ export default function App() {
   )
 
   // Cada pantalla tiene su ventana: la Bienvenida sale centrada con sus
-  // 820 × 500 y el Editor, que es la zona de trabajo, abre maximizado (RS-01).
-  // Por eso la geometría recordada ya no se restaura: la posición y el tamaño
-  // los decide la pantalla, no la sesión anterior.
+  // 820 × 580 y el Editor, que es la zona de trabajo, llena el monitor
+  // (RS-01). Por eso la geometría recordada ya no se restaura: la posición y
+  // el tamaño los decide la pantalla, no la sesión anterior.
+  //
+  // El cambio va coordinado con el de la pantalla: primero se va la que está,
+  // y solo entonces la ventana empieza su camino, a la vez que entra la que
+  // llega. Estirar o encoger una pantalla a la vista la deforma mientras se
+  // recoloca, que es justo lo que se quiere evitar. El primer ajuste del
+  // arranque no se anima: no hay de dónde venir.
+  const firstMode = useRef(true)
   useEffect(() => {
-    void windowApplyMode(screen === 'editor' ? 'editor' : 'welcome').catch(() => undefined)
+    const target = screen === 'editor' ? 'editor' : 'welcome'
+    const animate = !firstMode.current && !prefersReducedMotion()
+    firstMode.current = false
+
+    const timer = window.setTimeout(
+      () => {
+        void windowApplyMode(target, animate).catch(() => undefined)
+      },
+      animate ? SCREEN_EXIT_MS : 0,
+    )
+    return () => window.clearTimeout(timer)
   }, [screen])
 
   // El modelo recordado se abre una sola vez, cuando las preferencias ya están
@@ -158,7 +186,7 @@ export default function App() {
       <AppShell showTitlebar={screen !== 'editor'}>
         <AnimatePresence mode="wait" initial={false}>
           {isReady ? (
-            <ScrollRegion key="screen" label="Contenido de la pantalla">
+            <ScrollRegion key={screen} label="Contenido de la pantalla">
               {screen === 'editor' ? <EditorScreen /> : <WelcomeScreen />}
             </ScrollRegion>
           ) : (

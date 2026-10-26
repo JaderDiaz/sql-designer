@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 
 import { Titlebar } from '@/components/layout/Titlebar'
@@ -31,7 +32,20 @@ export function AppShell({ children, showTitlebar = true }: AppShellProps) {
       className="relative flex h-full flex-col overflow-hidden rounded-xl bg-window text-label shadow-[inset_0_0_0_0.5px_var(--border-subtle)]"
     >
       <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-      {showTitlebar ? <Titlebar /> : null}
+      {/* Las luces se desvanecen con la pantalla que las trae: el Editor pinta
+          las suyas en su propia cabecera y sin esto desaparecían de golpe. */}
+      <AnimatePresence>
+        {showTitlebar ? (
+          <motion.div
+            key="titlebar"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.24, delay: 0.1 } }}
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+          >
+            <Titlebar />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   )
 }

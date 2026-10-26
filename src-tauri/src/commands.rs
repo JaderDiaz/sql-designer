@@ -467,45 +467,37 @@ pub async fn window_set_close_guard(
 /// Ajusta la ventana al modo de la pantalla que se está mostrando.
 ///
 /// La Bienvenida es un diálogo de tamaño fijo que siempre sale centrado
-/// (RS-01); el Editor es la zona de trabajo y siempre abre maximizado, con el
-/// mínimo bajado a 900 × 600 por si el usuario lo restaura después.
+/// (RS-01); el Editor es la zona de trabajo y ocupa el área de trabajo del
+/// monitor, con el mínimo bajado a 900 × 600 por si el usuario lo encoge.
+///
+/// Con `animate` la ventana recorre el camino entre un modo y otro en vez de
+/// saltar: el salto delataba el cambio de tamaño y dejaba a la interfaz
+/// recolocándose de golpe al final. El Editor no se maximiza de verdad: llena
+/// el área de trabajo, que se ve igual, y así el sistema no encadena su propia
+/// animación de zoom encima de la nuestra.
 ///
 /// @param mode `"welcome"` o `"editor"`.
+/// @param animate `false` cuando el sistema pide menos movimiento.
 #[tauri::command]
 pub async fn window_apply_mode<R: Runtime>(
     window: WebviewWindow<R>,
     mode: String,
+    animate: Option<bool>,
 ) -> Result<(), AppError> {
+    let animate = animate.unwrap_or(true);
     let scale = window.scale_factor().unwrap_or(1.0);
     let welcome = tauri::LogicalSize::new(window_state::WELCOME_SIZE.0, window_state::WELCOME_SIZE.1);
-    let size = window
-        .inner_size()
-        .map(|physical| physical.to_logical::<f64>(scale))
-        .unwrap_or(welcome);
 
-    match mode.as_str() {
+    let target = match mode.as_str() {
         "welcome" => {
             apply(window.set_min_size(Some(welcome)))?;
-            if window.is_maximized().unwrap_or(false) {
-                apply(window.unmaximize())?;
-            }
-            // La Bienvenida siempre sale en el centro y con su tamaño: donde
-            // quedó el Editor no la mueve, porque es el punto de partida de la
-            // aplicación, no una ventana de trabajo.
-            if size.width != welcome.width || size.height != welcome.height {
-                apply(window.set_size(welcome))?;
-            }
-            apply(window.center())?;
+            window_state::centered_in(work_area(&window, scale), welcome.width, welcome.height)
         }
         "editor" => {
             let minimum =
                 tauri::LogicalSize::new(window_state::EDITOR_MIN_SIZE.0, window_state::EDITOR_MIN_SIZE.1);
             apply(window.set_min_size(Some(minimum)))?;
-            // El Editor es la zona de trabajo: abre siempre maximizado. Si el
-            // usuario lo restaura después, el mínimo de 900 × 600 manda.
-            if !window.is_maximized().unwrap_or(false) {
-                apply(window.maximize())?;
-            }
+            work_area(&window, scale)
         }
         other => {
             return Err(AppError::new(
@@ -513,9 +505,110 @@ pub async fn window_apply_mode<R: Runtime>(
                 format!("modo de ventana desconocido: {other}"),
             ))
         }
+    };
+
+    // Una ventana maximizada no se puede mover ni redimensionar: hay que
+    // soltarla antes. Al soltarla vuelve a su tamaño anterior, así que se la
+    // devuelve al sitio que ocupaba y el camino empieza donde estaba.
+    let start = current_rect(&window, scale);
+    if window.is_maximized().unwrap_or(false) {
+        apply(window.unmaximize())?;
+        set_rect(&window, start);
     }
 
+    if !animate {
+        set_rect(&window, target);
+        return Ok(());
+    }
+
+    glide(&window, start, target).await;
     Ok(())
+}
+
+/// Lleva la ventana de un rectángulo a otro con la curva de salida de Aura.
+///
+/// Los pasos van en un hilo aparte: mover la ventana es una llamada al sistema
+/// y dormir entre pasos en el hilo del comando pararía el resto de la
+/// aplicación. El comando espera a que termine, de modo que la interfaz sabe
+/// cuándo la ventana ya está en su sitio.
+///
+/// @param window Ventana que se mueve.
+/// @param from Rectángulo de partida.
+/// @param to Rectángulo de destino.
+async fn glide<R: Runtime>(window: &WebviewWindow<R>, from: window_state::Rect, to: window_state::Rect) {
+    let window = window.clone();
+    let _ = tauri::async_runtime::spawn_blocking(move || {
+        let steps = window_state::mode_anim_steps();
+        for step in 1..=steps {
+            let progress = window_state::ease_out(f64::from(step) / f64::from(steps));
+            set_rect(&window, window_state::lerp_rect(from, to, progress));
+            std::thread::sleep(std::time::Duration::from_millis(window_state::MODE_ANIM_STEP_MS));
+        }
+    })
+    .await;
+}
+
+/// Coloca la ventana en un rectángulo, en píxeles lógicos.
+///
+/// Los fallos se tragan a propósito: un paso perdido de la animación no es
+/// motivo para abortar el cambio de pantalla.
+///
+/// @param window Ventana que se mueve.
+/// @param rect Sitio y tamaño que ha de ocupar.
+fn set_rect<R: Runtime>(window: &WebviewWindow<R>, rect: window_state::Rect) {
+    let _ = window.set_size(tauri::LogicalSize::new(rect.width, rect.height));
+    let _ = window.set_position(tauri::LogicalPosition::new(rect.x, rect.y));
+}
+
+/// Rectángulo que ocupa la ventana ahora mismo, en píxeles lógicos.
+///
+/// @param window Ventana que se mide.
+/// @param scale Factor de escala del monitor.
+fn current_rect<R: Runtime>(window: &WebviewWindow<R>, scale: f64) -> window_state::Rect {
+    let size = window
+        .inner_size()
+        .map(|physical| physical.to_logical::<f64>(scale))
+        .unwrap_or(tauri::LogicalSize::new(
+            window_state::WELCOME_SIZE.0,
+            window_state::WELCOME_SIZE.1,
+        ));
+    let position = window
+        .outer_position()
+        .map(|physical| physical.to_logical::<f64>(scale))
+        .unwrap_or(tauri::LogicalPosition::new(0.0, 0.0));
+
+    window_state::Rect { x: position.x, y: position.y, width: size.width, height: size.height }
+}
+
+/// Área de trabajo del monitor donde está la ventana, en píxeles lógicos.
+///
+/// Es la pantalla menos lo que ocupan la barra de menú y el Dock. Sin monitor
+/// —puede pasar mientras la ventana se está creando— se devuelve el tamaño de
+/// la Bienvenida, que al menos es un rectángulo válido.
+///
+/// @param window Ventana de la que se busca el monitor.
+/// @param scale Factor de escala del monitor.
+fn work_area<R: Runtime>(window: &WebviewWindow<R>, scale: f64) -> window_state::Rect {
+    let monitor = match window.current_monitor() {
+        Ok(Some(monitor)) => monitor,
+        _ => match window.primary_monitor() {
+            Ok(Some(monitor)) => monitor,
+            _ => {
+                return window_state::Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    width: window_state::WELCOME_SIZE.0,
+                    height: window_state::WELCOME_SIZE.1,
+                }
+            }
+        },
+    };
+
+    let area = monitor.work_area();
+    let position = area.position.to_logical::<f64>(scale);
+    let size = area.size.to_logical::<f64>(scale);
+
+    window_state::Rect { x: position.x, y: position.y, width: size.width, height: size.height }
 }
 
 /// Traduce el fallo de una operación de ventana al error del contrato.
