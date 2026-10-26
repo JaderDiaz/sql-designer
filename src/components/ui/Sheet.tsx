@@ -77,8 +77,10 @@ export function Sheet({
         </div>
       </div>
       {/* El cuerpo es lo único que se desplaza: en una ventana baja, la
-          cabecera y los botones siguen a la vista. */}
-      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
+          cabecera y los botones siguen a la vista. El margen negativo con su
+          relleno deja sitio al anillo de foco, que se sale 3 px del campo y
+          lo recortaría el propio desplazamiento. */}
+      <div className="-mx-2 min-h-0 flex-1 overflow-y-auto px-2">{children}</div>
       {footer ? <div className="flex justify-end gap-2 pt-1">{footer}</div> : null}
     </>
   )
