@@ -9,16 +9,24 @@ import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
-  return { ...actual, preferencesUpdate: vi.fn(), fsUserPlaces: vi.fn() }
+  return {
+    ...actual,
+    preferencesUpdate: vi.fn(),
+    fsUserPlaces: vi.fn(),
+    fsListDirectory: vi.fn(),
+  }
 })
 
-const { fsUserPlaces, preferencesUpdate } = await import('@/lib/tauri/commands')
+const { fsListDirectory, fsUserPlaces, preferencesUpdate } = await import(
+  '@/lib/tauri/commands'
+)
 
 describe('Bienvenida', () => {
   beforeEach(() => {
     resetStore()
     vi.mocked(preferencesUpdate).mockResolvedValue(DEFAULT_PREFERENCES)
     vi.mocked(fsUserPlaces).mockResolvedValue([])
+    vi.mocked(fsListDirectory).mockResolvedValue([])
   })
 
   it('muestra nombre, versión y fecha tal como las devuelve app_identity', () => {
@@ -47,7 +55,7 @@ describe('Bienvenida', () => {
     expect(screen.getByText('Ctrl+O')).toBeInTheDocument()
   })
 
-  it('«Nuevo modelo…» abre el diálogo y «Abrir modelo…» todavía avisa', async () => {
+  it('las dos acciones abren su diálogo (FR-002, FR-012)', async () => {
     const user = userEvent.setup()
     render(<WelcomeScreen />)
 
@@ -58,7 +66,7 @@ describe('Bienvenida', () => {
     expect(useAppStore.getState().dialog).toBe('new-model')
 
     await user.click(screen.getByRole('button', { name: /abrir modelo/i }))
-    expect(useAppStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
+    expect(useAppStore.getState().dialog).toBe('open-model')
   })
 
   it('la casilla refleja y cambia showWelcomeOnStart', async () => {

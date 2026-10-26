@@ -7,7 +7,6 @@ import { AppIcon } from '@/components/ui/AppIcon'
 import { Button } from '@/components/ui/Button'
 import { riseIn, slideInLeft, stagger } from '@/lib/motion'
 import { useAppStore } from '@/store'
-import { NEXT_INCREMENT_NOTICE } from '@/store/preferences'
 
 /**
  * Pantalla de Bienvenida, que es la ventana entera (820 × 500 en el lienzo):
@@ -26,9 +25,9 @@ export function WelcomeScreen() {
   const identity = useAppStore((state) => state.identity)
   const platform = useAppStore((state) => state.platform)
   const loadError = useAppStore((state) => state.loadError)
-  const showNotice = useAppStore((state) => state.showNotice)
   const openPreferences = useAppStore((state) => state.openPreferences)
   const openNewModel = useAppStore((state) => state.openNewModel)
+  const openOpenModel = useAppStore((state) => state.openOpenModel)
 
   return (
     <motion.section
@@ -62,7 +61,7 @@ export function WelcomeScreen() {
         <WelcomeActions
           platform={platform}
           onNewModel={openNewModel}
-          onOpenModel={() => showNotice(NEXT_INCREMENT_NOTICE)}
+          onOpenModel={openOpenModel}
           onOpenPreferences={openPreferences}
         />
       </motion.aside>

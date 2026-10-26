@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 
 import { EditorScreen } from '@/components/features/editor/EditorScreen'
 import { NewModelDialog } from '@/components/features/new-model/NewModelDialog'
+import { FileErrorDialog } from '@/components/features/open-model/FileErrorDialog'
+import { OpenModelDialog } from '@/components/features/open-model/OpenModelDialog'
 import { PreferencesWindow } from '@/components/features/preferences/PreferencesWindow'
 import { SplashScreen } from '@/components/features/splash/SplashScreen'
 import { WelcomeScreen } from '@/components/features/welcome/WelcomeScreen'
@@ -116,6 +118,8 @@ export default function App() {
         </AnimatePresence>
         {notice ? <Toast title={notice} onDismiss={dismissNotice} /> : null}
         <NewModelDialog />
+        <OpenModelDialog />
+        <FileErrorDialog />
       </AppShell>
       <PreferencesWindow />
     </MotionConfig>

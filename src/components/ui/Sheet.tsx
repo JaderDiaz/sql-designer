@@ -15,6 +15,8 @@ export interface SheetProps {
   icon?: IconName
   /** Clase del cuadro del icono, para su color de fondo. */
   iconClassName?: string
+  /** Clase del icono, para su color; por defecto el azul del sistema. */
+  iconColorClassName?: string
   /** Ancho en píxeles, como lo fija el lienzo para cada hoja. */
   width?: number
   /** Qué se ve al pie, normalmente los botones. */
@@ -43,6 +45,7 @@ export function Sheet({
   description,
   icon,
   iconClassName,
+  iconColorClassName = 'text-blue',
   width = 440,
   footer,
   onSubmit,
@@ -59,7 +62,7 @@ export function Sheet({
               iconClassName ?? 'bg-accent-soft',
             )}
           >
-            <Icon name={icon} size={18} className="text-blue" />
+            <Icon name={icon} size={18} className={iconColorClassName} />
           </span>
         ) : null}
         <div className="flex flex-col gap-0.5">

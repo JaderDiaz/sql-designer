@@ -58,6 +58,39 @@ pub struct PathStat {
     pub stamp: Option<FileStamp>,
 }
 
+/// Qué se lista de una carpeta.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ListOnly {
+    /// Solo carpetas: el diálogo Elegir carpeta.
+    Folders,
+    /// Carpetas y archivos de modelo: el diálogo Abrir modelo.
+    Models,
+    /// Todo lo que haya, sin filtrar por tipo.
+    All,
+}
+
+/// Una entrada de carpeta tal como viaja al frontend.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DirectoryEntry {
+    pub name: String,
+    pub path: String,
+    pub is_directory: bool,
+    pub size_bytes: u64,
+    pub modified_ms: u64,
+    /// `true` para los `.yaml`.
+    pub is_model: bool,
+}
+
+/// Nombre y ruta reales de una carpeta recién creada, ya desambiguados.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreatedDirectory {
+    pub name: String,
+    pub path: String,
+}
+
 /// Ruta final de un archivo de modelo y si ya está ocupada.
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -237,6 +270,161 @@ pub fn build_model_path(folder: &Path, file_stem: &str) -> Result<BuiltModelPath
     })
 }
 
+/// ¿Es un archivo de modelo por su extensión?
+///
+/// La comparación no distingue mayúsculas: `MODELO.YAML` también es un modelo.
+///
+/// @param path Ruta del archivo.
+fn is_model_file(path: &Path) -> bool {
+    path.extension()
+        .map(|extension| extension.to_string_lossy().to_ascii_lowercase() == MODEL_EXTENSION)
+        .unwrap_or(false)
+}
+
+/// Compara dos nombres con orden natural e insensible a mayúsculas.
+///
+/// «Modelo 2» va antes que «Modelo 10», que es lo que espera cualquiera que
+/// mire una lista de archivos; comparar como texto los pondría al revés.
+///
+/// @param left Un nombre.
+/// @param right El otro nombre.
+fn natural_cmp(left: &str, right: &str) -> std::cmp::Ordering {
+    let mut a = left.chars().flat_map(char::to_lowercase).peekable();
+    let mut b = right.chars().flat_map(char::to_lowercase).peekable();
+
+    loop {
+        match (a.peek().copied(), b.peek().copied()) {
+            (None, None) => return left.cmp(right),
+            (None, Some(_)) => return std::cmp::Ordering::Less,
+            (Some(_), None) => return std::cmp::Ordering::Greater,
+            (Some(x), Some(y)) if x.is_ascii_digit() && y.is_ascii_digit() => {
+                // Los dígitos seguidos se comparan como número, no como texto.
+                let mut nx = String::new();
+                while a.peek().copied().is_some_and(|c| c.is_ascii_digit()) {
+                    nx.push(a.next().unwrap_or_default());
+                }
+                let mut ny = String::new();
+                while b.peek().copied().is_some_and(|c| c.is_ascii_digit()) {
+                    ny.push(b.next().unwrap_or_default());
+                }
+                let vx: u128 = nx.trim_start_matches('0').parse().unwrap_or(0);
+                let vy: u128 = ny.trim_start_matches('0').parse().unwrap_or(0);
+                match vx.cmp(&vy) {
+                    std::cmp::Ordering::Equal => {}
+                    other => return other,
+                }
+            }
+            (Some(x), Some(y)) => {
+                a.next();
+                b.next();
+                match x.cmp(&y) {
+                    std::cmp::Ordering::Equal => {}
+                    other => return other,
+                }
+            }
+        }
+    }
+}
+
+/// Lista el contenido de una carpeta, ya filtrado y ordenado.
+///
+/// Las carpetas van primero y luego los archivos, cada grupo con orden natural
+/// insensible a mayúsculas. Se omiten los ocultos (nombre que empieza por `.`)
+/// y lo que el sistema no deja leer: una entrada ilegible no tumba el listado
+/// (principio III).
+///
+/// @param path Carpeta que se lista.
+/// @param only Qué se quiere ver: solo carpetas, carpetas y modelos, o todo.
+pub fn list_directory(path: &Path, only: ListOnly) -> Result<Vec<DirectoryEntry>, AppError> {
+    let metadata = fs::metadata(path).map_err(|error| to_app_error(&error, "path_denied"))?;
+    if !metadata.is_dir() {
+        return Err(AppError::new("path_not_a_directory", "La ruta no es una carpeta."));
+    }
+
+    let reader = fs::read_dir(path).map_err(|error| to_app_error(&error, "path_denied"))?;
+    let mut entries: Vec<DirectoryEntry> = Vec::new();
+
+    for item in reader {
+        let Ok(item) = item else { continue };
+        let name = item.file_name().to_string_lossy().to_string();
+        if name.starts_with('.') {
+            continue;
+        }
+        let Ok(metadata) = item.metadata() else { continue };
+        let is_directory = metadata.is_dir();
+        let entry_path = item.path();
+        let is_model = !is_directory && is_model_file(&entry_path);
+
+        let keep = match only {
+            ListOnly::Folders => is_directory,
+            ListOnly::Models => is_directory || is_model,
+            ListOnly::All => is_directory || metadata.is_file(),
+        };
+        if !keep {
+            continue;
+        }
+
+        let stamp = stamp_of(&metadata);
+        entries.push(DirectoryEntry {
+            name,
+            path: entry_path.to_string_lossy().to_string(),
+            is_directory,
+            size_bytes: stamp.size_bytes,
+            modified_ms: stamp.modified_ms,
+            is_model,
+        });
+    }
+
+    entries.sort_by(|left, right| {
+        right
+            .is_directory
+            .cmp(&left.is_directory)
+            .then_with(|| natural_cmp(&left.name, &right.name))
+    });
+    Ok(entries)
+}
+
+/// Crea una carpeta dentro de otra y devuelve su nombre real.
+///
+/// Si el nombre ya está ocupado se numera (` 2`, ` 3`, …) hasta encontrar uno
+/// libre: la numeración la decide Rust, no la interfaz (FR-010).
+///
+/// @param parent Carpeta donde se crea la nueva.
+/// @param name Nombre pedido, sin separadores de ruta.
+pub fn create_directory(parent: &Path, name: &str) -> Result<CreatedDirectory, AppError> {
+    let trimmed = name.trim();
+    if trimmed.is_empty() {
+        return Err(AppError::new("path_invalid", "El nombre de la carpeta está vacío."));
+    }
+    if trimmed.contains('/') || trimmed.contains('\\') || trimmed.contains(':') {
+        return Err(AppError::new(
+            "path_invalid",
+            "El nombre de la carpeta no puede llevar separadores de ruta.",
+        ));
+    }
+    if !parent.is_dir() {
+        return Err(AppError::new("path_not_found", "La carpeta de destino ya no existe."));
+    }
+
+    for attempt in 1..=1_000 {
+        let candidate =
+            if attempt == 1 { trimmed.to_string() } else { format!("{trimmed} {attempt}") };
+        let path = parent.join(&candidate);
+        match fs::create_dir(&path) {
+            Ok(()) => {
+                return Ok(CreatedDirectory {
+                    name: candidate,
+                    path: path.to_string_lossy().to_string(),
+                })
+            }
+            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(to_app_error(&error, "path_denied")),
+        }
+    }
+
+    Err(AppError::new("path_invalid", "No queda ningún nombre libre para esa carpeta."))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -369,6 +557,142 @@ mod tests {
         assert_eq!(stats[0].stamp, Some(stamp_on_disk(&presente)));
         assert!(!stats[1].exists);
         assert!(stats[1].stamp.is_none());
+    }
+
+    /// Crea una carpeta con contenido variado para las pruebas del listado.
+    fn fixture_dir(name: &str) -> PathBuf {
+        let dir = temp_dir(name);
+        fs::create_dir(dir.join("Zeta")).expect("carpeta");
+        fs::create_dir(dir.join("alfa")).expect("carpeta");
+        fs::create_dir(dir.join(".oculta")).expect("carpeta");
+        fs::write(dir.join("modelo 2.yaml"), "a").expect("archivo");
+        fs::write(dir.join("modelo 10.yaml"), "a").expect("archivo");
+        fs::write(dir.join("MODELO.YAML"), "a").expect("archivo");
+        fs::write(dir.join("notas.txt"), "a").expect("archivo");
+        fs::write(dir.join(".oculto.yaml"), "a").expect("archivo");
+        dir
+    }
+
+    /// Nombres de las entradas, en el orden en el que vinieron.
+    fn names(entries: &[DirectoryEntry]) -> Vec<String> {
+        entries.iter().map(|entry| entry.name.clone()).collect()
+    }
+
+    #[test]
+    fn listar_solo_carpetas_deja_fuera_los_archivos_y_los_ocultos() {
+        let dir = fixture_dir("listar-carpetas");
+
+        let entries = list_directory(&dir, ListOnly::Folders).expect("listado");
+
+        assert_eq!(names(&entries), vec!["alfa", "Zeta"]);
+    }
+
+    #[test]
+    fn listar_modelos_trae_carpetas_y_yaml_sin_distinguir_mayusculas() {
+        let dir = fixture_dir("listar-modelos");
+
+        let entries = list_directory(&dir, ListOnly::Models).expect("listado");
+
+        assert_eq!(
+            names(&entries),
+            vec!["alfa", "Zeta", "modelo 2.yaml", "modelo 10.yaml", "MODELO.YAML"]
+        );
+        assert!(entries.iter().filter(|entry| !entry.is_directory).all(|entry| entry.is_model));
+    }
+
+    #[test]
+    fn listar_todo_trae_tambien_los_que_no_son_modelos() {
+        let dir = fixture_dir("listar-todo");
+
+        let entries = list_directory(&dir, ListOnly::All).expect("listado");
+
+        assert_eq!(
+            names(&entries),
+            vec!["alfa", "Zeta", "modelo 2.yaml", "modelo 10.yaml", "MODELO.YAML", "notas.txt"]
+        );
+        let notas = entries.iter().find(|entry| entry.name == "notas.txt").expect("notas");
+        assert!(!notas.is_model);
+        assert_eq!(notas.size_bytes, 1);
+    }
+
+    #[test]
+    fn listar_una_ruta_que_no_esta_devuelve_path_not_found() {
+        let dir = temp_dir("listar-ausente");
+
+        let error = list_directory(&dir.join("no-esta"), ListOnly::All).expect_err("debe fallar");
+
+        assert_eq!(error.code, "path_not_found");
+    }
+
+    #[test]
+    fn listar_un_archivo_devuelve_path_not_a_directory() {
+        let dir = temp_dir("listar-archivo");
+        let path = dir.join("modelo.yaml");
+        fs::write(&path, "a").expect("archivo");
+
+        let error = list_directory(&path, ListOnly::All).expect_err("debe fallar");
+
+        assert_eq!(error.code, "path_not_a_directory");
+    }
+
+    #[test]
+    fn listar_mil_entradas_devuelve_las_mil_en_orden_natural() {
+        // El comando es `async` (ver `commands::fs_list_directory`), así que
+        // esta prueba solo comprueba que el listado aguanta el volumen de
+        // FR-042 y no reordena como texto.
+        let dir = temp_dir("listar-mil");
+        for index in 1..=1_000 {
+            fs::write(dir.join(format!("modelo {index}.yaml")), "a").expect("archivo");
+        }
+
+        let entries = list_directory(&dir, ListOnly::Models).expect("listado");
+
+        assert_eq!(entries.len(), 1_000);
+        assert_eq!(entries[0].name, "modelo 1.yaml");
+        assert_eq!(entries[1].name, "modelo 2.yaml");
+        assert_eq!(entries[999].name, "modelo 1000.yaml");
+    }
+
+    #[test]
+    fn crear_una_carpeta_libre_usa_el_nombre_pedido() {
+        let dir = temp_dir("crear-libre");
+
+        let created = create_directory(&dir, "carpeta sin título").expect("carpeta");
+
+        assert_eq!(created.name, "carpeta sin título");
+        assert!(dir.join("carpeta sin título").is_dir());
+    }
+
+    #[test]
+    fn crear_dos_veces_el_mismo_nombre_lo_numera() {
+        let dir = temp_dir("crear-repetido");
+
+        create_directory(&dir, "carpeta sin título").expect("primera");
+        let segunda = create_directory(&dir, "carpeta sin título").expect("segunda");
+        let tercera = create_directory(&dir, "carpeta sin título").expect("tercera");
+
+        assert_eq!(segunda.name, "carpeta sin título 2");
+        assert_eq!(tercera.name, "carpeta sin título 3");
+    }
+
+    #[test]
+    fn crear_una_carpeta_con_separadores_devuelve_path_invalid() {
+        let dir = temp_dir("crear-separador");
+
+        assert_eq!(create_directory(&dir, "").expect_err("vacío").code, "path_invalid");
+        assert_eq!(
+            create_directory(&dir, "sub/otra").expect_err("separador").code,
+            "path_invalid"
+        );
+    }
+
+    #[test]
+    fn crear_una_carpeta_sin_padre_devuelve_path_not_found() {
+        let dir = temp_dir("crear-sin-padre");
+
+        let error = create_directory(&dir.join("no-esta"), "nueva").expect_err("debe fallar");
+
+        assert_eq!(error.code, "path_not_found");
     }
 
     #[test]

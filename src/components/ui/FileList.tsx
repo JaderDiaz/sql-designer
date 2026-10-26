@@ -10,6 +10,8 @@ export interface FileRow {
   /** Segunda columna, normalmente la fecha de modificación. */
   meta: string
   icon: IconName
+  /** Clase del icono, para su tinte: azul las carpetas, índigo los modelos. */
+  iconClassName?: string
   /** Una fila deshabilitada se ve pero no se puede elegir. */
   disabled?: boolean
 }
@@ -108,7 +110,7 @@ export function FileList({
               onClick={() => onValueChange(row.id)}
               onDoubleClick={() => onActivate?.(row.id)}
             >
-              <Icon name={row.icon} size={16} />
+              <Icon name={row.icon} size={16} className={row.iconClassName ?? ''} />
               <span className="sm-file-name">{row.name}</span>
               <span className="sm-file-date" style={{ width: metaWidth }}>
                 {row.meta}

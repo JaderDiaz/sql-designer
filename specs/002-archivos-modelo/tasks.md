@@ -154,24 +154,24 @@ que la US2 reutiliza después.
 
 ### Tests for User Story 3
 
-- [ ] T046 [P] [US3] Escribir `src/lib/model/summary.test.ts`: motor, número de tablas y de relaciones de cada ejemplo; un archivo roto devuelve `invalid: true` con el mensaje y la línea
-- [ ] T047 [P] [US3] Escribir `src/store/browser.test.ts`: cambiar de ubicación carga su contenido, Atrás y Adelante recorren el historial y se deshabilitan en los extremos, la búsqueda filtra en memoria y deja «Sin resultados», y solo se puede seleccionar un `.yaml`
-- [ ] T048 [P] [US3] Escribir `src/components/features/open-model/OpenModelDialog.test.tsx`: la vista previa muestra los cinco datos, «Abrir» deshabilitado sin selección, doble clic abre, un archivo con errores marca la vista previa y abre el diálogo con la línea, y los archivos que no son `.yaml` salen atenuados y no seleccionables
+- [X] T046 [P] [US3] Escribir `src/lib/model/summary.test.ts`: motor, número de tablas y de relaciones de cada ejemplo; un archivo roto devuelve `invalid: true` con el mensaje y la línea
+- [X] T047 [P] [US3] Escribir `src/store/browser.test.ts`: cambiar de ubicación carga su contenido, Atrás y Adelante recorren el historial y se deshabilitan en los extremos, la búsqueda filtra en memoria y deja «Sin resultados», y solo se puede seleccionar un `.yaml`
+- [X] T048 [P] [US3] Escribir `src/components/features/open-model/OpenModelDialog.test.tsx`: la vista previa muestra los cinco datos, «Abrir» deshabilitado sin selección, doble clic abre, un archivo con errores marca la vista previa y abre el diálogo con la línea, y los archivos que no son `.yaml` salen atenuados y no seleccionables
 
 ### Implementation for User Story 3
 
 - [X] T049 [P] [US3] Crear `src-tauri/src/places.rs` con `fs_user_places`: Recientes (virtual, sin ruta), Escritorio, Documentos, Descargas, Inicio, iCloud Drive solo en macOS si existe, y la raíz del volumen, **listando solo las que existen**, cada una con `id`, `label`, `icon`, `path` y `canCreateFolder` (research.md R6)
-- [ ] T050 [US3] Implementar `fs_list_directory` en `src-tauri/src/files.rs` y `commands.rs` con el filtro `only` (`folders`, `models`, `all`), carpetas primero y después orden natural insensible a mayúsculas, omitiendo ocultos e ilegibles, y devolviendo `DirectoryEntry` con `isModel` para los `.yaml`
-- [ ] T051 [P] [US3] Escribir las pruebas de `fs_list_directory` y `fs_user_places` en Rust: los tres filtros, el orden, los ocultos, `path_not_found`, `path_not_a_directory` y que no se lista una ubicación inexistente
-- [ ] T052 [P] [US3] Comprobar que listar una carpeta de 1 000 entradas no congela la interfaz: prueba en `src-tauri/src/files.rs` que el comando es `async` y medición manual anotada en el escenario 3 de `quickstart.md` (FR-042, principio III)
-- [ ] T053 [P] [US3] Crear `src/lib/model/summary.ts` que, a partir del texto de `model_read`, devuelva `ModelPreview` (`name`, `fileName`, `engine`, `tables`, `relations`, `sizeBytes`, `modifiedMs`, `invalid`, `error`) reutilizando `parse.ts`, sin un segundo parser
-- [ ] T054 [US3] Completar el slice `browser` en `src/store/browser.ts` con `placeId`, `path`, `entries`, `query`, `selection`, `history`, `future` y `preview`, y las acciones de navegar, entrar en una carpeta, buscar, seleccionar y refrescar la vista previa
-- [ ] T055 [US3] Añadir al slice `model` la acción `openModel(path)`: `model_read`, validación, `recents_touch` con los datos cacheados, `lastModelPath`, `screen` a `'editor'` y `measure_model_opened`; si la validación falla, no abre y deja el error para el diálogo (FR-016)
-- [ ] T056 [US3] Crear `src/components/features/open-model/OpenModelDialog.tsx` según `project/AbrirModelo.dc.html`: barra con Atrás, Adelante, ubicación y buscador; `Sidebar` de ubicaciones; `FileList` con Nombre y Modificado; panel de vista previa; pie con el `Select` de formato «Modelo SQL Designer (.yaml)», «Cancelar» y «Abrir»
-- [ ] T057 [US3] Implementar los estados vacíos del diálogo con los textos exactos: «No hay modelos aquí» con «Los modelos de SQL Designer son archivos .yaml.» y «Sin resultados» con el texto buscado (FR-009)
-- [ ] T058 [US3] Crear `src/components/features/open-model/FileErrorDialog.tsx`: título «No se pudo abrir «<archivo>»», descripción con la línea y la causa, y las salidas «Mostrar en Finder» / «Mostrar en el Explorador» y «Aceptar», quedándose en Abrir modelo al cerrar
-- [ ] T059 [US3] Crear `src-tauri/src/system.rs` con `reveal_in_file_manager` (`open -R` en macOS, `explorer /select,` en Windows) y registrarlo, devolviendo `path_not_found` o `system_command_failed` sin pánico (research.md R8)
-- [ ] T060 [US3] Conectar la Bienvenida: «Abrir modelo…» y ⌘O / Ctrl+O abren el diálogo desde `WelcomeActions.tsx` y `src/hooks/useShortcut.ts`
+- [X] T050 [US3] Implementar `fs_list_directory` en `src-tauri/src/files.rs` y `commands.rs` con el filtro `only` (`folders`, `models`, `all`), carpetas primero y después orden natural insensible a mayúsculas, omitiendo ocultos e ilegibles, y devolviendo `DirectoryEntry` con `isModel` para los `.yaml`
+- [X] T051 [P] [US3] Escribir las pruebas de `fs_list_directory` y `fs_user_places` en Rust: los tres filtros, el orden, los ocultos, `path_not_found`, `path_not_a_directory` y que no se lista una ubicación inexistente
+- [X] T052 [P] [US3] Comprobar que listar una carpeta de 1 000 entradas no congela la interfaz: prueba en `src-tauri/src/files.rs` que el comando es `async` y medición manual anotada en el escenario 3 de `quickstart.md` (FR-042, principio III)
+- [X] T053 [P] [US3] Crear `src/lib/model/summary.ts` que, a partir del texto de `model_read`, devuelva `ModelPreview` (`name`, `fileName`, `engine`, `tables`, `relations`, `sizeBytes`, `modifiedMs`, `invalid`, `error`) reutilizando `parse.ts`, sin un segundo parser
+- [X] T054 [US3] Completar el slice `browser` en `src/store/browser.ts` con `placeId`, `path`, `entries`, `query`, `selection`, `history`, `future` y `preview`, y las acciones de navegar, entrar en una carpeta, buscar, seleccionar y refrescar la vista previa
+- [X] T055 [US3] Añadir al slice `model` la acción `openModel(path)`: `model_read`, validación, `recents_touch` con los datos cacheados, `lastModelPath`, `screen` a `'editor'` y `measure_model_opened`; si la validación falla, no abre y deja el error para el diálogo (FR-016)
+- [X] T056 [US3] Crear `src/components/features/open-model/OpenModelDialog.tsx` según `project/AbrirModelo.dc.html`: barra con Atrás, Adelante, ubicación y buscador; `Sidebar` de ubicaciones; `FileList` con Nombre y Modificado; panel de vista previa; pie con el `Select` de formato «Modelo SQL Designer (.yaml)», «Cancelar» y «Abrir»
+- [X] T057 [US3] Implementar los estados vacíos del diálogo con los textos exactos: «No hay modelos aquí» con «Los modelos de SQL Designer son archivos .yaml.» y «Sin resultados» con el texto buscado (FR-009)
+- [X] T058 [US3] Crear `src/components/features/open-model/FileErrorDialog.tsx`: título «No se pudo abrir «<archivo>»», descripción con la línea y la causa, y las salidas «Mostrar en Finder» / «Mostrar en el Explorador» y «Aceptar», quedándose en Abrir modelo al cerrar
+- [X] T059 [US3] Crear `src-tauri/src/system.rs` con `reveal_in_file_manager` (`open -R` en macOS, `explorer /select,` en Windows) y registrarlo, devolviendo `path_not_found` o `system_command_failed` sin pánico (research.md R8)
+- [X] T060 [US3] Conectar la Bienvenida: «Abrir modelo…» y ⌘O / Ctrl+O abren el diálogo desde `WelcomeActions.tsx` y `src/hooks/useShortcut.ts`
 
 **Checkpoint**: abrir un modelo válido y ver el error de uno roto funcionan solos.
 Escenario 3 de `quickstart.md` en verde.

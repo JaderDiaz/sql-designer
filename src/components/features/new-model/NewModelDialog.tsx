@@ -45,7 +45,7 @@ export function takenMessage(fileName: string): string {
 export function NewModelDialog() {
   const dialog = useAppStore((state) => state.dialog)
   const closeDialog = useAppStore((state) => state.closeDialog)
-  const openDialog = useAppStore((state) => state.openDialog)
+  const openChooseFolder = useAppStore((state) => state.openChooseFolder)
   const draftName = useAppStore((state) => state.draftName)
   const draftEngine = useAppStore((state) => state.draftEngine)
   const draftFolder = useAppStore((state) => state.draftFolder)
@@ -166,7 +166,7 @@ export function NewModelDialog() {
                 {draftFolder ?? 'Elige una carpeta'}
               </span>
             </div>
-            <Button onClick={() => openDialog('choose-folder')}>Cambiar…</Button>
+            <Button onClick={() => openChooseFolder('new-model')}>Cambiar…</Button>
           </div>
           <span className="truncate font-mono text-[11px] leading-[14px] text-label-secondary">
             {draftFolder === null

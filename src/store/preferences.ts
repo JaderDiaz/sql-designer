@@ -35,9 +35,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
   lastFolder: null,
 }
 
-/** Aviso de las acciones que llegan en el siguiente incremento (FR-004). */
-export const NEXT_INCREMENT_NOTICE = 'Esta acción llega en el Incremento 1'
-
 /**
  * Resuelve el tema que se pinta a partir de la preferencia y del sistema.
  *

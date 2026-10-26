@@ -4,13 +4,17 @@ use std::sync::Mutex;
 use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window};
 
-use crate::files::{self, BuiltModelPath, FileStamp, ModelReadResult, ModelWriteResult, PathStat};
+use crate::files::{
+    self, BuiltModelPath, CreatedDirectory, DirectoryEntry, FileStamp, ListOnly, ModelReadResult,
+    ModelWriteResult, PathStat,
+};
 use crate::identity::AppIdentity;
 use crate::logging::{SCOPE_MEASURE, SCOPE_PREFERENCES, SCOPE_RECENTS, SCOPE_WINDOW_STATE};
 use crate::places::{self, Place, PlaceSources};
 use crate::recents::{self, RecentEntry, RecentEntryInput, RecentListEntry};
 use crate::measure::{self, StartupClock};
 use crate::preferences::{self, Preferences, PreferencesLoadResult, PreferencesPatch, Theme};
+use crate::system;
 use crate::window_state::{self, GeometryApplyResult, MonitorArea};
 
 /// Error que cruza la frontera hacia TypeScript. Ningún comando entra en
@@ -393,6 +397,60 @@ pub async fn path_build_model(
     file_stem: String,
 ) -> Result<BuiltModelPath, AppError> {
     files::build_model_path(Path::new(&folder), &file_stem)
+}
+
+/// Lista el contenido de una carpeta, ya filtrado y ordenado (FR-007, FR-009, FR-012).
+///
+/// Es `async` a propósito: una carpeta con miles de entradas no puede bloquear
+/// el hilo de la interfaz (FR-042, principio III).
+///
+/// @param path Carpeta que se lista.
+/// @param only Qué se quiere ver: `folders`, `models` o `all`.
+#[tauri::command]
+pub async fn fs_list_directory(
+    path: String,
+    only: Option<ListOnly>,
+) -> Result<Vec<DirectoryEntry>, AppError> {
+    files::list_directory(Path::new(&path), only.unwrap_or(ListOnly::All))
+}
+
+/// Crea una carpeta dentro de otra y devuelve su nombre real (FR-010).
+///
+/// @param parent Carpeta donde se crea la nueva.
+/// @param name Nombre pedido; si está ocupado, Rust lo numera.
+#[tauri::command]
+pub async fn fs_create_directory(
+    parent: String,
+    name: String,
+) -> Result<CreatedDirectory, AppError> {
+    files::create_directory(Path::new(&parent), &name)
+}
+
+/// Muestra el archivo en el gestor de archivos del sistema (FR-016).
+///
+/// @param path Ruta del archivo que se quiere mostrar.
+#[tauri::command]
+pub async fn reveal_in_file_manager(path: String) -> Result<(), AppError> {
+    system::reveal_in_file_manager(Path::new(&path))
+}
+
+/// Escribe texto en el portapapeles del sistema (FR-035).
+///
+/// @param text Texto que queda en el portapapeles.
+#[tauri::command]
+pub async fn clipboard_write_text(text: String) -> Result<(), AppError> {
+    system::clipboard_write_text(&text)
+}
+
+/// Mueve el archivo a la papelera del sistema (FR-037, RS-08).
+///
+/// Si falla, el archivo sigue donde estaba y la entrada no se quita de la
+/// lista: quitarla es cosa del frontend, y solo cuando esto sale bien.
+///
+/// @param path Ruta del archivo que se manda a la papelera.
+#[tauri::command]
+pub async fn trash_move(path: String) -> Result<(), AppError> {
+    system::trash_move(Path::new(&path))
 }
 
 /// Lee el archivo del modelo como texto, con su sello (FR-013, FR-015).

@@ -5,7 +5,10 @@ import type {
   AppErrorCode,
   AppIdentity,
   BuiltModelPath,
+  CreatedDirectory,
+  DirectoryEntry,
   FileStamp,
+  ListOnly,
   GeometryApplyResult,
   ModelReadResult,
   ModelWriteResult,
@@ -236,4 +239,51 @@ export function measureModelSaved(millis: number, tables: number): Promise<numbe
  */
 export function fsUserPlaces(): Promise<Place[]> {
   return call<Place[]>('fs_user_places')
+}
+
+/**
+ * Contenido de una carpeta, ya filtrado y ordenado por Rust (FR-007, FR-009).
+ *
+ * @param path Carpeta que se lista.
+ * @param only Qué se quiere ver; por defecto, todo.
+ */
+export function fsListDirectory(path: string, only?: ListOnly): Promise<DirectoryEntry[]> {
+  return call<DirectoryEntry[]>('fs_list_directory', { path, only })
+}
+
+/**
+ * Crea una carpeta y devuelve su nombre real, ya desambiguado (FR-010).
+ *
+ * @param parent Carpeta donde se crea la nueva.
+ * @param name Nombre pedido; si está ocupado, Rust lo numera.
+ */
+export function fsCreateDirectory(parent: string, name: string): Promise<CreatedDirectory> {
+  return call<CreatedDirectory>('fs_create_directory', { parent, name })
+}
+
+/**
+ * Muestra el archivo en el gestor de archivos del sistema (FR-016).
+ *
+ * @param path Ruta del archivo que se quiere mostrar.
+ */
+export function revealInFileManager(path: string): Promise<void> {
+  return call<void>('reveal_in_file_manager', { path })
+}
+
+/**
+ * Escribe texto en el portapapeles del sistema (FR-035).
+ *
+ * @param text Texto que queda en el portapapeles.
+ */
+export function clipboardWriteText(text: string): Promise<void> {
+  return call<void>('clipboard_write_text', { text })
+}
+
+/**
+ * Mueve el archivo a la papelera del sistema (FR-037, RS-08).
+ *
+ * @param path Ruta del archivo que se manda a la papelera.
+ */
+export function trashMove(path: string): Promise<void> {
+  return call<void>('trash_move', { path })
 }

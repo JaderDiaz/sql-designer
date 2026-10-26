@@ -8,6 +8,7 @@ mod measure;
 mod places;
 mod preferences;
 mod recents;
+mod system;
 mod window_state;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
@@ -111,6 +112,11 @@ fn main() {
             commands::measure_model_saved,
             commands::fs_user_places,
             commands::path_build_model,
+            commands::fs_list_directory,
+            commands::fs_create_directory,
+            commands::reveal_in_file_manager,
+            commands::clipboard_write_text,
+            commands::trash_move,
             commands::model_read,
             commands::model_write,
             commands::model_stat,

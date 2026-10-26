@@ -3,7 +3,6 @@ import { useEffect } from 'react'
 import { usePlatform } from '@/hooks/usePlatform'
 import { isMacOS } from '@/lib/platform'
 import { useAppStore } from '@/store'
-import { NEXT_INCREMENT_NOTICE } from '@/store/preferences'
 
 /** Atajo declarado como tecla más modificador principal. */
 export interface Shortcut {
@@ -43,16 +42,15 @@ export function useShortcut(shortcut: Shortcut, handler: () => void): void {
 /**
  * Registra los atajos de la aplicación.
  *
- * `⌘N`/`Ctrl+N` abre Nuevo modelo (FR-002); `⌘O`/`Ctrl+O` muestra el mismo
- * aviso que el clic, para que la pantalla no anuncie un atajo que no responde
- * (FR-004); `⌘,`/`Ctrl+,` abre Ajustes, que es la tercera vía de FR-020.
+ * `⌘N`/`Ctrl+N` abre Nuevo modelo (FR-002), `⌘O`/`Ctrl+O` abre Abrir modelo
+ * (FR-012) y `⌘,`/`Ctrl+,` abre Ajustes, que es la tercera vía de FR-020.
  */
 export function useAppShortcuts(): void {
-  const showNotice = useAppStore((state) => state.showNotice)
   const openPreferences = useAppStore((state) => state.openPreferences)
   const openNewModel = useAppStore((state) => state.openNewModel)
+  const openOpenModel = useAppStore((state) => state.openOpenModel)
 
   useShortcut({ key: 'n', meta: true }, openNewModel)
-  useShortcut({ key: 'o', meta: true }, () => showNotice(NEXT_INCREMENT_NOTICE))
+  useShortcut({ key: 'o', meta: true }, openOpenModel)
   useShortcut({ key: ',', meta: true }, openPreferences)
 }

@@ -11,7 +11,7 @@ export interface WelcomeActionsProps {
   platform: PlatformInfo
   /** Abre el diálogo de Nuevo modelo (FR-002). */
   onNewModel: () => void
-  /** Qué hacer con «Abrir modelo…»; en esta fase, avisar. */
+  /** Abre el diálogo de Abrir modelo (FR-012). */
   onOpenModel: () => void
   /** Abre la ventana de Ajustes (FR-020). */
   onOpenPreferences: () => void
@@ -30,9 +30,8 @@ interface ActionRow {
  * Las filas de acción al pie de la barra lateral, como en el lienzo: icono,
  * texto y atajo (FR-003, FR-020). Entran escalonadas, una tras otra.
  *
- * «Abrir modelo…» queda habilitada y enfocable para que el teclado y el lector
- * de pantalla la alcancen (FR-014), aunque de momento solo avise de que llega
- * con la historia de abrir.
+ * Las tres filas están habilitadas y son enfocables, de modo que el teclado y
+ * el lector de pantalla las alcanzan igual que el ratón (FR-014).
  */
 export function WelcomeActions({
   platform,
