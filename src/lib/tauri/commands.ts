@@ -96,3 +96,26 @@ export function windowApplySavedGeometry(): Promise<GeometryApplyResult> {
 export function windowControls(action: WindowControlAction): Promise<void> {
   return call<void>('window_controls', { action })
 }
+
+/**
+ * Anota los milisegundos de arranque hasta la Bienvenida (SC-001).
+ *
+ * El binario calla salvo que se arranque con `SQL_DESIGNER_MEDIR=1`, así que
+ * llamarlo siempre no deja rastro en el registro de un uso normal.
+ *
+ * @param splash Si llegó a verse la pantalla de carga.
+ * @returns Los milisegundos anotados, o `null` si la medida está apagada.
+ */
+export function measureStartupReady(splash: boolean): Promise<number | null> {
+  return call<number | null>('measure_startup_ready', { splash })
+}
+
+/**
+ * Anota los milisegundos del cambio de tema (SC-003).
+ *
+ * @param millis Tiempo entre la elección en Ajustes y el primer fotograma ya
+ * pintado con el tema nuevo.
+ */
+export function measureThemeApplied(millis: number): Promise<void> {
+  return call<void>('measure_theme_applied', { millis })
+}

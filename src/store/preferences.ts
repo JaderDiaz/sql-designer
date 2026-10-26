@@ -7,6 +7,7 @@ import {
   preferencesLoad,
   preferencesUpdate,
 } from '@/lib/tauri/commands'
+import { markThemeChange } from '@/lib/measure'
 import { DEFAULT_PLATFORM } from '@/lib/platform'
 import type {
   AppIdentity,
@@ -143,6 +144,7 @@ export const usePreferencesStore = create<PreferencesStore>((set, get) => ({
    * @param theme Preferencia elegida en Ajustes.
    */
   async setTheme(theme) {
+    markThemeChange()
     const previous = get().preferences
     set({
       preferences: { ...previous, theme },

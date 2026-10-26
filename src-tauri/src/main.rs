@@ -3,6 +3,7 @@
 mod commands;
 mod identity;
 mod logging;
+mod measure;
 mod preferences;
 mod window_state;
 
@@ -11,6 +12,7 @@ use tauri::{Emitter, Manager, WindowEvent};
 
 use commands::PreferencesState;
 use logging::SCOPE_STARTUP;
+use measure::StartupClock;
 
 /// Identificador del elemento de menú que abre Ajustes (FR-020).
 const MENU_PREFERENCES: &str = "preferences";
@@ -26,6 +28,9 @@ const EVENT_PREFERENCES_OPEN: &str = "preferences://open";
 /// comandos de `contracts/commands.md`. Un fallo de arranque se registra pero
 /// no impide que la ventana abra (FR-019).
 fn main() {
+    // Primera línea del proceso: es el origen de la medida de SC-001.
+    let startup_clock = StartupClock::new();
+
     tauri::Builder::default()
         .plugin(logging::plugin())
         .plugin(
@@ -38,7 +43,9 @@ fn main() {
                 )
                 .build(),
         )
-        .setup(|app| {
+        .setup(move |app| {
+            app.manage(startup_clock);
+
             let config_dir = app.path().app_config_dir().unwrap_or_else(|error| {
                 log::error!(target: SCOPE_STARTUP, "sin directorio de configuración: {error}");
                 std::env::temp_dir()
@@ -62,9 +69,11 @@ fn main() {
                 log::warn!(target: SCOPE_STARTUP, "no se pudo construir el menú nativo: {error}");
             }
 
-            // En Windows la ventana va sin decoración porque la barra de título
-            // la dibuja `src/components/layout/Titlebar.tsx`; en macOS se
-            // conservan los botones nativos con la barra superpuesta.
+            // La ventana va sin decoración en los dos sistemas: el marco, los
+            // controles de cerrar y minimizar y el arrastre los dibuja
+            // `src/components/layout/AppShell.tsx` con `Titlebar`. En Windows
+            // se repite aquí porque la configuración puede llegar pisada por
+            // un perfil de usuario anterior.
             #[cfg(target_os = "windows")]
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.set_decorations(false);
@@ -86,6 +95,8 @@ fn main() {
             commands::preferences_update,
             commands::window_apply_saved_geometry,
             commands::window_controls,
+            commands::measure_startup_ready,
+            commands::measure_theme_applied,
         ])
         .run(tauri::generate_context!())
         .expect("error irrecuperable al arrancar SQL Designer");
