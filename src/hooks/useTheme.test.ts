@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { DARK_QUERY, useTheme } from '@/hooks/useTheme'
 import { setMediaQuery } from '@/test/setup'
 import { resetStore } from '@/test/helpers'
-import { usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
 
 describe('useTheme', () => {
   beforeEach(() => {
@@ -39,8 +39,8 @@ describe('useTheme', () => {
     expect(result.current).toBe('light')
 
     act(() => {
-      usePreferencesStore.setState({
-        preferences: { ...usePreferencesStore.getState().preferences, theme: 'dark' },
+      useAppStore.setState({
+        preferences: { ...useAppStore.getState().preferences, theme: 'dark' },
         effectiveTheme: 'dark',
       })
     })

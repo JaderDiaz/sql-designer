@@ -6,7 +6,8 @@ import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { AppIcon } from '@/components/ui/AppIcon'
 import { Button } from '@/components/ui/Button'
 import { riseIn, slideInLeft, stagger } from '@/lib/motion'
-import { NEXT_INCREMENT_NOTICE, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { NEXT_INCREMENT_NOTICE } from '@/store/preferences'
 
 /**
  * Pantalla de Bienvenida, que es la ventana entera (820 × 500 en el lienzo):
@@ -22,11 +23,11 @@ import { NEXT_INCREMENT_NOTICE, usePreferencesStore } from '@/store/preferences'
  * el mensaje de que todavía está vacía.
  */
 export function WelcomeScreen() {
-  const identity = usePreferencesStore((state) => state.identity)
-  const platform = usePreferencesStore((state) => state.platform)
-  const loadError = usePreferencesStore((state) => state.loadError)
-  const showNotice = usePreferencesStore((state) => state.showNotice)
-  const openPreferences = usePreferencesStore((state) => state.openPreferences)
+  const identity = useAppStore((state) => state.identity)
+  const platform = useAppStore((state) => state.platform)
+  const loadError = useAppStore((state) => state.loadError)
+  const showNotice = useAppStore((state) => state.showNotice)
+  const openPreferences = useAppStore((state) => state.openPreferences)
 
   return (
     <motion.section

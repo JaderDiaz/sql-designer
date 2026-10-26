@@ -1,0 +1,12 @@
+formatVersion: 1
+name: Modelo roto
+engine: postgres
+schemas:
+  - name: public
+    abbreviation: PUB
+tables:
+	- name: hoteles
+    schema: public
+    fields:
+      - name: id
+        type: integer

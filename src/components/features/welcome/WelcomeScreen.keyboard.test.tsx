@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WelcomeScreen } from '@/components/features/welcome/WelcomeScreen'
 import { resetStore } from '@/test/helpers'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
@@ -32,7 +33,7 @@ describe('Bienvenida con el teclado (FR-014, SC-004)', () => {
     expect(nuevo).toHaveFocus()
 
     await user.keyboard('{Enter}')
-    expect(usePreferencesStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
+    expect(useAppStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
 
     await user.tab()
     expect(abrir).toHaveFocus()
@@ -47,6 +48,6 @@ describe('Bienvenida con el teclado (FR-014, SC-004)', () => {
     expect(preferencesUpdate).toHaveBeenCalledWith({ showWelcomeOnStart: false })
 
     await user.keyboard('{Shift>}{Tab}{/Shift}{Enter}')
-    expect(usePreferencesStore.getState().isPreferencesOpen).toBe(true)
+    expect(useAppStore.getState().isPreferencesOpen).toBe(true)
   })
 })

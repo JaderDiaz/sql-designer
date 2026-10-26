@@ -1,11 +1,13 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde::Serialize;
 use tauri::{AppHandle, Runtime, State, WebviewWindow, Window};
 
+use crate::files::{self, BuiltModelPath, FileStamp, ModelReadResult, ModelWriteResult, PathStat};
 use crate::identity::AppIdentity;
-use crate::logging::{SCOPE_MEASURE, SCOPE_PREFERENCES, SCOPE_WINDOW_STATE};
+use crate::logging::{SCOPE_MEASURE, SCOPE_PREFERENCES, SCOPE_RECENTS, SCOPE_WINDOW_STATE};
+use crate::recents::{self, RecentEntry, RecentEntryInput, RecentListEntry};
 use crate::measure::{self, StartupClock};
 use crate::preferences::{self, Preferences, PreferencesLoadResult, PreferencesPatch, Theme};
 use crate::window_state::{self, GeometryApplyResult, MonitorArea};
@@ -21,7 +23,7 @@ pub struct AppError {
 
 impl AppError {
     /// Construye un error con uno de los códigos del contrato.
-    fn new(code: &str, message: impl Into<String>) -> Self {
+    pub fn new(code: &str, message: impl Into<String>) -> Self {
         Self { code: code.to_string(), message: message.into() }
     }
 }
@@ -36,6 +38,19 @@ impl PreferencesState {
     /// @param path Ruta del archivo de preferencias dentro del directorio de configuración.
     pub fn new(path: PathBuf) -> Self {
         Self { path, current: Mutex::new(Preferences::default()) }
+    }
+}
+
+/// Lista de recientes viva del proceso: la ruta del archivo y la copia en memoria.
+pub struct RecentsState {
+    pub path: PathBuf,
+    pub current: Mutex<Vec<RecentEntry>>,
+}
+
+impl RecentsState {
+    /// @param path Ruta de `recents.json` dentro del directorio de configuración.
+    pub fn new(path: PathBuf) -> Self {
+        Self { path, current: Mutex::new(Vec::new()) }
     }
 }
 
@@ -311,4 +326,151 @@ pub fn measure_theme_applied(millis: f64) {
         return;
     }
     log::info!(target: SCOPE_MEASURE, "SC-003 tema aplicado en {millis:.0} ms");
+}
+
+/// Anota los milisegundos que tardó en abrirse un modelo (SC-002).
+///
+/// Como el resto de las medidas, calla salvo que el binario se haya arrancado
+/// con `SQL_DESIGNER_MEDIR=1` (`research.md` R15).
+///
+/// @param millis Tiempo entre la orden de abrir y el modelo pintado.
+/// @param tables Número de tablas del modelo, que es lo que hace variar la medida.
+/// @returns Los milisegundos anotados, o `None` si la medida está apagada.
+#[tauri::command]
+pub fn measure_model_opened(millis: f64, tables: u32) -> Option<f64> {
+    if !measure::enabled() {
+        return None;
+    }
+    log::info!(target: SCOPE_MEASURE, "SC-002 modelo abierto en {millis:.0} ms ({tables} tablas)");
+    Some(millis)
+}
+
+/// Anota los milisegundos que tardó en guardarse un modelo (SC-003).
+///
+/// @param millis Tiempo entre el atajo de guardar y el archivo ya escrito.
+/// @param tables Número de tablas del modelo.
+/// @returns Los milisegundos anotados, o `None` si la medida está apagada.
+#[tauri::command]
+pub fn measure_model_saved(millis: f64, tables: u32) -> Option<f64> {
+    if !measure::enabled() {
+        return None;
+    }
+    log::info!(target: SCOPE_MEASURE, "SC-003 modelo guardado en {millis:.0} ms ({tables} tablas)");
+    Some(millis)
+}
+
+/// Arma la ruta final del archivo del modelo y dice si ya existe (FR-002, FR-003).
+///
+/// El frontend nunca concatena separadores ni añade la extensión: el nombre
+/// llega saneado por `src/lib/model/slug.ts` y la ruta la arma Rust
+/// (`research.md` R9).
+///
+/// @param folder Carpeta elegida para el modelo.
+/// @param file_stem Nombre del archivo sin extensión.
+#[tauri::command]
+pub async fn path_build_model(
+    folder: String,
+    file_stem: String,
+) -> Result<BuiltModelPath, AppError> {
+    files::build_model_path(Path::new(&folder), &file_stem)
+}
+
+/// Lee el archivo del modelo como texto, con su sello (FR-013, FR-015).
+///
+/// Rust no interpreta el YAML: un archivo que no parsea vuelve bien de aquí y
+/// es la validación del frontend la que decide (FR-016, `research.md` R1).
+///
+/// @param path Ruta absoluta del archivo del modelo.
+#[tauri::command]
+pub async fn model_read(path: String) -> Result<ModelReadResult, AppError> {
+    files::read_model(Path::new(&path))
+}
+
+/// Escribe el archivo del modelo de forma atómica (FR-021 a FR-025).
+///
+/// @param path Ruta absoluta del archivo.
+/// @param text Contenido completo que se guarda.
+/// @param expected_stamp Sello de la última lectura o escritura; ausente al crear.
+/// @param force `true` para sobrescribir tras confirmar un `model_stale`.
+#[tauri::command]
+pub async fn model_write(
+    path: String,
+    text: String,
+    expected_stamp: Option<FileStamp>,
+    force: Option<bool>,
+) -> Result<ModelWriteResult, AppError> {
+    files::write_model(Path::new(&path), &text, expected_stamp, force.unwrap_or(false))
+}
+
+/// Estado en disco de varias rutas, de una sola llamada (FR-031).
+///
+/// Nunca falla: una ruta inaccesible vuelve como `exists: false`.
+///
+/// @param paths Rutas absolutas a consultar.
+#[tauri::command]
+pub async fn model_stat(paths: Vec<String>) -> Vec<PathStat> {
+    files::stat_paths(&paths)
+}
+
+/// Lista de recientes con el estado del archivo ya resuelto (FR-029, FR-031).
+///
+/// No falla por un `recents.json` dañado: devuelve la lista vacía y deja la
+/// causa en el registro.
+#[tauri::command]
+pub async fn recents_list(state: State<'_, RecentsState>) -> Result<Vec<RecentListEntry>, AppError> {
+    let entries = {
+        let current = state
+            .current
+            .lock()
+            .map_err(|error| AppError::new("recents_write_failed", error.to_string()))?;
+        current.clone()
+    };
+    Ok(recents::with_disk_state(&entries))
+}
+
+/// Registra o actualiza una entrada de recientes y la pone primera (FR-029, FR-032).
+///
+/// @param entry Datos cacheados del modelo que se acaba de usar.
+#[tauri::command]
+pub async fn recents_touch(
+    state: State<'_, RecentsState>,
+    entry: RecentEntryInput,
+) -> Result<Vec<RecentListEntry>, AppError> {
+    let entries = {
+        let mut current = state
+            .current
+            .lock()
+            .map_err(|error| AppError::new("recents_write_failed", error.to_string()))?;
+        recents::touch(&mut current, entry, recents::now_ms())
+    };
+    persist_recents(&state, &entries)?;
+    Ok(recents::with_disk_state(&entries))
+}
+
+/// Quita una entrada de recientes; el archivo no se toca (FR-034).
+///
+/// @param path Ruta de la entrada que sale de la lista.
+#[tauri::command]
+pub async fn recents_remove(
+    state: State<'_, RecentsState>,
+    path: String,
+) -> Result<Vec<RecentListEntry>, AppError> {
+    let entries = {
+        let mut current = state
+            .current
+            .lock()
+            .map_err(|error| AppError::new("recents_write_failed", error.to_string()))?;
+        recents::remove(&mut current, &path)
+    };
+    persist_recents(&state, &entries)?;
+    Ok(recents::with_disk_state(&entries))
+}
+
+/// Persiste la lista de recientes y traduce el fallo al código del contrato.
+fn persist_recents(state: &RecentsState, entries: &[RecentEntry]) -> Result<(), AppError> {
+    if let Err(error) = recents::save_to(&state.path, entries) {
+        log::error!(target: SCOPE_RECENTS, "no se pudieron guardar los recientes: {error}");
+        return Err(AppError::new("recents_write_failed", error));
+    }
+    Ok(())
 }

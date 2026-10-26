@@ -1,4 +1,4 @@
-import { usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
 import type { PlatformInfo } from '@/lib/tauri/types'
 
 /**
@@ -7,5 +7,5 @@ import type { PlatformInfo } from '@/lib/tauri/types'
  * @returns La plataforma del almacén; antes de cargar, la de Windows.
  */
 export function usePlatform(): PlatformInfo {
-  return usePreferencesStore((state) => state.platform)
+  return useAppStore((state) => state.platform)
 }

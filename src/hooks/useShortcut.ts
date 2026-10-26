@@ -2,7 +2,8 @@ import { useEffect } from 'react'
 
 import { usePlatform } from '@/hooks/usePlatform'
 import { isMacOS } from '@/lib/platform'
-import { NEXT_INCREMENT_NOTICE, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { NEXT_INCREMENT_NOTICE } from '@/store/preferences'
 
 /** Atajo declarado como tecla más modificador principal. */
 export interface Shortcut {
@@ -47,8 +48,8 @@ export function useShortcut(shortcut: Shortcut, handler: () => void): void {
  * `⌘,`/`Ctrl+,` abre Ajustes, que es la tercera vía de FR-020.
  */
 export function useAppShortcuts(): void {
-  const showNotice = usePreferencesStore((state) => state.showNotice)
-  const openPreferences = usePreferencesStore((state) => state.openPreferences)
+  const showNotice = useAppStore((state) => state.showNotice)
+  const openPreferences = useAppStore((state) => state.openPreferences)
 
   useShortcut({ key: 'n', meta: true }, () => showNotice(NEXT_INCREMENT_NOTICE))
   useShortcut({ key: 'o', meta: true }, () => showNotice(NEXT_INCREMENT_NOTICE))

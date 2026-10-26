@@ -6,6 +6,8 @@ use tauri_plugin_log::{Builder, RotationStrategy, Target, TargetKind};
 pub const SCOPE_STARTUP: &str = "startup";
 /// Ámbito de los errores al leer o escribir preferencias.
 pub const SCOPE_PREFERENCES: &str = "preferences";
+/// Ámbito de los errores al leer o escribir la lista de recientes.
+pub const SCOPE_RECENTS: &str = "recents";
 /// Ámbito de los errores de geometría y de tema de la ventana.
 pub const SCOPE_WINDOW_STATE: &str = "window-state";
 /// Ámbito de las medidas de SC-001 y SC-003, apagadas salvo que se pidan.

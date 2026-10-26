@@ -1,0 +1,177 @@
+formatVersion: 1
+name: Livy · Reservas
+engine: postgres
+schemas:
+  - name: public
+    abbreviation: PUB
+    comment: Esquema por defecto de PostgreSQL
+enums:
+  - name: estado_reserva
+    schema: public
+    values:
+      - pendiente
+      - confirmada
+      - cancelada
+tables:
+  - name: hoteles
+    schema: public
+    comment: Hoteles de la cadena
+    fields:
+      - name: id
+        type: integer
+      - name: nombre
+        type: text
+      - name: ciudad
+        type: text
+    primaryKey:
+      - id
+    indexes:
+      - name: hoteles_ciudad_idx
+        fields:
+          - ciudad
+  - name: habitaciones
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: hotel_id
+        type: integer
+      - name: numero
+        type: text
+      - name: plazas
+        type: smallint
+    primaryKey:
+      - id
+    uniques:
+      - name: habitaciones_hotel_numero_key
+        fields:
+          - hotel_id
+          - numero
+  - name: clientes
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: nombre
+        type: text
+      - name: correo
+        type: text
+      - name: telefono
+        type: text
+        nullable: true
+    primaryKey:
+      - id
+    uniques:
+      - name: clientes_correo_key
+        fields:
+          - correo
+  - name: reservas
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: cliente_id
+        type: integer
+      - name: habitacion_id
+        type: integer
+      - name: entrada
+        type: date
+      - name: salida
+        type: date
+      - name: estado
+        type: estado_reserva
+        default: "'pendiente'"
+    primaryKey:
+      - id
+    indexes:
+      - name: reservas_entrada_idx
+        fields:
+          - entrada
+  - name: pagos
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: reserva_id
+        type: integer
+      - name: importe
+        type: numeric(10,2)
+      - name: pagado_el
+        type: timestamptz
+        nullable: true
+    primaryKey:
+      - id
+  - name: resenas
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: reserva_id
+        type: integer
+      - name: cliente_id
+        type: integer
+      - name: puntuacion
+        type: smallint
+      - name: texto
+        type: text
+        nullable: true
+        comment: Comentario libre del cliente
+    primaryKey:
+      - id
+relations:
+  - name: habitaciones_hotel_fk
+    fromTable: habitaciones
+    fromFields:
+      - hotel_id
+    toTable: hoteles
+    toFields:
+      - id
+    onDelete: cascade
+  - name: reservas_cliente_fk
+    fromTable: reservas
+    fromFields:
+      - cliente_id
+    toTable: clientes
+    toFields:
+      - id
+    onDelete: restrict
+  - name: reservas_habitacion_fk
+    fromTable: reservas
+    fromFields:
+      - habitacion_id
+    toTable: habitaciones
+    toFields:
+      - id
+    onDelete: restrict
+  - name: pagos_reserva_fk
+    fromTable: pagos
+    fromFields:
+      - reserva_id
+    toTable: reservas
+    toFields:
+      - id
+    onDelete: cascade
+  - name: resenas_reserva_fk
+    fromTable: resenas
+    fromFields:
+      - reserva_id
+    toTable: reservas
+    toFields:
+      - id
+    onDelete: cascade
+  - name: resenas_cliente_fk
+    fromTable: resenas
+    fromFields:
+      - cliente_id
+    toTable: clientes
+    toFields:
+      - id
+    onDelete: set_null
+    onUpdate: cascade
+views:
+  - name: reservas_activas
+    schema: public
+    tables:
+      - reservas
+      - clientes
+      - habitaciones

@@ -1,5 +1,6 @@
 import type { AppIdentity, PlatformInfo, Preferences } from '@/lib/tauri/types'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 /**
  * Ayudas comunes de las pruebas: preferencias, identidad y plataforma de
@@ -37,7 +38,7 @@ export function resetStore(
     platform?: PlatformInfo
   } = {},
 ): void {
-  usePreferencesStore.setState({
+  useAppStore.setState({
     preferences: { ...DEFAULT_PREFERENCES, ...overrides.preferences },
     effectiveTheme: 'light',
     systemPrefersDark: false,
@@ -48,5 +49,8 @@ export function resetStore(
     loadError: null,
     writeError: null,
     notice: null,
+    screen: 'welcome',
+    dialog: null,
+    pendingIntent: null,
   })
 }

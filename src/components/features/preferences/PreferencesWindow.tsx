@@ -2,7 +2,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { Icon } from '@/components/ui/Icon'
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/SegmentedControl'
 import type { ThemePreference } from '@/lib/tauri/types'
-import { usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
 
 /** Las tres opciones de tema de este incremento (FR-008). */
 const THEME_OPTIONS: ReadonlyArray<SegmentedOption<ThemePreference>> = [
@@ -20,11 +20,11 @@ const THEME_OPTIONS: ReadonlyArray<SegmentedOption<ThemePreference>> = [
  * vez de dibujarla apagada.
  */
 export function PreferencesWindow() {
-  const isOpen = usePreferencesStore((state) => state.isPreferencesOpen)
-  const closePreferences = usePreferencesStore((state) => state.closePreferences)
-  const theme = usePreferencesStore((state) => state.preferences.theme)
-  const setTheme = usePreferencesStore((state) => state.setTheme)
-  const writeError = usePreferencesStore((state) => state.writeError)
+  const isOpen = useAppStore((state) => state.isPreferencesOpen)
+  const closePreferences = useAppStore((state) => state.closePreferences)
+  const theme = useAppStore((state) => state.preferences.theme)
+  const setTheme = useAppStore((state) => state.setTheme)
+  const writeError = useAppStore((state) => state.writeError)
 
   return (
     <Dialog

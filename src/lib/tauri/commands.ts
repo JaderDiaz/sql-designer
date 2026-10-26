@@ -4,11 +4,18 @@ import type {
   AppError,
   AppErrorCode,
   AppIdentity,
+  BuiltModelPath,
+  FileStamp,
   GeometryApplyResult,
+  ModelReadResult,
+  ModelWriteResult,
+  PathStat,
   Preferences,
   PreferencesLoadResult,
   PreferencesPatch,
   PlatformInfo,
+  RecentEntryInput,
+  RecentEntryRecord,
   WindowControlAction,
 } from './types'
 
@@ -118,4 +125,105 @@ export function measureStartupReady(splash: boolean): Promise<number | null> {
  */
 export function measureThemeApplied(millis: number): Promise<void> {
   return call<void>('measure_theme_applied', { millis })
+}
+
+/**
+ * Arma la ruta final del archivo del modelo y dice si ya existe (FR-002).
+ *
+ * El frontend nunca concatena separadores ni añade la extensión: eso lo hace
+ * Rust, que es el dueño del disco (`research.md` R9).
+ *
+ * @param folder Carpeta elegida para el modelo.
+ * @param fileStem Nombre del archivo sin extensión, ya saneado por `slug.ts`.
+ */
+export function pathBuildModel(folder: string, fileStem: string): Promise<BuiltModelPath> {
+  return call<BuiltModelPath>('path_build_model', { folder, fileStem })
+}
+
+/**
+ * Lee el archivo del modelo como texto, con su sello (FR-013, FR-015).
+ *
+ * Un archivo que no parsea no falla aquí: el texto vuelve bien y es
+ * `parseModel` quien decide si se puede abrir (FR-016).
+ *
+ * @param path Ruta absoluta del archivo.
+ */
+export function modelRead(path: string): Promise<ModelReadResult> {
+  return call<ModelReadResult>('model_read', { path })
+}
+
+/**
+ * Escribe el archivo del modelo de forma atómica (FR-021 a FR-025).
+ *
+ * @param path Ruta absoluta del archivo.
+ * @param text Contenido completo que se guarda.
+ * @param expectedStamp Sello de la última lectura o escritura; se omite al crear.
+ * @param force `true` para sobrescribir tras confirmar un `model_stale`.
+ */
+export function modelWrite(
+  path: string,
+  text: string,
+  expectedStamp?: FileStamp | null,
+  force?: boolean,
+): Promise<ModelWriteResult> {
+  return call<ModelWriteResult>('model_write', {
+    path,
+    text,
+    expectedStamp: expectedStamp ?? null,
+    force: force ?? false,
+  })
+}
+
+/**
+ * Estado en disco de varias rutas, de una sola llamada (FR-031).
+ *
+ * @param paths Rutas absolutas a consultar.
+ */
+export function modelStat(paths: string[]): Promise<PathStat[]> {
+  return call<PathStat[]>('model_stat', { paths })
+}
+
+/** Lista de recientes con el estado del archivo ya resuelto (FR-029). */
+export function recentsList(): Promise<RecentEntryRecord[]> {
+  return call<RecentEntryRecord[]>('recents_list')
+}
+
+/**
+ * Registra o actualiza una entrada de recientes y la pone primera (FR-029).
+ *
+ * @param entry Datos cacheados del modelo que se acaba de usar.
+ */
+export function recentsTouch(entry: RecentEntryInput): Promise<RecentEntryRecord[]> {
+  return call<RecentEntryRecord[]>('recents_touch', { entry })
+}
+
+/**
+ * Quita una entrada de recientes; el archivo no se toca (FR-034).
+ *
+ * @param path Ruta de la entrada que sale de la lista.
+ */
+export function recentsRemove(path: string): Promise<RecentEntryRecord[]> {
+  return call<RecentEntryRecord[]>('recents_remove', { path })
+}
+
+/**
+ * Anota los milisegundos que tardó en abrirse un modelo (SC-002).
+ *
+ * @param millis Tiempo entre la orden de abrir y el modelo pintado.
+ * @param tables Número de tablas del modelo.
+ * @returns Los milisegundos anotados, o `null` si la medida está apagada.
+ */
+export function measureModelOpened(millis: number, tables: number): Promise<number | null> {
+  return call<number | null>('measure_model_opened', { millis, tables })
+}
+
+/**
+ * Anota los milisegundos que tardó en guardarse un modelo (SC-003).
+ *
+ * @param millis Tiempo entre el atajo de guardar y el archivo ya escrito.
+ * @param tables Número de tablas del modelo.
+ * @returns Los milisegundos anotados, o `null` si la medida está apagada.
+ */
+export function measureModelSaved(millis: number, tables: number): Promise<number | null> {
+  return call<number | null>('measure_model_saved', { millis, tables })
 }

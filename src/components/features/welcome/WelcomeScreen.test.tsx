@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WelcomeScreen } from '@/components/features/welcome/WelcomeScreen'
 import { IDENTITY, MACOS, WINDOWS, resetStore } from '@/test/helpers'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
@@ -54,7 +55,7 @@ describe('Bienvenida', () => {
 
     await user.click(nuevo)
 
-    expect(usePreferencesStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
+    expect(useAppStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
   })
 
   it('la casilla refleja y cambia showWelcomeOnStart', async () => {
@@ -71,7 +72,7 @@ describe('Bienvenida', () => {
 
   it('avisa cuando las preferencias llegaron recuperadas', () => {
     resetStore()
-    usePreferencesStore.setState({ loadError: 'No se pudieron leer tus preferencias.' })
+    useAppStore.setState({ loadError: 'No se pudieron leer tus preferencias.' })
 
     render(<WelcomeScreen />)
 

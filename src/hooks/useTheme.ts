@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 import { measureThemeApplied } from '@/lib/tauri/commands'
 import { takeThemeChange } from '@/lib/measure'
-import { usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
 import type { EffectiveTheme } from '@/lib/tauri/types'
 
 /** Consulta con la que el sistema anuncia su tema (FR-007). */
@@ -19,8 +19,8 @@ export const DARK_QUERY = '(prefers-color-scheme: dark)'
  * @returns El tema que se está pintando.
  */
 export function useTheme(): EffectiveTheme {
-  const effectiveTheme = usePreferencesStore((state) => state.effectiveTheme)
-  const setSystemPrefersDark = usePreferencesStore((state) => state.setSystemPrefersDark)
+  const effectiveTheme = useAppStore((state) => state.effectiveTheme)
+  const setSystemPrefersDark = useAppStore((state) => state.setSystemPrefersDark)
 
   useEffect(() => {
     const query = window.matchMedia(DARK_QUERY)

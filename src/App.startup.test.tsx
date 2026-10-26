@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App, { resolveStartupScreen } from '@/App'
 import { WINDOWS, resetStore } from '@/test/helpers'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
@@ -35,7 +36,7 @@ describe('decisión de arranque (FR-006)', () => {
     render(<App />)
 
     expect(screen.getByRole('heading', { level: 1, name: /sql designer/i })).toBeInTheDocument()
-    expect(usePreferencesStore.getState().preferences.showWelcomeOnStart).toBe(false)
+    expect(useAppStore.getState().preferences.showWelcomeOnStart).toBe(false)
   })
 
   it('resuelve la pantalla inicial según la casilla y el último modelo', () => {
@@ -60,7 +61,7 @@ describe('pantalla de carga (SC-001)', () => {
   })
 
   it('mientras la carga no termina se ve el arranque y no la Bienvenida', () => {
-    usePreferencesStore.setState({ isLoaded: false })
+    useAppStore.setState({ isLoaded: false })
 
     render(<App />)
 
@@ -69,11 +70,11 @@ describe('pantalla de carga (SC-001)', () => {
   })
 
   it('cuando la carga termina aparece la Bienvenida', async () => {
-    usePreferencesStore.setState({ isLoaded: false })
+    useAppStore.setState({ isLoaded: false })
     render(<App />)
 
     act(() => {
-      usePreferencesStore.setState({ isLoaded: true })
+      useAppStore.setState({ isLoaded: true })
     })
 
     expect(
@@ -96,7 +97,7 @@ describe('cambio de tema sin perder la pantalla (FR-009, SC-003)', () => {
     expect(casilla).toHaveFocus()
 
     await act(async () => {
-      usePreferencesStore.getState().setSystemPrefersDark(true)
+      useAppStore.getState().setSystemPrefersDark(true)
     })
 
     expect(document.documentElement.dataset['theme']).toBe('dark')

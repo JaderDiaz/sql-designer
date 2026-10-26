@@ -1,0 +1,40 @@
+formatVersion: 1
+name: Notas de campo
+engine: sqlite
+schemas:
+  - name: main
+    abbreviation: MAI
+tables:
+  - name: cuadernos
+    schema: main
+    fields:
+      - name: id
+        type: INTEGER
+      - name: titulo
+        type: TEXT
+    primaryKey:
+      - id
+  - name: notas
+    schema: main
+    fields:
+      - name: id
+        type: INTEGER
+      - name: cuaderno_id
+        type: INTEGER
+      - name: cuerpo
+        type: TEXT
+      - name: archivada
+        type: INTEGER
+        nullable: true
+        default: "0"
+    primaryKey:
+      - id
+relations:
+  - name: notas_cuaderno_fk
+    fromTable: notas
+    fromFields:
+      - cuaderno_id
+    toTable: cuadernos
+    toFields:
+      - id
+    onDelete: cascade

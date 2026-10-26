@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 
 import App from '@/App'
 import { DARK_QUERY } from '@/hooks/useTheme'
-import { usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
 
 import '@/styles/global.css'
 
@@ -26,4 +26,4 @@ createRoot(container).render(
   </StrictMode>,
 )
 
-void usePreferencesStore.getState().load()
+void useAppStore.getState().load()

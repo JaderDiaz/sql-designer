@@ -1,5 +1,3 @@
-import { create } from 'zustand'
-
 import {
   CommandError,
   appIdentity,
@@ -17,11 +15,13 @@ import type {
   RecoveredReason,
   ThemePreference,
 } from '@/lib/tauri/types'
+import type { AppSlice } from '@/store/types'
 
 /**
- * Almacén único de la aplicación (principio IV de la constitución): las
- * preferencias cargadas, la identidad, la plataforma y el estado efímero de
- * la interfaz. Ningún componente de `src/components/ui/` lo importa.
+ * Parte de preferencias del almacén único (principio IV de la constitución):
+ * las preferencias cargadas, la identidad, la plataforma y el estado efímero
+ * de Ajustes y los avisos. Se compone en `src/store/index.ts`; ningún
+ * componente de `src/components/ui/` lo importa.
  */
 
 /** Preferencias por defecto mientras el backend no ha respondido. */
@@ -31,6 +31,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   showWelcomeOnStart: true,
   window: null,
   lastModelPath: null,
+  engine: 'postgres',
+  lastFolder: null,
 }
 
 /** Aviso de las acciones que llegan en el siguiente incremento (FR-004). */
@@ -68,8 +70,8 @@ export function loadErrorMessage(reason: RecoveredReason | null): string | null 
   }
 }
 
-/** Estado y acciones del almacén. */
-interface PreferencesStore {
+/** Estado y acciones de la parte de preferencias. */
+export interface PreferencesSlice {
   preferences: Preferences
   effectiveTheme: EffectiveTheme
   systemPrefersDark: boolean
@@ -90,8 +92,13 @@ interface PreferencesStore {
   dismissNotice: () => void
 }
 
-/** Almacén vivo de la aplicación; los componentes leen por selectores. */
-export const usePreferencesStore = create<PreferencesStore>((set, get) => ({
+/**
+ * Crea la parte de preferencias del almacén.
+ *
+ * @param set Escritura del almacén compuesto.
+ * @param get Lectura del almacén compuesto.
+ */
+export const createPreferencesSlice: AppSlice<PreferencesSlice> = (set, get) => ({
   preferences: DEFAULT_PREFERENCES,
   effectiveTheme: 'light',
   systemPrefersDark: false,
@@ -226,4 +233,4 @@ export const usePreferencesStore = create<PreferencesStore>((set, get) => ({
   dismissNotice() {
     set({ notice: null })
   },
-}))
+})

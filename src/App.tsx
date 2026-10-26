@@ -12,7 +12,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { measureStartupReady } from '@/lib/tauri/commands'
 import { onPreferencesOpen } from '@/lib/tauri/events'
 import { windowApplySavedGeometry } from '@/lib/tauri/commands'
-import { usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
 import type { Preferences } from '@/lib/tauri/types'
 
 /** Pantalla con la que arranca la aplicación. */
@@ -45,11 +45,11 @@ const SPLASH_MIN_MS = 650
  * luego la Bienvenida entra con su animación (SC-001).
  */
 export default function App() {
-  const preferences = usePreferencesStore((state) => state.preferences)
-  const notice = usePreferencesStore((state) => state.notice)
-  const dismissNotice = usePreferencesStore((state) => state.dismissNotice)
-  const openPreferences = usePreferencesStore((state) => state.openPreferences)
-  const isLoaded = usePreferencesStore((state) => state.isLoaded)
+  const preferences = useAppStore((state) => state.preferences)
+  const notice = useAppStore((state) => state.notice)
+  const dismissNotice = useAppStore((state) => state.dismissNotice)
+  const openPreferences = useAppStore((state) => state.openPreferences)
+  const isLoaded = useAppStore((state) => state.isLoaded)
 
   // El suelo se cuenta desde que la página empezó a cargar, no desde que monta
   // React: las preferencias pueden llegar antes del primer fotograma, y con un

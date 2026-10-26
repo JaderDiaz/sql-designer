@@ -1,5 +1,5 @@
 import { Checkbox } from '@/components/ui/Checkbox'
-import { usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
 
 /**
  * Casilla «Mostrar esta ventana al abrir SQL Designer» (FR-005).
@@ -9,9 +9,9 @@ import { usePreferencesStore } from '@/store/preferences'
  * guardado.
  */
 export function ShowWelcomeToggle() {
-  const showWelcomeOnStart = usePreferencesStore((state) => state.preferences.showWelcomeOnStart)
-  const setShowWelcomeOnStart = usePreferencesStore((state) => state.setShowWelcomeOnStart)
-  const writeError = usePreferencesStore((state) => state.writeError)
+  const showWelcomeOnStart = useAppStore((state) => state.preferences.showWelcomeOnStart)
+  const setShowWelcomeOnStart = useAppStore((state) => state.setShowWelcomeOnStart)
+  const writeError = useAppStore((state) => state.writeError)
 
   return (
     <div className="flex min-w-0 flex-col gap-0.5">

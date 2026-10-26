@@ -1,16 +1,18 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod commands;
+mod files;
 mod identity;
 mod logging;
 mod measure;
 mod preferences;
+mod recents;
 mod window_state;
 
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{Emitter, Manager, WindowEvent};
 
-use commands::PreferencesState;
+use commands::{PreferencesState, RecentsState};
 use logging::SCOPE_STARTUP;
 use measure::StartupClock;
 
@@ -65,6 +67,13 @@ fn main() {
             }
             app.manage(state);
 
+            let recents_state = RecentsState::new(recents::file_path(&config_dir));
+            let recent_entries = recents::load_from(&recents_state.path);
+            if let Ok(mut current) = recents_state.current.lock() {
+                *current = recent_entries;
+            }
+            app.manage(recents_state);
+
             if let Err(error) = install_menu(app.handle()) {
                 log::warn!(target: SCOPE_STARTUP, "no se pudo construir el menú nativo: {error}");
             }
@@ -97,6 +106,15 @@ fn main() {
             commands::window_controls,
             commands::measure_startup_ready,
             commands::measure_theme_applied,
+            commands::measure_model_opened,
+            commands::measure_model_saved,
+            commands::path_build_model,
+            commands::model_read,
+            commands::model_write,
+            commands::model_stat,
+            commands::recents_list,
+            commands::recents_touch,
+            commands::recents_remove,
         ])
         .run(tauri::generate_context!())
         .expect("error irrecuperable al arrancar SQL Designer");
