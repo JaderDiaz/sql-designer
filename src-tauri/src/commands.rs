@@ -5,7 +5,8 @@ use serde::Serialize;
 use tauri::{AppHandle, Runtime, State, WebviewWindow, Window};
 
 use crate::identity::AppIdentity;
-use crate::logging::{SCOPE_PREFERENCES, SCOPE_WINDOW_STATE};
+use crate::logging::{SCOPE_MEASURE, SCOPE_PREFERENCES, SCOPE_WINDOW_STATE};
+use crate::measure::{self, StartupClock};
 use crate::preferences::{self, Preferences, PreferencesLoadResult, PreferencesPatch, Theme};
 use crate::window_state::{self, GeometryApplyResult, MonitorArea};
 
@@ -275,4 +276,39 @@ pub fn remember_geometry<R: Runtime>(window: &Window<R>, state: &PreferencesStat
     if let Err(error) = preferences::save_to(&state.path, &current) {
         log::warn!(target: SCOPE_WINDOW_STATE, "no se pudo guardar la geometría: {error}");
     }
+}
+
+/// Anota en el registro los milisegundos de arranque hasta la Bienvenida (SC-001).
+///
+/// No hace nada salvo que la aplicación se haya arrancado con
+/// `SQL_DESIGNER_MEDIR=1`, y solo informa la primera vez de cada ejecución.
+///
+/// @param splash Si llegó a verse la pantalla de carga; queda anotado porque
+/// cambia lo que mide el número.
+/// @returns Los milisegundos anotados, o `None` si la medida está apagada o
+/// ya se informó.
+#[tauri::command]
+pub fn measure_startup_ready(clock: State<'_, StartupClock>, splash: bool) -> Option<u128> {
+    if !measure::enabled() {
+        return None;
+    }
+    let millis = clock.elapsed_once()?;
+    let visto = if splash { "sí" } else { "no" };
+    log::info!(target: SCOPE_MEASURE, "SC-001 bienvenida lista en {millis} ms (pantalla de carga: {visto})");
+    Some(millis)
+}
+
+/// Anota en el registro los milisegundos del cambio de tema (SC-003).
+///
+/// Como [`measure_startup_ready`], calla salvo que las medidas estén
+/// encendidas.
+///
+/// @param millis Milisegundos entre la elección en Ajustes y el primer
+/// fotograma ya pintado con el tema nuevo.
+#[tauri::command]
+pub fn measure_theme_applied(millis: f64) {
+    if !measure::enabled() {
+        return;
+    }
+    log::info!(target: SCOPE_MEASURE, "SC-003 tema aplicado en {millis:.0} ms");
 }

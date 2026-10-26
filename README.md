@@ -44,8 +44,22 @@ El recorrido manual por historia está en
 npm run tauri build
 ```
 
-Antes de empaquetar para distribución hace falta el juego completo de iconos
-(`npm run tauri icon`); el repositorio solo trae `src-tauri/icons/icon.png`.
+El juego de iconos ya está en `src-tauri/icons/`, generado desde `icon.svg` con
+`npm run tauri icon`. Hay que rehacerlo solo si cambia el dibujo; el arte deja
+100 px de margen por lado dentro del lienzo de 1024, que es lo que espera la
+rejilla de iconos de macOS.
+
+### Medir el arranque y el cambio de tema
+
+El binario anota SC-001 y SC-003 en el registro solo si se le pide, para no
+dejar trazas de uso en una ejecución normal:
+
+```bash
+SQL_DESIGNER_MEDIR=1 "src-tauri/target/release/bundle/macos/SQL Designer.app/Contents/MacOS/sql-designer"
+```
+
+El procedimiento completo y los números medidos están en
+[`specs/001-base-aplicacion/quickstart.md`](specs/001-base-aplicacion/quickstart.md).
 
 ## Dónde viven los datos
 

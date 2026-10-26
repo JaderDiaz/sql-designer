@@ -95,9 +95,65 @@ copia `.bak`) y el recorte de geometría contra monitores simulados.
 4. Desconecta la red y repite el arranque y el cambio de tema: nada debe degradarse
    (SC-009).
 
+## Cómo tomar las medidas de SC-001 y SC-003
+
+Las dos medidas las anota el propio binario, y solo cuando se le pide: hay que arrancarlo
+con la variable `SQL_DESIGNER_MEDIR=1`. Sin ella no escribe nada, porque el registro
+local guarda fallos y no trazas de uso.
+
+```bash
+npm run tauri build
+# macOS
+SQL_DESIGNER_MEDIR=1 "src-tauri/target/release/bundle/macos/SQL Designer.app/Contents/MacOS/sql-designer"
+# Windows
+set SQL_DESIGNER_MEDIR=1 && "src-tauri\target\release\sql-designer.exe"
+```
+
+Las líneas salen por la salida de error y en el archivo de registro de la aplicación:
+
+```
+[medidas][INFO] SC-001 bienvenida lista en 912 ms (pantalla de carga: sí)
+[medidas][INFO] SC-003 tema aplicado en 46 ms
+```
+
+SC-001 se mide desde la primera línea de `main` hasta el fotograma ya pintado con la
+Bienvenida, y dice si llegó a verse la pantalla de carga. SC-003 se mide desde la
+elección en Ajustes hasta el fotograma ya pintado con el tema nuevo; solo cuenta el
+cambio hecho en Ajustes, no el que viene del sistema.
+
+## Resultados medidos
+
+### macOS 2026-10-26 · binario empaquetado 1.0.0, Apple Silicon
+
+| Criterio | Límite | Medido | Veredicto |
+| --- | --- | --- | --- |
+| SC-001 · Bienvenida lista | ≤ 2000 ms | 912, 939, 945, 952, 981, 997 ms (máximo 997) | Cumple |
+| SC-003 · Cambio de tema | ≤ 1000 ms | 46 ms | Cumple |
+
+Comprobado además en esa misma sesión: el recorrido de tema, el de ventana y el de
+teclado de las Historias 1 a 3, y los dos primeros estados de error.
+
+- Preferencias con JSON inválido: la aplicación arranca igual, deja `preferences.json.bak`
+  con el contenido dañado y escribe en el registro la causa exacta y
+  `preferencias recuperadas por defecto (invalid_json)`. El archivo dañado no se
+  reescribe, así que el aviso se repite en cada lectura hasta que se guarda una
+  preferencia.
+- Preferencias borradas: arranque limpio con los valores por defecto y sin error visible;
+  en el registro queda `preferencias recuperadas por defecto (missing)`.
+
+Pendiente en macOS: segundo monitor, «reducir movimiento», revisión de contraste, la
+casilla entre reinicios, el arranque sin red (SC-009) y SC-002 con una persona ajena.
+
+### Windows
+
+Sin medir. No hubo máquina Windows disponible al cerrar el incremento.
+
 ## Criterio de entrega
 
 El incremento está listo cuando las pruebas automatizadas pasan, el recorrido manual se
 completa en Windows y en macOS, y los diez criterios de éxito de
 [spec.md](./spec.md) quedan comprobados. Las medidas de tiempo (SC-001 y SC-003) se toman
 sobre un binario empaquetado, no en modo desarrollo.
+
+El 2026-10-26 se cerró la parte de macOS con los resultados de arriba. La de Windows
+queda abierta y vive en `tasks.md` como T069 y T070.

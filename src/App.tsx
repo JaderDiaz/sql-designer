@@ -9,6 +9,7 @@ import { Toast } from '@/components/ui/Toast'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { useAppShortcuts } from '@/hooks/useShortcut'
 import { useTheme } from '@/hooks/useTheme'
+import { measureStartupReady } from '@/lib/tauri/commands'
 import { onPreferencesOpen } from '@/lib/tauri/events'
 import { windowApplySavedGeometry } from '@/lib/tauri/commands'
 import { usePreferencesStore } from '@/store/preferences'
@@ -39,9 +40,9 @@ const SPLASH_MIN_MS = 650
  * evento del menú nativo y restaura la geometría de la ventana.
  *
  * Mientras la carga no termina se muestra la pantalla de arranque; se
- * mantiene un mínimo de {@link SPLASH_MIN_MS} para que no parpadee cuando los
- * comandos responden al instante, y luego la Bienvenida entra con su
- * animación (SC-001).
+ * mantiene un mínimo de {@link SPLASH_MIN_MS} desde que la página empezó a
+ * cargar, para que no parpadee cuando los comandos responden al instante, y
+ * luego la Bienvenida entra con su animación (SC-001).
  */
 export default function App() {
   const preferences = usePreferencesStore((state) => state.preferences)
@@ -50,8 +51,12 @@ export default function App() {
   const openPreferences = usePreferencesStore((state) => state.openPreferences)
   const isLoaded = usePreferencesStore((state) => state.isLoaded)
 
-  // Si al montar ya había datos (pruebas, recarga en caliente), no hay espera.
-  const [minElapsed, setMinElapsed] = useState(() => usePreferencesStore.getState().isLoaded)
+  // El suelo se cuenta desde que la página empezó a cargar, no desde que monta
+  // React: las preferencias pueden llegar antes del primer fotograma, y con un
+  // suelo contado desde el montaje la pantalla de carga no se vería nunca.
+  const [minElapsed, setMinElapsed] = useState(() => performance.now() >= SPLASH_MIN_MS)
+  // Se recuerda para que la medida de SC-001 diga qué se midió.
+  const [splashShown] = useState(() => performance.now() < SPLASH_MIN_MS)
 
   useTheme()
   useAppShortcuts()
@@ -64,12 +69,29 @@ export default function App() {
 
   useEffect(() => {
     if (minElapsed) return undefined
-    const timer = window.setTimeout(() => setMinElapsed(true), SPLASH_MIN_MS)
+    const remaining = Math.max(0, SPLASH_MIN_MS - performance.now())
+    const timer = window.setTimeout(() => setMinElapsed(true), remaining)
     return () => window.clearTimeout(timer)
   }, [minElapsed])
 
   const startup = resolveStartupScreen(preferences)
   const isReady = isLoaded && minElapsed
+
+  useEffect(() => {
+    if (!isReady) return undefined
+    // Dos fotogramas: se informa cuando la Bienvenida ya está pintada, no
+    // cuando se monta. El binario solo lo anota si se le pidió medir (SC-001).
+    let second = 0
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => {
+        void measureStartupReady(splashShown).catch(() => undefined)
+      })
+    })
+    return () => {
+      cancelAnimationFrame(first)
+      cancelAnimationFrame(second)
+    }
+  }, [isReady, splashShown])
 
   return (
     <MotionConfig reducedMotion="user">

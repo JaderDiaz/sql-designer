@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 
+import { measureThemeApplied } from '@/lib/tauri/commands'
+import { takeThemeChange } from '@/lib/measure'
 import { usePreferencesStore } from '@/store/preferences'
 import type { EffectiveTheme } from '@/lib/tauri/types'
 
@@ -31,6 +33,20 @@ export function useTheme(): EffectiveTheme {
 
   useEffect(() => {
     document.documentElement.dataset['theme'] = effectiveTheme
+
+    // Dos fotogramas: el primero aplica los tokens, el segundo ya está
+    // pintado con ellos. Solo mide si el cambio vino de Ajustes (SC-003).
+    let second = 0
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => {
+        const elapsed = takeThemeChange()
+        if (elapsed !== null) void measureThemeApplied(elapsed).catch(() => undefined)
+      })
+    })
+    return () => {
+      cancelAnimationFrame(first)
+      cancelAnimationFrame(second)
+    }
   }, [effectiveTheme])
 
   return effectiveTheme
