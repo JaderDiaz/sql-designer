@@ -16,7 +16,7 @@
         "label": "main",
         "title": "SQL Designer",
         "width": 820,
-        "height": 500,
+        "height": 580,
         "minWidth": 820,
         "minHeight": 500,
         "resizable": true,

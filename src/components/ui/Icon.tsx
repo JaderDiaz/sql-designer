@@ -33,6 +33,7 @@ import {
   Pencil,
   Redo2,
   Plus,
+  RotateCcw,
   Save,
   Search,
   SearchX,
@@ -90,6 +91,7 @@ export type IconName =
   | 'mouse-pointer-click'
   | 'pencil'
   | 'redo-2'
+  | 'rotate-ccw'
   | 'undo-2'
   | 'save'
   | 'search'
@@ -148,6 +150,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   'mouse-pointer-click': MousePointerClick,
   pencil: Pencil,
   'redo-2': Redo2,
+  'rotate-ccw': RotateCcw,
   'undo-2': Undo2,
   save: Save,
   search: Search,

@@ -5,7 +5,13 @@ import { Icon } from '@/components/ui/Icon'
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/SegmentedControl'
 import { Sheet } from '@/components/ui/Sheet'
 import { TextField } from '@/components/ui/TextField'
-import { EMPTY_STEM_MESSAGE, toFileStem } from '@/lib/model/slug'
+import {
+  EMPTY_FILE_MESSAGE,
+  EMPTY_STEM_MESSAGE,
+  fileStemProblem,
+  normalizeTypedStem,
+  toFileStem,
+} from '@/lib/model/slug'
 import { ENGINE_LABELS, type Engine } from '@/lib/model/types'
 import { CommandError, pathBuildModel } from '@/lib/tauri/commands'
 import { useAppStore } from '@/store'
@@ -16,7 +22,14 @@ import { EMPTY_NAME_ERROR } from '@/store/model'
  * (FR-002 a FR-006).
  *
  * El borrador vive en el almacén, no aquí: Elegir carpeta se abre encima sin
- * cerrar este diálogo y al volver el nombre y el motor siguen escritos.
+ * cerrar este diálogo y al volver el nombre, el motor y el nombre del archivo
+ * siguen escritos.
+ *
+ * El nombre del modelo y el del archivo son dos cosas distintas: el primero es
+ * el que se ve en la aplicación y el segundo el del `.yaml` en el disco. El
+ * segundo se propone a partir del primero y se puede cambiar a mano; una vez
+ * tocado deja de seguirlo, y «Usar el nombre del modelo» lo devuelve a la
+ * propuesta.
  */
 
 /** Los tres motores, en el orden del lienzo. */
@@ -32,6 +45,12 @@ export const ENGINE_HINTS: Record<Engine, string> = {
   mysql: 'InnoDB, enums por columna y AUTO_INCREMENT.',
   sqlite: 'Un solo archivo, tipos flexibles. Ideal para apps locales.',
 }
+
+/** Lo que se dice del archivo cuando lo propone el nombre del modelo. */
+export const FILE_AUTO_HINT = 'Se propone a partir del nombre del modelo; puedes cambiarlo.'
+
+/** Lo que se dice del archivo cuando el nombre lo escribió el usuario. */
+export const FILE_CUSTOM_HINT = 'Nombre personalizado.'
 
 /**
  * Mensaje del nombre que ya está ocupado en esa carpeta (FR-003).
@@ -49,15 +68,24 @@ export function NewModelDialog() {
   const draftName = useAppStore((state) => state.draftName)
   const draftEngine = useAppStore((state) => state.draftEngine)
   const draftFolder = useAppStore((state) => state.draftFolder)
+  const draftFileStem = useAppStore((state) => state.draftFileStem)
+  const draftFileTouched = useAppStore((state) => state.draftFileTouched)
   const setDraftName = useAppStore((state) => state.setDraftName)
   const setDraftEngine = useAppStore((state) => state.setDraftEngine)
+  const setDraftFileStem = useAppStore((state) => state.setDraftFileStem)
+  const resetDraftFileStem = useAppStore((state) => state.resetDraftFileStem)
   const createModel = useAppStore((state) => state.createModel)
   const showNotice = useAppStore((state) => state.showNotice)
 
   const open = dialog === 'new-model' || dialog === 'choose-folder'
-  const stem = toFileStem(draftName)
   const [taken, setTaken] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+
+  // El nombre propuesto y el que de verdad se va a usar. Sin tocar el campo,
+  // el archivo sigue al nombre del modelo; tocado, manda lo escrito.
+  const auto = toFileStem(draftName)
+  const stem = draftFileTouched ? normalizeTypedStem(draftFileStem) : auto
+  const custom = draftFileTouched && stem !== auto
 
   // La existencia se pregunta al disco, que es quien sabe: el nombre puede
   // haber aparecido en la carpeta mientras el diálogo estaba abierto (FR-003).
@@ -79,24 +107,33 @@ export function NewModelDialog() {
     }
   }, [draftFolder, stem])
 
-  // El nombre del archivo que se verá en la ruta; con el campo vacío, el
-  // lienzo deja los puntos suspensivos en el sitio del nombre.
-  const fileName = `${stem === '' ? '…' : stem}.yaml`
-  const error =
-    draftName.trim() === ''
-      ? EMPTY_NAME_ERROR
-      : stem === ''
-        ? EMPTY_STEM_MESSAGE
-        : taken !== null
-          ? takenMessage(taken)
+  const nameError = draftName.trim() === '' ? EMPTY_NAME_ERROR : null
+  const fileError =
+    stem === ''
+      ? // Con el nombre del modelo vacío ya se queja su propio campo: no hace
+        // falta repetir la queja debajo del archivo.
+        draftFileTouched
+        ? EMPTY_FILE_MESSAGE
+        : nameError === null
+          ? EMPTY_STEM_MESSAGE
           : null
+      : (fileStemProblem(stem) ?? (taken !== null ? takenMessage(taken) : null))
+  const error = nameError ?? fileError
+
+  // Con el campo vacío, el lienzo deja los puntos suspensivos en la ruta.
+  const fileName = `${stem === '' ? '…' : stem}.yaml`
 
   /** Crea el modelo y deja el diálogo abierto si el disco se queja (FR-024). */
   async function create() {
     if (error !== null || draftFolder === null || creating) return
     setCreating(true)
     try {
-      await createModel({ name: draftName, engine: draftEngine, folder: draftFolder })
+      await createModel({
+        name: draftName,
+        engine: draftEngine,
+        folder: draftFolder,
+        fileStem: stem,
+      })
     } catch (failure) {
       showNotice(
         failure instanceof CommandError
@@ -134,13 +171,41 @@ export function NewModelDialog() {
     >
       <div className="flex flex-col gap-4">
         <TextField
-          label="Nombre"
+          label="Nombre del modelo"
           placeholder="Por ejemplo, Livy · Reservas"
           value={draftName}
           onValueChange={setDraftName}
-          hint="Puedes cambiarlo después."
-          error={error}
+          hint="Es el nombre que verás en la app. Puedes cambiarlo después."
+          error={nameError}
           autoFocus
+        />
+
+        <TextField
+          label="Nombre del archivo"
+          placeholder="livy-reservas"
+          value={draftFileTouched ? draftFileStem : auto}
+          onValueChange={setDraftFileStem}
+          inputClassName="font-mono"
+          hint={custom ? FILE_CUSTOM_HINT : FILE_AUTO_HINT}
+          error={fileError}
+          trailing={
+            <span className="shrink-0 font-mono text-[12px] leading-[28px] text-label-secondary">
+              .yaml
+            </span>
+          }
+          messageTrailing={
+            custom ? (
+              <Button
+                variant="plain"
+                size="sm"
+                icon="rotate-ccw"
+                className="shrink-0"
+                onClick={resetDraftFileStem}
+              >
+                Usar el nombre del modelo
+              </Button>
+            ) : null
+          }
         />
 
         <div className="flex flex-col gap-1.5">
@@ -162,9 +227,7 @@ export function NewModelDialog() {
           <div className="flex items-center gap-2">
             <div className="flex h-7 min-w-0 flex-1 items-center gap-1.5 rounded-sm bg-inset px-2">
               <Icon name="folder" className="text-blue" />
-              <span className="min-w-0 flex-1 truncate">
-                {draftFolder ?? 'Elige una carpeta'}
-              </span>
+              <span className="min-w-0 flex-1 truncate">{draftFolder ?? 'Elige una carpeta'}</span>
             </div>
             <Button onClick={() => openChooseFolder('new-model')}>Cambiar…</Button>
           </div>

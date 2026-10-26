@@ -32,6 +32,12 @@ export interface NewModelDraft {
   name: string
   engine: Engine
   folder: string
+  /**
+   * Nombre del archivo sin extensión, ya limpio y comprobado por el diálogo.
+   *
+   * En blanco, el archivo se nombra a partir del nombre del modelo.
+   */
+  fileStem: string
 }
 
 /** Un paso del historial, con la etiqueta de qué cambió (RS-06). */
@@ -133,18 +139,20 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
   /**
    * Crea el archivo del modelo y lo abre en el Editor (FR-005).
    *
-   * Pasos: arma el nombre del archivo y pide a Rust la ruta final; escribe el
+   * Pasos: toma el nombre del archivo del borrador —o lo deriva del nombre
+   * del modelo si viene en blanco— y pide a Rust la ruta final; escribe el
    * modelo vacío sin sello esperado, de modo que un archivo ya existente
    * vuelve como `path_exists` en lugar de pisarse; registra el modelo en
    * recientes; y recuerda la carpeta y el modelo en las preferencias.
    *
-   * @param draft Nombre, motor y carpeta elegidos en Nuevo modelo.
+   * @param draft Nombre, motor, carpeta y nombre de archivo elegidos en Nuevo
+   * modelo.
    * @throws CommandError Si el disco no deja crear el archivo; el diálogo lo
    * muestra y se queda abierto con el borrador intacto.
    */
   async createModel(draft) {
     const startedMs = performance.now()
-    const stem = toFileStem(draft.name)
+    const stem = draft.fileStem === '' ? toFileStem(draft.name) : draft.fileStem
     if (stem === '') throw new Error(EMPTY_NAME_ERROR)
 
     const name = draft.name.trim()

@@ -52,4 +52,25 @@ describe('TextField', () => {
     expect(field).not.toHaveAttribute('aria-invalid')
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
+
+  it('pone el sufijo al lado del campo y la acción al lado del mensaje', () => {
+    render(
+      <TextField
+        label="Nombre del archivo"
+        value="livy-reservas"
+        onValueChange={vi.fn()}
+        hint="Nombre personalizado."
+        trailing={<span>.yaml</span>}
+        messageTrailing={<button type="button">Usar el nombre del modelo</button>}
+        inputClassName="font-mono"
+      />,
+    )
+
+    const field = screen.getByRole('textbox', { name: 'Nombre del archivo' })
+
+    expect(field).toHaveClass('au-input', 'font-mono')
+    expect(field).toHaveAccessibleDescription('Nombre personalizado.')
+    expect(screen.getByText('.yaml')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Usar el nombre del modelo' })).toBeInTheDocument()
+  })
 })

@@ -71,7 +71,11 @@ pub fn clamp_to_monitors(
 }
 
 /// Tamaño de la ventana cuando se ve la Bienvenida, en píxeles lógicos.
-pub const WELCOME_SIZE: (f64, f64) = (820.0, 500.0);
+///
+/// Alto por encima del mínimo de 820 × 500: Nuevo modelo tiene cinco bloques
+/// desde que el nombre del archivo se puede cambiar a mano, y a 500 el pie de
+/// la hoja quedaba fuera de la ventana.
+pub const WELCOME_SIZE: (f64, f64) = (820.0, 580.0);
 
 /// Tamaño mínimo de la ventana cuando se trabaja en el Editor.
 pub const EDITOR_MIN_SIZE: (f64, f64) = (900.0, 600.0);

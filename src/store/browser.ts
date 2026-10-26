@@ -70,6 +70,15 @@ export interface BrowserSlice {
   draftEngine: Engine
   /** Carpeta elegida, o `null` mientras no hay ninguna. */
   draftFolder: string | null
+  /**
+   * Nombre de archivo escrito a mano en Nuevo modelo, sin la extensión.
+   *
+   * Mientras `draftFileTouched` es `false` no se mira: el nombre del archivo
+   * se propone a partir del nombre del modelo.
+   */
+  draftFileStem: string
+  /** Si el campo del archivo se escribió a mano y manda sobre la propuesta. */
+  draftFileTouched: boolean
   /** Para qué se abrió Elegir carpeta. */
   choosePurpose: ChoosePurpose
   /**
@@ -88,6 +97,8 @@ export interface BrowserSlice {
   setDraftName: (name: string) => void
   setDraftEngine: (engine: Engine) => void
   setDraftFolder: (folder: string) => void
+  setDraftFileStem: (stem: string) => void
+  resetDraftFileStem: () => void
   startBrowsing: (only: ListOnly, folder?: string | null) => Promise<void>
   goToFolder: (path: string) => Promise<void>
   goToPlace: (placeId: string) => Promise<void>
@@ -175,6 +186,8 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
   draftName: '',
   draftEngine: 'postgres',
   draftFolder: null,
+  draftFileStem: '',
+  draftFileTouched: false,
   choosePurpose: 'new-model',
   folderDraft: null,
 
@@ -205,6 +218,8 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
       draftName: '',
       draftEngine: preferences.engine,
       draftFolder: preferences.lastFolder ?? draftFolder,
+      draftFileStem: '',
+      draftFileTouched: false,
       choosePurpose: 'new-model',
       dialog: 'new-model',
     })
@@ -244,6 +259,8 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
       draftName: '',
       draftEngine: preferences.engine,
       draftFolder: preferences.lastFolder ?? draftFolder ?? initialFolder(places),
+      draftFileStem: '',
+      draftFileTouched: false,
       choosePurpose: 'new-model',
     })
   },
@@ -273,6 +290,20 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
    */
   setDraftFolder(folder) {
     set({ draftFolder: folder })
+  },
+
+  /**
+   * Escribe el nombre del archivo a mano y deja de proponerlo.
+   *
+   * @param stem Nombre tal como está en el campo, sin limpiar.
+   */
+  setDraftFileStem(stem) {
+    set({ draftFileStem: stem, draftFileTouched: true })
+  },
+
+  /** Vuelve a proponer el nombre del archivo a partir del nombre del modelo. */
+  resetDraftFileStem() {
+    set({ draftFileStem: '', draftFileTouched: false })
   },
 
   /**

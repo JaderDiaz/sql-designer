@@ -76,7 +76,9 @@ export function Sheet({
           ) : null}
         </div>
       </div>
-      {children}
+      {/* El cuerpo es lo único que se desplaza: en una ventana baja, la
+          cabecera y los botones siguen a la vista. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
       {footer ? <div className="flex justify-end gap-2 pt-1">{footer}</div> : null}
     </>
   )
@@ -91,13 +93,15 @@ export function Sheet({
             // El margen negativo centra en vez de `-translate-x-1/2`: la
             // animación de entrada termina en `transform: none` y se la comería.
             'sm-sheet fixed left-1/2 top-[34px] box-border flex flex-col gap-5',
+            // La hoja nunca se sale de la ventana, por baja que sea.
+            'max-h-[calc(100vh-68px)]',
             'rounded-xl bg-raised p-5 shadow-window',
             className,
           )}
         >
           {onSubmit ? (
             <form
-              className="flex flex-col gap-5"
+              className="flex min-h-0 flex-1 flex-col gap-5"
               onSubmit={(event) => {
                 event.preventDefault()
                 onSubmit()

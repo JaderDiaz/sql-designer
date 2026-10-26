@@ -1,10 +1,12 @@
-import { useId, type InputHTMLAttributes } from 'react'
+import { useId, type InputHTMLAttributes, type ReactNode } from 'react'
 
 import { cn } from '@/lib/cn'
 
 /** Props del campo de texto; lo que no se declara son atributos nativos. */
-export interface TextFieldProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
+export interface TextFieldProps extends Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'value' | 'onChange'
+> {
   /** Etiqueta visible encima del campo. */
   label?: string
   value: string
@@ -13,6 +15,12 @@ export interface TextFieldProps
   hint?: string
   /** Mensaje de error; sustituye a la pista y pinta el campo en rojo. */
   error?: string | null
+  /** Contenido fijo a la derecha del campo, como la extensión de un archivo. */
+  trailing?: ReactNode
+  /** Contenido a la derecha del mensaje, como la acción que lo resuelve. */
+  messageTrailing?: ReactNode
+  /** Clases del propio campo, por ejemplo para su tipografía. */
+  inputClassName?: string
   className?: string
 }
 
@@ -29,12 +37,35 @@ export function TextField({
   onValueChange,
   hint,
   error,
+  trailing,
+  messageTrailing,
+  inputClassName,
   className,
   ...rest
 }: TextFieldProps) {
   const id = useId()
   const messageId = `${id}-msg`
   const message = error ?? hint
+
+  const field = (
+    <span className={cn('au-input-wrap', trailing ? 'min-w-0 flex-1' : null)}>
+      <input
+        {...rest}
+        id={id}
+        className={cn('au-input', inputClassName)}
+        value={value}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={message ? messageId : undefined}
+        onChange={(event) => onValueChange(event.target.value)}
+      />
+    </span>
+  )
+
+  const text = message ? (
+    <span id={messageId} className="au-field-hint" role={error ? 'alert' : undefined}>
+      {message}
+    </span>
+  ) : null
 
   return (
     <div className={cn('au-field', error ? 'is-error' : null, className)}>
@@ -43,22 +74,22 @@ export function TextField({
           {label}
         </label>
       ) : null}
-      <span className="au-input-wrap">
-        <input
-          {...rest}
-          id={id}
-          className="au-input"
-          value={value}
-          aria-invalid={error ? true : undefined}
-          aria-describedby={message ? messageId : undefined}
-          onChange={(event) => onValueChange(event.target.value)}
-        />
-      </span>
-      {message ? (
-        <span id={messageId} className="au-field-hint" role={error ? 'alert' : undefined}>
-          {message}
+      {trailing ? (
+        <span className="flex min-w-0 items-center gap-1.5">
+          {field}
+          {trailing}
         </span>
-      ) : null}
+      ) : (
+        field
+      )}
+      {messageTrailing ? (
+        <span className="au-field-foot">
+          {text}
+          {messageTrailing}
+        </span>
+      ) : (
+        text
+      )}
     </div>
   )
 }
