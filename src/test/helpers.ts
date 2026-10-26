@@ -50,6 +50,7 @@ export function resetStore(
     writeError: null,
     notice: null,
     screen: 'welcome',
+    isWindowSettling: false,
     dialog: null,
     pendingIntent: null,
     // Modelo abierto

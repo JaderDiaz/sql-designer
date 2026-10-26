@@ -82,6 +82,7 @@ export default function App() {
   const requestIntent = useAppStore((state) => state.requestIntent)
   const requestClose = useAppStore((state) => state.requestClose)
   const saveModel = useAppStore((state) => state.saveModel)
+  const setWindowSettling = useAppStore((state) => state.setWindowSettling)
 
   // El suelo se cuenta desde que la página empezó a cargar, no desde que monta
   // React: las preferencias pueden llegar antes del primer fotograma, y con un
@@ -135,14 +136,28 @@ export default function App() {
     const animate = !firstMode.current && !prefersReducedMotion()
     firstMode.current = false
 
+    // Lo que va centrado espera a que la ventana pare: perseguir un centro
+    // que se mueve en cada paso es lo que hacía temblar el lienzo.
+    setWindowSettling(true)
+    // Un cambio de pantalla puede pisar al anterior: sin la bandera, el
+    // ajuste viejo llegaría tarde y daría por asentada una ventana que ya
+    // está otra vez en camino.
+    let cancelled = false
     const timer = window.setTimeout(
       () => {
-        void windowApplyMode(target, animate).catch(() => undefined)
+        void windowApplyMode(target, animate)
+          .catch(() => undefined)
+          .finally(() => {
+            if (!cancelled) setWindowSettling(false)
+          })
       },
       animate ? SCREEN_EXIT_MS : 0,
     )
-    return () => window.clearTimeout(timer)
-  }, [screen])
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [screen, setWindowSettling])
 
   // El modelo recordado se abre una sola vez, cuando las preferencias ya están
   // cargadas: después manda `screen`, que es lo que mueven crear, abrir y

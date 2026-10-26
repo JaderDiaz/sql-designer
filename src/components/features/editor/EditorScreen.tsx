@@ -56,6 +56,7 @@ export function EditorScreen() {
   const model = useAppStore((state) => state.model)
   const openStartedMs = useAppStore((state) => state.openStartedMs)
   const clearOpenMeasure = useAppStore((state) => state.clearOpenMeasure)
+  const isWindowSettling = useAppStore((state) => state.isWindowSettling)
 
   const schema = model?.schemas[0]
   const tables = model?.tables?.length ?? 0
@@ -90,50 +91,58 @@ export function EditorScreen() {
       <EditorChrome />
 
       <ScrollRegion label="Lienzo del modelo" className="flex items-center justify-center p-6">
-        <motion.div
-          variants={riseIn}
-          role="region"
-          aria-labelledby="sm-start-title"
-          className="sm-start box-border flex w-[440px] max-w-full flex-col items-center gap-4 rounded-xl bg-raised px-6 pb-5 pt-7 shadow-[var(--shadow-raised),0_0_0_0.5px_var(--separator)]"
-        >
-          <span className="sm-tint-indigo flex h-12 w-12 items-center justify-center rounded-lg">
-            <Icon name="table-2" size={24} className="text-indigo" />
-          </span>
+        {/* El lienzo va centrado, así que no se pone hasta que la ventana
+            está en su sitio: mientras crece, su centro se mueve en cada paso
+            y la tarjeta temblaba persiguiéndolo. Cuando la ventana para,
+            entra sola con la subida de Aura. */}
+        {isWindowSettling ? null : (
+          <motion.div
+            variants={riseIn}
+            initial="hidden"
+            animate="visible"
+            role="region"
+            aria-labelledby="sm-start-title"
+            className="sm-start box-border flex w-[440px] max-w-full flex-col items-center gap-4 rounded-xl bg-raised px-6 pb-5 pt-7 shadow-[var(--shadow-raised),0_0_0_0.5px_var(--separator)]"
+          >
+            <span className="sm-tint-indigo flex h-12 w-12 items-center justify-center rounded-lg">
+              <Icon name="table-2" size={24} className="text-indigo" />
+            </span>
 
-          <div className="flex flex-col items-center gap-1 text-center">
-            <h2 id="sm-start-title" className="m-0 text-[17px] font-semibold leading-[22px]">
-              Empieza a diseñar tu modelo
-            </h2>
-            <p className="m-0 max-w-[340px] text-[12px] leading-4 text-label-secondary">
-              {schema
-                ? `Este modelo aún no tiene tablas. La primera se creará en el esquema ${schema.abbreviation} · ${schema.name} y podrás moverla después.`
-                : 'Este modelo aún no tiene tablas.'}
-            </p>
-          </div>
+            <div className="flex flex-col items-center gap-1 text-center">
+              <h2 id="sm-start-title" className="m-0 text-[17px] font-semibold leading-[22px]">
+                Empieza a diseñar tu modelo
+              </h2>
+              <p className="m-0 max-w-[340px] text-[12px] leading-4 text-label-secondary">
+                {schema
+                  ? `Este modelo aún no tiene tablas. La primera se creará en el esquema ${schema.abbreviation} · ${schema.name} y podrás moverla después.`
+                  : 'Este modelo aún no tiene tablas.'}
+              </p>
+            </div>
 
-          <ul className="m-0 flex w-full list-none flex-col gap-0.5 p-0">
-            {START_ROWS.map((row) => (
-              <li key={row.label} className="sm-start-row">
-                <span
-                  className={`${row.tint} flex h-8 w-8 flex-none items-center justify-center rounded-md`}
-                >
-                  <Icon name={row.icon} className={row.color} />
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col text-left">
-                  <span className="text-[13px] font-semibold leading-[18px]">{row.label}</span>
-                  <span className="text-[11px] leading-[14px] text-label-secondary">
-                    {row.description}
+            <ul className="m-0 flex w-full list-none flex-col gap-0.5 p-0">
+              {START_ROWS.map((row) => (
+                <li key={row.label} className="sm-start-row">
+                  <span
+                    className={`${row.tint} flex h-8 w-8 flex-none items-center justify-center rounded-md`}
+                  >
+                    <Icon name={row.icon} className={row.color} />
                   </span>
-                </span>
-              </li>
-            ))}
-          </ul>
+                  <span className="flex min-w-0 flex-1 flex-col text-left">
+                    <span className="text-[13px] font-semibold leading-[18px]">{row.label}</span>
+                    <span className="text-[11px] leading-[14px] text-label-secondary">
+                      {row.description}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
 
-          <span className="flex items-center gap-1.5 text-[11px] leading-[14px] text-label-tertiary">
-            <Icon name="mouse-pointer-click" size={12} />
-            El lienzo de tablas llega en el Incremento 2.
-          </span>
-        </motion.div>
+            <span className="flex items-center gap-1.5 text-[11px] leading-[14px] text-label-tertiary">
+              <Icon name="mouse-pointer-click" size={12} />
+              El lienzo de tablas llega en el Incremento 2.
+            </span>
+          </motion.div>
+        )}
       </ScrollRegion>
     </motion.section>
   )

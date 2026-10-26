@@ -44,7 +44,16 @@ export interface NavigationSlice {
   screen: Screen
   dialog: Dialog | null
   pendingIntent: PendingIntent | null
+  /**
+   * Si la ventana está a medio camino entre una pantalla y la otra.
+   *
+   * Mientras lo está, el centro de la ventana se mueve en cada paso: lo que
+   * va centrado espera a que pare en vez de perseguirlo, que es lo que hacía
+   * temblar el lienzo del Editor mientras la ventana crecía.
+   */
+  isWindowSettling: boolean
   goToScreen: (screen: Screen) => void
+  setWindowSettling: (settling: boolean) => void
   openDialog: (dialog: Dialog) => void
   closeDialog: () => void
   setPendingIntent: (intent: PendingIntent | null) => void
@@ -64,6 +73,7 @@ export const createNavigationSlice: AppSlice<NavigationSlice> = (set, get) => ({
   screen: 'welcome',
   dialog: null,
   pendingIntent: null,
+  isWindowSettling: false,
 
   /**
    * Cambia de pantalla y cierra cualquier diálogo abierto, para que un
@@ -73,6 +83,17 @@ export const createNavigationSlice: AppSlice<NavigationSlice> = (set, get) => ({
    */
   goToScreen(screen) {
     set({ screen, dialog: null })
+  },
+
+  /**
+   * Anota si la ventana está cambiando de tamaño.
+   *
+   * Lo lleva `src/App.tsx`, que es quien pide el cambio y sabe cuándo acaba.
+   *
+   * @param settling `true` mientras la ventana se mueve.
+   */
+  setWindowSettling(settling) {
+    set({ isWindowSettling: settling })
   },
 
   /**
