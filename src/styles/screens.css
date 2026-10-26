@@ -325,7 +325,9 @@
 .sm-file-list {
   flex: 1;
   overflow: auto;
-  padding: var(--space-1) 10px;
+  /* El relleno vertical le deja sitio al anillo de foco de la primera y la
+     última fila: la lista desplaza, y lo que desplaza recorta. */
+  padding: var(--space-2) 10px;
   display: flex;
   flex-direction: column;
   gap: 1px;

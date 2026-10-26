@@ -105,7 +105,7 @@ export function RecentsList() {
       role="listbox"
       aria-label="Modelos recientes"
       onKeyDown={onKeyDown}
-      className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-1"
+      className="-my-1 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-2"
       style={{ overscrollBehavior: 'contain' }}
     >
       {recents.map((entry, index) => {
@@ -122,7 +122,10 @@ export function RecentsList() {
               title="Doble clic para abrir · clic derecho para más acciones"
               onClick={() => selectRecent(entry.path)}
               onDoubleClick={() => void openRecent(entry.path)}
-              className={cn('sm-row h-[52px] gap-3 rounded-md pl-2.5 pr-3', selected ? 'is-sel' : null)}
+              className={cn(
+                'sm-row h-[52px] gap-3 rounded-md pl-2.5 pr-3',
+                selected ? 'is-sel' : null,
+              )}
               style={{ animationDelay: `${index * 40}ms` }}
             >
               <span
