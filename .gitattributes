@@ -1,0 +1,16 @@
+# Los archivos de modelo y el resto del código se guardan con fin de línea LF en
+# cualquier sistema.
+#
+# Esto no es estilo: la aplicación escribe los `.yaml` con `\n`, y la puerta 3
+# de la constitución exige que parsear y volver a escribir un modelo devuelva el
+# mismo texto. Con la conversión automática de Windows, los archivos de ejemplo
+# se extraían con `\r\n` y `src/lib/model/roundtrip.test.ts` fallaba solo allí.
+* text=auto eol=lf
+
+# Binarios: nunca se tocan.
+*.woff2 binary
+*.png binary
+*.ico binary
+*.icns binary
+*.jpg binary
+*.webp binary
