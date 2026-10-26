@@ -1,22 +1,45 @@
 import {
   Bell,
   CaseSensitive,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsUpDown,
+  CircleArrowDown,
+  CircleMinus,
+  Clock,
+  Cloud,
+  Copy,
   Database,
+  File,
+  FileCode,
+  FilePlus2,
+  FileText,
+  FileWarning,
+  Folder,
   FolderOpen,
+  FolderPlus,
+  HardDrive,
   Minus,
   Monitor,
   Moon,
+  Pencil,
   Plus,
+  Save,
+  Search,
+  SearchX,
   Settings,
   Square,
   Sun,
+  Trash2,
+  TriangleAlert,
   X,
   type LucideIcon,
 } from 'lucide-react'
 
 import { cn } from '@/lib/cn'
 
-/** Iconos Lucide que usan la Bienvenida, Ajustes y la barra de título. */
+/** Iconos Lucide que usan las pantallas y los diálogos de archivo. */
 export type IconName =
   | 'bell'
   | 'plus'
@@ -30,6 +53,29 @@ export type IconName =
   | 'minus'
   | 'square'
   | 'x'
+  | 'check'
+  | 'chevron-left'
+  | 'chevron-right'
+  | 'chevrons-up-down'
+  | 'circle-arrow-down'
+  | 'circle-minus'
+  | 'clock'
+  | 'cloud'
+  | 'copy'
+  | 'file'
+  | 'file-code'
+  | 'file-plus-2'
+  | 'file-text'
+  | 'file-warning'
+  | 'folder'
+  | 'folder-plus'
+  | 'hard-drive'
+  | 'pencil'
+  | 'save'
+  | 'search'
+  | 'search-x'
+  | 'trash-2'
+  | 'triangle-alert'
 
 /** Props del icono. */
 export interface IconProps {
@@ -54,6 +100,29 @@ const ICONS: Record<IconName, LucideIcon> = {
   minus: Minus,
   square: Square,
   x: X,
+  check: Check,
+  'chevron-left': ChevronLeft,
+  'chevron-right': ChevronRight,
+  'chevrons-up-down': ChevronsUpDown,
+  'circle-arrow-down': CircleArrowDown,
+  'circle-minus': CircleMinus,
+  clock: Clock,
+  cloud: Cloud,
+  copy: Copy,
+  file: File,
+  'file-code': FileCode,
+  'file-plus-2': FilePlus2,
+  'file-text': FileText,
+  'file-warning': FileWarning,
+  folder: Folder,
+  'folder-plus': FolderPlus,
+  'hard-drive': HardDrive,
+  pencil: Pencil,
+  save: Save,
+  search: Search,
+  'search-x': SearchX,
+  'trash-2': Trash2,
+  'triangle-alert': TriangleAlert,
 }
 
 /**

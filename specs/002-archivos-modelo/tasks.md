@@ -93,13 +93,13 @@ frontera Rust ↔ TypeScript y primitivos del sistema de diseño
 
 ### Primitivos del sistema de diseño (principio V, research.md R13)
 
-- [ ] T025 [P] Crear `src/components/ui/TextField.tsx`: etiqueta, valor controlado, pista, mensaje de error con `role="alert"` y `aria-describedby`, autofoco opcional; puro, solo tokens, sin importar del almacén
-- [ ] T026 [P] Crear `src/components/ui/SearchField.tsx` como variante de búsqueda con icono, `aria-label` y botón de limpiar
-- [ ] T027 [P] Crear `src/components/ui/Select.tsx` sobre `@radix-ui/react-select`, estilado con tokens, con opciones `{ value, label }`
-- [ ] T028 [P] Crear `src/components/ui/Sidebar.tsx`: lista de ubicaciones por secciones con título, icono, selección única y navegación con flechas
-- [ ] T029 [P] Crear `src/components/ui/FileList.tsx`: `listbox` de filas con icono, nombre, fecha, estado deshabilitado y selección única, con doble clic y Enter, y su estado vacío por composición
-- [ ] T030 [P] Crear `src/components/ui/ContextMenu.tsx` sobre `@radix-ui/react-context-menu`, con apertura por clic derecho, por ⇧F10 y por la tecla de menú, separadores, elementos deshabilitados y variante destructiva (RS-09)
-- [ ] T031 [P] Escribir las pruebas de los primitivos nuevos en `src/components/ui/` (uno por componente): foco visible, `aria` correcto, navegación con teclado y que ninguno importa del almacén
+- [X] T025 [P] Crear `src/components/ui/TextField.tsx`: etiqueta, valor controlado, pista, mensaje de error con `role="alert"` y `aria-describedby`, autofoco opcional; puro, solo tokens, sin importar del almacén
+- [X] T026 [P] Crear `src/components/ui/SearchField.tsx` como variante de búsqueda con icono, `aria-label` y botón de limpiar
+- [X] T027 [P] Crear `src/components/ui/Select.tsx` sobre `@radix-ui/react-select`, estilado con tokens, con opciones `{ value, label }`
+- [X] T028 [P] Crear `src/components/ui/Sidebar.tsx`: lista de ubicaciones por secciones con título, icono, selección única y navegación con flechas
+- [X] T029 [P] Crear `src/components/ui/FileList.tsx`: `listbox` de filas con icono, nombre, fecha, estado deshabilitado y selección única, con doble clic y Enter, y su estado vacío por composición
+- [X] T030 [P] Crear `src/components/ui/ContextMenu.tsx` sobre `@radix-ui/react-context-menu`, con apertura por clic derecho, por ⇧F10 y por la tecla de menú, separadores, elementos deshabilitados y variante destructiva (RS-09)
+- [X] T031 [P] Escribir las pruebas de los primitivos nuevos en `src/components/ui/` (uno por componente): foco visible, `aria` correcto, navegación con teclado y que ninguno importa del almacén
 
 **Checkpoint**: almacén único, modelo tipado con validación por línea, disco y
 recientes en Rust, frontera tipada y primitivos listos. `npm run typecheck`,

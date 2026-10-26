@@ -182,3 +182,117 @@
     opacity: 0.4;
   }
 }
+
+/* ---------- Filas de archivo de los diálogos de carpeta y de abrir ---------- */
+.sm-file {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  height: 28px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--label);
+  cursor: default;
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+.sm-file:hover:not(:disabled) {
+  background: var(--fill-hover);
+}
+.sm-file.is-sel,
+.sm-file.is-sel:hover {
+  background: var(--fill-selected);
+}
+.sm-file:disabled {
+  color: var(--label-tertiary);
+}
+.sm-file:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+.sm-file-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sm-file-date {
+  flex: none;
+  font-size: 12px;
+  color: var(--label-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.sm-file-head {
+  height: 28px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5);
+  border-bottom: 0.5px solid var(--separator);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: var(--label-secondary);
+}
+.sm-file-list {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-1) 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.sm-file-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1\.5);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--label-secondary);
+}
+.sm-file-empty-title {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--label);
+}
+.sm-file-empty-desc {
+  font-size: 12px;
+  line-height: 16px;
+}
+.sm-path {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--label);
+  cursor: default;
+}
+.sm-path:hover {
+  background: var(--fill-hover);
+}
+.sm-path:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
