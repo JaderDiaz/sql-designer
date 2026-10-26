@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sql-designer.local/schemas/recents-1.json",
+  "title": "Lista de modelos recientes, formato 1",
+  "description": "Archivo recents.json del directorio de configuracion de la aplicacion. Lo posee Rust (src-tauri/src/recents.rs). Un archivo que no cumpla esta forma se recupera con copia .bak y lista vacia, igual que preferences.json.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["formatVersion", "entries"],
+  "properties": {
+    "formatVersion": { "const": 1 },
+    "entries": {
+      "type": "array",
+      "maxItems": 10,
+      "description": "Ordenada por usedAtMs descendente. Las rutas no se repiten.",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "stamp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modifiedMs", "sizeBytes"],
+      "properties": {
+        "modifiedMs": { "type": "integer", "minimum": 0 },
+        "sizeBytes": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "name", "engine", "tables", "usedAtMs"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1, "description": "Ruta absoluta del archivo; es la identidad de la entrada." },
+        "name": { "type": "string", "minLength": 1, "maxLength": 120, "description": "Nombre del modelo cacheado." },
+        "engine": { "enum": ["postgres", "mysql", "sqlite"] },
+        "tables": { "type": "integer", "minimum": 0 },
+        "usedAtMs": { "type": "integer", "minimum": 0 },
+        "stamp": { "oneOf": [{ "$ref": "#/$defs/stamp" }, { "type": "null" }] },
+        "invalid": { "type": "boolean", "default": false, "description": "true si la ultima validacion del archivo fallo." }
+      }
+    }
+  }
+}

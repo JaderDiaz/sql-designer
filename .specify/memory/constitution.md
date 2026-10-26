@@ -236,6 +236,24 @@ Puertas que un cambio MUST pasar antes de darse por hecho:
 La memoria del proyecto se persiste en Engram según `CLAUDE.md`; una fase sin su
 `mem_save` no está completa.
 
+### Versión del producto y etiquetas
+
+Cada incremento terminado MUST subir la versión del producto y dejar una etiqueta
+en el repositorio. La versión del producto es independiente de la de esta
+constitución.
+
+- **Numeración**: un incremento es un MINOR. El Incremento 0 fue `1.0.0`, el
+  Incremento 1 es `1.1.0`, y así. PATCH queda para los arreglos publicados sobre un
+  incremento ya cerrado; MAJOR, para un cambio que rompa los archivos de modelo ya
+  guardados.
+- **Dónde se escribe**: los tres archivos que la declaran se suben a la vez —
+  `package.json`, `src-tauri/tauri.conf.json` y `src-tauri/Cargo.toml`—. Ningún
+  otro sitio repite el número: la interfaz lo pide al binario con `app_identity`.
+- **Etiqueta**: anotada, con el nombre `v<versión>` (`v1.1.0`), sobre el commit que
+  cierra el incremento, y con el número y el nombre del incremento en el mensaje.
+- **Cuándo**: con las puertas en verde y el incremento dado por terminado, nunca a
+  mitad de la implementación.
+
 ## Governance
 
 Esta constitución está por encima de cualquier otra práctica del repositorio. Donde
@@ -255,4 +273,4 @@ un plan, una tarea o una costumbre la contradigan, manda la constitución.
 - **Guía en tiempo de ejecución**: `CLAUDE.md` para agentes y memoria; este archivo
   para los límites del producto.
 
-**Version**: 1.2.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-24
+**Version**: 1.3.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-26

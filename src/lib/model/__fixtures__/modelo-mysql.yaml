@@ -1,0 +1,45 @@
+formatVersion: 1
+name: Tienda Nube
+engine: mysql
+schemas:
+  - name: tienda_nube
+    abbreviation: TIE
+tables:
+  - name: productos
+    schema: tienda_nube
+    fields:
+      - name: id
+        type: int unsigned
+      - name: sku
+        type: varchar(32)
+      - name: nombre
+        type: varchar(160)
+      - name: precio
+        type: decimal(10,2)
+    primaryKey:
+      - id
+    uniques:
+      - name: productos_sku_key
+        fields:
+          - sku
+  - name: pedidos
+    schema: tienda_nube
+    fields:
+      - name: id
+        type: int unsigned
+      - name: producto_id
+        type: int unsigned
+      - name: unidades
+        type: int
+      - name: creado_el
+        type: datetime
+    primaryKey:
+      - id
+relations:
+  - name: pedidos_producto_fk
+    fromTable: pedidos
+    fromFields:
+      - producto_id
+    toTable: productos
+    toFields:
+      - id

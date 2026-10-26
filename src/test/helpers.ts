@@ -1,5 +1,6 @@
 import type { AppIdentity, PlatformInfo, Preferences } from '@/lib/tauri/types'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 /**
  * Ayudas comunes de las pruebas: preferencias, identidad y plataforma de
@@ -37,7 +38,7 @@ export function resetStore(
     platform?: PlatformInfo
   } = {},
 ): void {
-  usePreferencesStore.setState({
+  useAppStore.setState({
     preferences: { ...DEFAULT_PREFERENCES, ...overrides.preferences },
     effectiveTheme: 'light',
     systemPrefersDark: false,
@@ -48,5 +49,46 @@ export function resetStore(
     loadError: null,
     writeError: null,
     notice: null,
+    screen: 'welcome',
+    isWindowSettling: false,
+    dialog: null,
+    pendingIntent: null,
+    // Modelo abierto
+    model: null,
+    savedModel: null,
+    path: null,
+    stamp: null,
+    isDirty: false,
+    savedAtMs: null,
+    saveError: null,
+    past: [],
+    future: [],
+    openStartedMs: null,
+    fileError: null,
+    // Explorador y borrador de Nuevo modelo
+    places: [],
+    placeId: null,
+    browsePath: null,
+    entries: [],
+    only: 'all',
+    query: '',
+    selection: null,
+    preview: null,
+    isPreviewLoading: false,
+    isListing: false,
+    browseError: null,
+    browseHistory: [],
+    browseFuture: [],
+    draftName: '',
+    draftEngine: overrides.preferences?.engine ?? DEFAULT_PREFERENCES.engine,
+    draftFolder: null,
+    choosePurpose: 'new-model',
+    // Recientes
+    recents: [],
+    isRecentsLoading: false,
+    recentSelection: null,
+    missingTarget: null,
+    trashTarget: null,
+    renameTarget: null,
   })
 }

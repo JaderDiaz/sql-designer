@@ -228,92 +228,425 @@
 }
 
 /* ---------- Toast ---------- */
-.au-toaster {
+/* Píldora de cristal abajo al centro, como el aviso del lienzo. */
+.au-pill {
   position: absolute;
+  left: 50%;
+  bottom: 64px;
+  transform: translateX(-50%);
   z-index: var(--z-toast);
-  top: var(--space-4);
-  right: var(--space-4);
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--space-2);
-  width: 340px;
-  max-width: calc(100% - 32px);
-  pointer-events: none;
-}
-.au-toast {
-  position: relative;
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
-  border-radius: var(--radius-xl);
-  pointer-events: auto;
-  background: var(--glass-thick);
-  -webkit-backdrop-filter: var(--backdrop-thick);
-  backdrop-filter: var(--backdrop-thick);
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  font: 400 12px/16px var(--font-sans);
+  color: var(--label);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--backdrop-regular);
+  backdrop-filter: var(--backdrop-regular);
   box-shadow: var(--shadow-popover);
-  animation: au-toast-in var(--duration-slow) var(--easing-spring-soft);
+  animation: au-pill-in var(--duration-slow) var(--easing-spring-soft);
 }
-@keyframes au-toast-in {
+@keyframes au-pill-in {
   from {
     opacity: 0;
-    transform: translateX(calc(100% + 24px));
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+
+/* ---------- Text field ---------- */
+.au-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1\.5);
+  min-width: 0;
+}
+.au-field-label {
+  font: 600 12px/16px var(--font-sans);
+  color: var(--label);
+}
+.au-field-hint {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--label-secondary);
+}
+.au-field.is-error .au-field-hint {
+  color: var(--danger-text);
+}
+.au-field-foot {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+.au-field-foot .au-field-hint {
+  flex: 1;
+}
+.au-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  height: 28px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--bg-field);
+  box-shadow: inset 0 0 0 1px var(--border-control);
+  color: var(--label-secondary);
+  transition: box-shadow var(--duration-fast) var(--easing-standard);
+}
+.au-input-wrap:focus-within {
+  box-shadow:
+    inset 0 0 0 1px var(--focus-ring),
+    var(--shadow-focus);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+  animation: au-ring-in var(--duration-fast) var(--easing-out);
+}
+/* El anillo de foco lo dibuja `.au-input-wrap`, que es el que tiene las
+   esquinas redondeadas; sin esto el campo saca además el anillo cuadrado de
+   la regla global de `:focus-visible`. */
+.au-input-wrap .au-input:focus,
+.au-input-wrap .au-input:focus-visible {
+  outline: 0;
+}
+.au-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 0 2px;
+  font: 400 13px/1 var(--font-sans);
+  color: var(--label);
+}
+.au-input::placeholder {
+  color: var(--label-secondary);
+  opacity: 1;
+}
+.au-field-search .au-input-wrap {
+  border-radius: var(--radius-full);
+  padding: 0 var(--space-3);
+  background: var(--bg-inset);
+  box-shadow: none;
+}
+.au-field-search .au-input-wrap:focus-within {
+  background: var(--bg-field);
+  box-shadow: var(--shadow-focus);
+}
+.au-field.is-error .au-input-wrap {
+  box-shadow: inset 0 0 0 1px var(--danger-text);
+}
+.au-input-clear {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--label-tertiary);
+  color: var(--bg-field);
+  cursor: default;
+  animation: au-pop var(--duration-fast) var(--easing-spring);
+}
+@keyframes au-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ---------- Popover: la superficie de vidrio de menús y listas ---------- */
+.au-pop {
+  position: absolute;
+  z-index: var(--z-popover);
+  top: calc(100% + 6px);
+  left: 0;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--backdrop-regular);
+  backdrop-filter: var(--backdrop-regular);
+  box-shadow: var(--shadow-popover);
+  transform-origin: top left;
+  animation: au-menu-in var(--duration-fast) var(--easing-out);
+}
+@keyframes au-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-.au-toast-icon {
+
+/* ---------- Select ---------- */
+.au-select {
+  position: relative;
+}
+.au-select-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: 28px;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  box-sizing: border-box;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-control);
+  box-shadow: var(--shadow-control);
+  font: 400 13px/1 var(--font-sans);
+  color: var(--label);
+  text-align: left;
+  cursor: default;
+  transition:
+    box-shadow var(--duration-fast) var(--easing-standard),
+    transform var(--duration-instant);
+}
+.au-select-trigger:hover:not(:disabled) {
+  box-shadow:
+    var(--shadow-control),
+    inset 0 0 0 100px var(--fill-hover);
+}
+.au-select-trigger:active:not(:disabled) {
+  transform: scale(0.99);
+}
+.au-select-trigger:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  animation: au-ring-in var(--duration-fast) var(--easing-out);
+}
+.au-select-trigger:disabled {
+  opacity: 0.45;
+}
+.au-select-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.au-select-value.is-placeholder {
+  color: var(--label-secondary);
+}
+.au-select-chev {
+  margin-left: auto;
+  color: var(--label-secondary);
+}
+.au-select-list {
+  min-width: 100%;
+  max-height: 264px;
+  overflow: auto;
+  padding: 5px;
+}
+.au-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 26px;
+  padding: 3px var(--space-2) 3px 4px;
+  border-radius: var(--radius-sm);
+  color: var(--label);
+  cursor: default;
+  font-size: 13px;
+  line-height: 18px;
+}
+.au-option-check {
   flex: none;
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.au-toast-text {
-  min-width: 0;
-  flex: 1;
-}
-.au-toast-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-.au-toast-title {
-  font: 600 13px/18px var(--font-sans);
+  width: 16px;
+  height: 16px;
   color: var(--label);
 }
-.au-toast-body {
-  font-size: 12px;
-  line-height: 16px;
+.au-option-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.au-option-desc {
+  font-size: 11px;
+  line-height: 14px;
   color: var(--label-secondary);
 }
-.au-toast-close {
+.au-option.is-disabled {
+  color: var(--label-tertiary);
+}
+
+/* ---------- Menu ---------- */
+.au-menu {
   position: absolute;
-  top: -6px;
-  left: -6px;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  cursor: default;
-  background: var(--bg-raised);
-  color: var(--label-secondary);
-  box-shadow: var(--shadow-control);
-  opacity: 0;
-  transform: scale(0.8);
-  transition:
-    opacity var(--duration-fast),
-    transform var(--duration-fast) var(--easing-spring);
+  z-index: var(--z-popover);
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 200px;
+  padding: 5px;
+  box-sizing: border-box;
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--backdrop-regular);
+  backdrop-filter: var(--backdrop-regular);
+  box-shadow: var(--shadow-popover);
+  transform-origin: top left;
+  animation: au-menu-in var(--duration-fast) var(--easing-out);
+  outline: none;
 }
-.au-toast:hover .au-toast-close,
-.au-toast-close:focus-visible {
-  opacity: 1;
-  transform: none;
+.au-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 26px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--label);
+  cursor: default;
+  white-space: nowrap;
+  font-size: 13px;
+}
+.au-menu-item .au-icon {
+  color: var(--label-secondary);
+}
+.au-menu-item.is-danger,
+.au-menu-item.is-danger .au-icon {
+  color: var(--danger-text);
+}
+.au-menu-shortcut {
+  margin-left: auto;
+  padding-left: var(--space-6);
+  color: var(--label-secondary);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+.au-menu-sep {
+  height: 1px;
+  margin: 5px var(--space-2);
+  background: var(--separator);
+}
+.au-menu-title {
+  padding: 6px var(--space-2) 3px;
+  font: 600 11px/14px var(--font-sans);
+  color: var(--label-secondary);
+}
+.au-ctx-menu {
+  position: static;
+  top: auto;
+  /* Ancho fijo del lienzo: sin él, una ruta larga en el encabezado estira el
+     menú y Radix acaba abriéndolo del lado contrario al puntero. */
+  width: 236px;
+  min-width: 236px;
+  animation-duration: 120ms;
+}
+.au-ctx-menu .au-menu-title {
+  min-width: 0;
+}
+.au-ctx-menu .au-menu-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Puente con Radix: el lienzo marca la fila activa con `.is-active` y la
+ * deshabilitada con `.is-disabled`; Radix las marca con `data-highlighted` y
+ * `data-disabled`. Se pintan igual para no tener dos estilos de lo mismo.
+ */
+.au-menu-item[data-highlighted],
+.au-option[data-highlighted] {
+  background: var(--accent);
+  color: var(--on-accent);
+  outline: none;
+}
+.au-menu-item[data-highlighted] .au-icon,
+.au-menu-item[data-highlighted] .au-menu-shortcut,
+.au-option[data-highlighted] .au-option-check,
+.au-option[data-highlighted] .au-option-desc {
+  color: var(--on-accent);
+}
+.au-menu-item.is-danger[data-highlighted] {
+  background: var(--danger-solid);
+  color: var(--on-danger);
+}
+.au-menu-item.is-danger[data-highlighted] .au-icon {
+  color: var(--on-danger);
+}
+.au-menu-item[data-disabled],
+.au-option[data-disabled] {
+  color: var(--label-tertiary);
+  pointer-events: none;
+}
+
+/* ---------- Sidebar ---------- */
+.au-side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2);
+  box-sizing: border-box;
+}
+.au-side-section {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.au-side-title {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--space-2);
+  font: 600 11px/14px var(--font-sans);
+  letter-spacing: 0.01em;
+  color: var(--label-secondary);
+}
+.au-side-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 28px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: 400 13px/1 var(--font-sans);
+  color: var(--label);
+  text-align: left;
+  cursor: default;
+  transition: background-color var(--duration-fast);
+}
+.au-side-item:hover:not([aria-current='true']) {
+  background: var(--fill-hover);
+}
+.au-side-item[aria-current='true'] {
+  background: var(--fill-selected);
+  font-weight: 500;
+}
+.au-side-item:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  animation: au-ring-in var(--duration-fast) var(--easing-out);
+}
+.au-side-item .au-icon {
+  color: var(--label-secondary);
+  transition: transform var(--duration-base) var(--easing-spring);
+}
+.au-side-item[aria-current='true'] .au-icon {
+  transform: scale(1.06);
 }

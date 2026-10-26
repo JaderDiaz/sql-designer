@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import { WINDOWS, resetStore } from '@/test/helpers'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
@@ -27,6 +28,8 @@ vi.mock('@/lib/tauri/events', () => ({
       menuHandler = null
     }
   },
+  onCloseRequested: () => () => undefined,
+  onMenuAction: () => () => undefined,
 }))
 
 const { preferencesUpdate, windowApplySavedGeometry } = await import('@/lib/tauri/commands')
@@ -44,7 +47,7 @@ describe('las tres vías de abrir Ajustes (FR-020)', () => {
 
     await user.click(screen.getByRole('button', { name: /ajustes/i }))
 
-    expect(usePreferencesStore.getState().isPreferencesOpen).toBe(true)
+    expect(useAppStore.getState().isPreferencesOpen).toBe(true)
   })
 
   it('el atajo del sistema abre Ajustes', async () => {
@@ -53,7 +56,7 @@ describe('las tres vías de abrir Ajustes (FR-020)', () => {
 
     await user.keyboard('{Control>},{/Control}')
 
-    expect(usePreferencesStore.getState().isPreferencesOpen).toBe(true)
+    expect(useAppStore.getState().isPreferencesOpen).toBe(true)
   })
 
   it('el evento del menú nativo abre Ajustes', () => {
@@ -62,6 +65,6 @@ describe('las tres vías de abrir Ajustes (FR-020)', () => {
     expect(menuHandler).not.toBeNull()
     act(() => menuHandler?.())
 
-    expect(usePreferencesStore.getState().isPreferencesOpen).toBe(true)
+    expect(useAppStore.getState().isPreferencesOpen).toBe(true)
   })
 })

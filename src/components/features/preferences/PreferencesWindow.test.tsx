@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PreferencesWindow } from '@/components/features/preferences/PreferencesWindow'
 import { resetStore } from '@/test/helpers'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
@@ -16,7 +17,7 @@ const { preferencesUpdate } = await import('@/lib/tauri/commands')
 /** Abre Ajustes antes de cada prueba, como lo haría cualquiera de las tres vías. */
 function renderOpen() {
   resetStore()
-  usePreferencesStore.setState({ isPreferencesOpen: true })
+  useAppStore.setState({ isPreferencesOpen: true })
   return render(<PreferencesWindow />)
 }
 

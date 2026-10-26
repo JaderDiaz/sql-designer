@@ -3,9 +3,24 @@ import { afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
 /**
- * Arranque de las pruebas: limpia el DOM entre casos e instala un
- * `matchMedia` simulable, porque jsdom no lo trae y `useTheme` lo necesita.
+ * Arranque de las pruebas: limpia el DOM entre casos e instala lo que jsdom no
+ * trae y los componentes sí necesitan: un `matchMedia` simulable, que usa
+ * `useTheme`, y las piezas de la API de puntero y de desplazamiento que usan
+ * los primitivos de Radix al abrir una lista.
  */
+
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = (): void => undefined
+}
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = (): boolean => false
+}
+if (!Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = (): void => undefined
+}
+if (!Element.prototype.releasePointerCapture) {
+  Element.prototype.releasePointerCapture = (): void => undefined
+}
 
 type MediaQueryListener = (event: MediaQueryListEvent) => void
 

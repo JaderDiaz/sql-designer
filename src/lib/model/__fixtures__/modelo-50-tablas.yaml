@@ -1,0 +1,1688 @@
+formatVersion: 1
+name: Carga de 50 tablas
+engine: postgres
+schemas:
+  - name: public
+    abbreviation: PUB
+tables:
+  - name: tabla_01
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_01_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_02
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_02_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_03
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_03_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_04
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_04_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_05
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_05_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_06
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_06_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_07
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_07_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_08
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_08_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_09
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_09_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_10
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_10_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_11
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_11_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_12
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_12_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_13
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_13_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_14
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_14_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_15
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_15_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_16
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_16_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_17
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_17_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_18
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_18_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_19
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_19_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_20
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_20_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_21
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_21_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_22
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_22_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_23
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_23_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_24
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_24_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_25
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_25_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_26
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_26_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_27
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_27_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_28
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_28_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_29
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_29_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_30
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_30_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_31
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_31_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_32
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_32_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_33
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_33_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_34
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_34_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_35
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_35_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_36
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_36_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_37
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_37_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_38
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_38_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_39
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_39_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_40
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_40_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_41
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_41_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_42
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_42_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_43
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_43_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_44
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_44_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_45
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_45_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_46
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_46_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_47
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_47_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_48
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_48_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_49
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_49_etiqueta_idx
+        fields:
+          - etiqueta
+  - name: tabla_50
+    schema: public
+    fields:
+      - name: id
+        type: integer
+      - name: padre_id
+        type: integer
+        nullable: true
+      - name: vecina_id
+        type: integer
+        nullable: true
+      - name: etiqueta
+        type: text
+      - name: cantidad
+        type: integer
+        default: "0"
+      - name: creada_el
+        type: timestamptz
+    primaryKey:
+      - id
+    indexes:
+      - name: tabla_50_etiqueta_idx
+        fields:
+          - etiqueta
+relations:
+  - name: tabla_02_padre_fk
+    fromTable: tabla_02
+    fromFields:
+      - padre_id
+    toTable: tabla_01
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_03_padre_fk
+    fromTable: tabla_03
+    fromFields:
+      - padre_id
+    toTable: tabla_02
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_04_padre_fk
+    fromTable: tabla_04
+    fromFields:
+      - padre_id
+    toTable: tabla_03
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_05_padre_fk
+    fromTable: tabla_05
+    fromFields:
+      - padre_id
+    toTable: tabla_04
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_06_padre_fk
+    fromTable: tabla_06
+    fromFields:
+      - padre_id
+    toTable: tabla_05
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_07_padre_fk
+    fromTable: tabla_07
+    fromFields:
+      - padre_id
+    toTable: tabla_06
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_08_padre_fk
+    fromTable: tabla_08
+    fromFields:
+      - padre_id
+    toTable: tabla_07
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_09_padre_fk
+    fromTable: tabla_09
+    fromFields:
+      - padre_id
+    toTable: tabla_08
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_10_padre_fk
+    fromTable: tabla_10
+    fromFields:
+      - padre_id
+    toTable: tabla_09
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_11_padre_fk
+    fromTable: tabla_11
+    fromFields:
+      - padre_id
+    toTable: tabla_10
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_12_padre_fk
+    fromTable: tabla_12
+    fromFields:
+      - padre_id
+    toTable: tabla_11
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_13_padre_fk
+    fromTable: tabla_13
+    fromFields:
+      - padre_id
+    toTable: tabla_12
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_14_padre_fk
+    fromTable: tabla_14
+    fromFields:
+      - padre_id
+    toTable: tabla_13
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_15_padre_fk
+    fromTable: tabla_15
+    fromFields:
+      - padre_id
+    toTable: tabla_14
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_16_padre_fk
+    fromTable: tabla_16
+    fromFields:
+      - padre_id
+    toTable: tabla_15
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_17_padre_fk
+    fromTable: tabla_17
+    fromFields:
+      - padre_id
+    toTable: tabla_16
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_18_padre_fk
+    fromTable: tabla_18
+    fromFields:
+      - padre_id
+    toTable: tabla_17
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_19_padre_fk
+    fromTable: tabla_19
+    fromFields:
+      - padre_id
+    toTable: tabla_18
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_20_padre_fk
+    fromTable: tabla_20
+    fromFields:
+      - padre_id
+    toTable: tabla_19
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_21_padre_fk
+    fromTable: tabla_21
+    fromFields:
+      - padre_id
+    toTable: tabla_20
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_22_padre_fk
+    fromTable: tabla_22
+    fromFields:
+      - padre_id
+    toTable: tabla_21
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_23_padre_fk
+    fromTable: tabla_23
+    fromFields:
+      - padre_id
+    toTable: tabla_22
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_24_padre_fk
+    fromTable: tabla_24
+    fromFields:
+      - padre_id
+    toTable: tabla_23
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_25_padre_fk
+    fromTable: tabla_25
+    fromFields:
+      - padre_id
+    toTable: tabla_24
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_26_padre_fk
+    fromTable: tabla_26
+    fromFields:
+      - padre_id
+    toTable: tabla_25
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_27_padre_fk
+    fromTable: tabla_27
+    fromFields:
+      - padre_id
+    toTable: tabla_26
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_28_padre_fk
+    fromTable: tabla_28
+    fromFields:
+      - padre_id
+    toTable: tabla_27
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_29_padre_fk
+    fromTable: tabla_29
+    fromFields:
+      - padre_id
+    toTable: tabla_28
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_30_padre_fk
+    fromTable: tabla_30
+    fromFields:
+      - padre_id
+    toTable: tabla_29
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_31_padre_fk
+    fromTable: tabla_31
+    fromFields:
+      - padre_id
+    toTable: tabla_30
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_32_padre_fk
+    fromTable: tabla_32
+    fromFields:
+      - padre_id
+    toTable: tabla_31
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_33_padre_fk
+    fromTable: tabla_33
+    fromFields:
+      - padre_id
+    toTable: tabla_32
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_34_padre_fk
+    fromTable: tabla_34
+    fromFields:
+      - padre_id
+    toTable: tabla_33
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_35_padre_fk
+    fromTable: tabla_35
+    fromFields:
+      - padre_id
+    toTable: tabla_34
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_36_padre_fk
+    fromTable: tabla_36
+    fromFields:
+      - padre_id
+    toTable: tabla_35
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_37_padre_fk
+    fromTable: tabla_37
+    fromFields:
+      - padre_id
+    toTable: tabla_36
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_38_padre_fk
+    fromTable: tabla_38
+    fromFields:
+      - padre_id
+    toTable: tabla_37
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_39_padre_fk
+    fromTable: tabla_39
+    fromFields:
+      - padre_id
+    toTable: tabla_38
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_40_padre_fk
+    fromTable: tabla_40
+    fromFields:
+      - padre_id
+    toTable: tabla_39
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_41_padre_fk
+    fromTable: tabla_41
+    fromFields:
+      - padre_id
+    toTable: tabla_40
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_42_padre_fk
+    fromTable: tabla_42
+    fromFields:
+      - padre_id
+    toTable: tabla_41
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_43_padre_fk
+    fromTable: tabla_43
+    fromFields:
+      - padre_id
+    toTable: tabla_42
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_44_padre_fk
+    fromTable: tabla_44
+    fromFields:
+      - padre_id
+    toTable: tabla_43
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_45_padre_fk
+    fromTable: tabla_45
+    fromFields:
+      - padre_id
+    toTable: tabla_44
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_46_padre_fk
+    fromTable: tabla_46
+    fromFields:
+      - padre_id
+    toTable: tabla_45
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_47_padre_fk
+    fromTable: tabla_47
+    fromFields:
+      - padre_id
+    toTable: tabla_46
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_48_padre_fk
+    fromTable: tabla_48
+    fromFields:
+      - padre_id
+    toTable: tabla_47
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_49_padre_fk
+    fromTable: tabla_49
+    fromFields:
+      - padre_id
+    toTable: tabla_48
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_50_padre_fk
+    fromTable: tabla_50
+    fromFields:
+      - padre_id
+    toTable: tabla_49
+    toFields:
+      - id
+    onDelete: cascade
+  - name: tabla_01_vecina_fk
+    fromTable: tabla_01
+    fromFields:
+      - vecina_id
+    toTable: tabla_21
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_02_vecina_fk
+    fromTable: tabla_02
+    fromFields:
+      - vecina_id
+    toTable: tabla_22
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_03_vecina_fk
+    fromTable: tabla_03
+    fromFields:
+      - vecina_id
+    toTable: tabla_23
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_04_vecina_fk
+    fromTable: tabla_04
+    fromFields:
+      - vecina_id
+    toTable: tabla_24
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_05_vecina_fk
+    fromTable: tabla_05
+    fromFields:
+      - vecina_id
+    toTable: tabla_25
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_06_vecina_fk
+    fromTable: tabla_06
+    fromFields:
+      - vecina_id
+    toTable: tabla_26
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_07_vecina_fk
+    fromTable: tabla_07
+    fromFields:
+      - vecina_id
+    toTable: tabla_27
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_08_vecina_fk
+    fromTable: tabla_08
+    fromFields:
+      - vecina_id
+    toTable: tabla_28
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_09_vecina_fk
+    fromTable: tabla_09
+    fromFields:
+      - vecina_id
+    toTable: tabla_29
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_10_vecina_fk
+    fromTable: tabla_10
+    fromFields:
+      - vecina_id
+    toTable: tabla_30
+    toFields:
+      - id
+    onDelete: set_null
+  - name: tabla_11_vecina_fk
+    fromTable: tabla_11
+    fromFields:
+      - vecina_id
+    toTable: tabla_31
+    toFields:
+      - id
+    onDelete: set_null

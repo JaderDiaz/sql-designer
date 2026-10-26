@@ -4,12 +4,24 @@ import type {
   AppError,
   AppErrorCode,
   AppIdentity,
+  BuiltModelPath,
+  CreatedDirectory,
+  DirectoryEntry,
+  FileStamp,
+  ListOnly,
   GeometryApplyResult,
+  ModelReadResult,
+  ModelWriteResult,
+  PathStat,
+  Place,
   Preferences,
   PreferencesLoadResult,
   PreferencesPatch,
   PlatformInfo,
+  RecentEntryInput,
+  RecentEntryRecord,
   WindowControlAction,
+  WindowMode,
 } from './types'
 
 /**
@@ -118,4 +130,187 @@ export function measureStartupReady(splash: boolean): Promise<number | null> {
  */
 export function measureThemeApplied(millis: number): Promise<void> {
   return call<void>('measure_theme_applied', { millis })
+}
+
+/**
+ * Arma la ruta final del archivo del modelo y dice si ya existe (FR-002).
+ *
+ * El frontend nunca concatena separadores ni añade la extensión: eso lo hace
+ * Rust, que es el dueño del disco (`research.md` R9).
+ *
+ * @param folder Carpeta elegida para el modelo.
+ * @param fileStem Nombre del archivo sin extensión, ya saneado por `slug.ts`.
+ */
+export function pathBuildModel(folder: string, fileStem: string): Promise<BuiltModelPath> {
+  return call<BuiltModelPath>('path_build_model', { folder, fileStem })
+}
+
+/**
+ * Lee el archivo del modelo como texto, con su sello (FR-013, FR-015).
+ *
+ * Un archivo que no parsea no falla aquí: el texto vuelve bien y es
+ * `parseModel` quien decide si se puede abrir (FR-016).
+ *
+ * @param path Ruta absoluta del archivo.
+ */
+export function modelRead(path: string): Promise<ModelReadResult> {
+  return call<ModelReadResult>('model_read', { path })
+}
+
+/**
+ * Escribe el archivo del modelo de forma atómica (FR-021 a FR-025).
+ *
+ * @param path Ruta absoluta del archivo.
+ * @param text Contenido completo que se guarda.
+ * @param expectedStamp Sello de la última lectura o escritura; se omite al crear.
+ * @param force `true` para sobrescribir tras confirmar un `model_stale`.
+ */
+export function modelWrite(
+  path: string,
+  text: string,
+  expectedStamp?: FileStamp | null,
+  force?: boolean,
+): Promise<ModelWriteResult> {
+  return call<ModelWriteResult>('model_write', {
+    path,
+    text,
+    expectedStamp: expectedStamp ?? null,
+    force: force ?? false,
+  })
+}
+
+/**
+ * Estado en disco de varias rutas, de una sola llamada (FR-031).
+ *
+ * @param paths Rutas absolutas a consultar.
+ */
+export function modelStat(paths: string[]): Promise<PathStat[]> {
+  return call<PathStat[]>('model_stat', { paths })
+}
+
+/** Lista de recientes con el estado del archivo ya resuelto (FR-029). */
+export function recentsList(): Promise<RecentEntryRecord[]> {
+  return call<RecentEntryRecord[]>('recents_list')
+}
+
+/**
+ * Registra o actualiza una entrada de recientes y la pone primera (FR-029).
+ *
+ * @param entry Datos cacheados del modelo que se acaba de usar.
+ */
+export function recentsTouch(entry: RecentEntryInput): Promise<RecentEntryRecord[]> {
+  return call<RecentEntryRecord[]>('recents_touch', { entry })
+}
+
+/**
+ * Quita una entrada de recientes; el archivo no se toca (FR-034).
+ *
+ * @param path Ruta de la entrada que sale de la lista.
+ */
+export function recentsRemove(path: string): Promise<RecentEntryRecord[]> {
+  return call<RecentEntryRecord[]>('recents_remove', { path })
+}
+
+/**
+ * Anota los milisegundos que tardó en abrirse un modelo (SC-002).
+ *
+ * @param millis Tiempo entre la orden de abrir y el modelo pintado.
+ * @param tables Número de tablas del modelo.
+ * @returns Los milisegundos anotados, o `null` si la medida está apagada.
+ */
+export function measureModelOpened(millis: number, tables: number): Promise<number | null> {
+  return call<number | null>('measure_model_opened', { millis, tables })
+}
+
+/**
+ * Anota los milisegundos que tardó en guardarse un modelo (SC-003).
+ *
+ * @param millis Tiempo entre el atajo de guardar y el archivo ya escrito.
+ * @param tables Número de tablas del modelo.
+ * @returns Los milisegundos anotados, o `null` si la medida está apagada.
+ */
+export function measureModelSaved(millis: number, tables: number): Promise<number | null> {
+  return call<number | null>('measure_model_saved', { millis, tables })
+}
+
+/**
+ * Ubicaciones del usuario para la barra lateral de los diálogos (FR-007).
+ *
+ * Nunca falla: una ubicación que no se puede resolver no se lista.
+ */
+export function fsUserPlaces(): Promise<Place[]> {
+  return call<Place[]>('fs_user_places')
+}
+
+/**
+ * Contenido de una carpeta, ya filtrado y ordenado por Rust (FR-007, FR-009).
+ *
+ * @param path Carpeta que se lista.
+ * @param only Qué se quiere ver; por defecto, todo.
+ */
+export function fsListDirectory(path: string, only?: ListOnly): Promise<DirectoryEntry[]> {
+  return call<DirectoryEntry[]>('fs_list_directory', { path, only })
+}
+
+/**
+ * Crea una carpeta y devuelve su nombre real, ya desambiguado (FR-010).
+ *
+ * @param parent Carpeta donde se crea la nueva.
+ * @param name Nombre pedido; si está ocupado, Rust lo numera.
+ */
+export function fsCreateDirectory(parent: string, name: string): Promise<CreatedDirectory> {
+  return call<CreatedDirectory>('fs_create_directory', { parent, name })
+}
+
+/**
+ * Ajusta la ventana al modo de la pantalla visible.
+ *
+ * La Bienvenida es un diálogo de tamaño fijo; el Editor es la zona de trabajo:
+ * baja el mínimo, se puede ampliar y llena el monitor.
+ *
+ * La promesa se resuelve cuando la ventana ya está en su sitio, animación
+ * incluida, para que la interfaz pueda encadenar lo que venga después.
+ *
+ * @param mode Pantalla que se va a mostrar.
+ * @param animate Si la ventana recorre el camino en vez de saltar; `false`
+ * cuando el sistema pide menos movimiento.
+ */
+export function windowApplyMode(mode: WindowMode, animate = true): Promise<void> {
+  return call<void>('window_apply_mode', { mode, animate })
+}
+
+/**
+ * Muestra el archivo en el gestor de archivos del sistema (FR-016).
+ *
+ * @param path Ruta del archivo que se quiere mostrar.
+ */
+export function revealInFileManager(path: string): Promise<void> {
+  return call<void>('reveal_in_file_manager', { path })
+}
+
+/**
+ * Escribe texto en el portapapeles del sistema (FR-035).
+ *
+ * @param text Texto que queda en el portapapeles.
+ */
+export function clipboardWriteText(text: string): Promise<void> {
+  return call<void>('clipboard_write_text', { text })
+}
+
+/**
+ * Mueve el archivo a la papelera del sistema (FR-037, RS-08).
+ *
+ * @param path Ruta del archivo que se manda a la papelera.
+ */
+export function trashMove(path: string): Promise<void> {
+  return call<void>('trash_move', { path })
+}
+
+/**
+ * Dice a Rust si el cierre de la ventana hay que preguntarlo antes (FR-028).
+ *
+ * @param armed `true` mientras el modelo abierto tenga cambios sin guardar.
+ */
+export function windowSetCloseGuard(armed: boolean): Promise<void> {
+  return call<void>('window_set_close_guard', { armed })
 }

@@ -1,0 +1,7 @@
+formatVersion: 1
+name: Modelo con clave desconocida
+engine: postgres
+schemas:
+  - name: public
+    abbreviation: PUB
+    colour: azul

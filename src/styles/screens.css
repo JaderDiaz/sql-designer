@@ -19,6 +19,20 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+/* Punto de cambios sin guardar dentro del círculo rojo (RS-07). */
+.sm-traffic.is-dirty {
+  position: relative;
+}
+.sm-traffic.is-dirty::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(77, 0, 0, 0.55);
+}
 
 /* ---------- Filas de acción y filas de lista ---------- */
 .sm-act,
@@ -51,6 +65,30 @@
 .sm-row:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+}
+.sm-row.is-sel,
+.sm-row.is-sel:hover {
+  background: var(--fill-selected);
+}
+
+/* Las filas de Recientes entran escalonadas con su propio retardo. */
+@keyframes sm-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sm-row {
+  animation: sm-in var(--duration-base) var(--easing-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-row {
+    animation-duration: 1ms;
+  }
 }
 
 /* ---------- Ventana de Bienvenida y diálogo de Ajustes ---------- */
@@ -86,11 +124,36 @@
     opacity: 1;
   }
 }
+/* El velo y lo que va encima tapan los controles propios de la ventana: con
+   un diálogo abierto, cerrar y minimizar quedan debajo, como en el lienzo. */
 .sm-dialog {
+  z-index: var(--z-overlay);
   animation: sm-dlg var(--duration-slow) var(--easing-spring-soft) both;
 }
 .sm-scrim {
+  z-index: var(--z-overlay);
   animation: sm-scrim var(--duration-base) var(--easing-out) both;
+}
+
+/* ---------- Hojas: los diálogos de archivo del lienzo ---------- */
+@keyframes sm-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sm-sheet {
+  z-index: var(--z-overlay);
+  animation: sm-sheet var(--duration-slow) var(--easing-spring-soft) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-sheet {
+    animation-duration: 1ms;
+  }
 }
 
 /* ---------- Ajustes: pestañas y rejilla del formulario ---------- */
@@ -181,4 +244,157 @@
     width: 100%;
     opacity: 0.4;
   }
+}
+
+/* ---------- Filas de archivo de los diálogos de carpeta y de abrir ---------- */
+.sm-file {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  width: 100%;
+  height: 28px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--label);
+  cursor: default;
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+.sm-file:hover:not(:disabled) {
+  background: var(--fill-hover);
+}
+.sm-file.is-sel,
+.sm-file.is-sel:hover {
+  background: var(--fill-selected);
+}
+.sm-file:disabled {
+  color: var(--label-tertiary);
+}
+.sm-file:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+.sm-file-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Campo del nombre mientras se escribe una carpeta nueva (FR-010). */
+.sm-file-input {
+  height: 20px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--bg-field);
+  box-shadow: inset 0 0 0 1px var(--focus-ring);
+  font: 400 13px/18px var(--font-sans);
+  color: var(--label);
+}
+.sm-file-input:focus,
+.sm-file-input:focus-visible {
+  outline: 0;
+}
+.sm-file-date {
+  flex: none;
+  font-size: 12px;
+  color: var(--label-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.sm-file-head {
+  height: 28px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-5);
+  border-bottom: 0.5px solid var(--separator);
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 600;
+  color: var(--label-secondary);
+}
+.sm-file-list {
+  flex: 1;
+  overflow: auto;
+  /* El relleno vertical le deja sitio al anillo de foco de la primera y la
+     última fila: la lista desplaza, y lo que desplaza recorta. El mismo
+     margen va en `scroll-padding`, porque al llegar con el tabulador el
+     navegador pega la fila al borde y el relleno no la salva. */
+  padding: var(--space-2) 10px;
+  scroll-padding: var(--space-2) 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.sm-file-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1\.5);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--label-secondary);
+}
+.sm-file-empty-title {
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 600;
+  color: var(--label);
+}
+.sm-file-empty-desc {
+  font-size: 12px;
+  line-height: 16px;
+}
+.sm-path {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--label);
+  cursor: default;
+}
+.sm-path:hover {
+  background: var(--fill-hover);
+}
+.sm-path:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* ---------- Editor: tarjeta de modelo vacío ---------- */
+.sm-start-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.sm-tint-indigo {
+  background: color-mix(in srgb, var(--indigo) 14%, transparent);
+}
+.sm-tint-teal {
+  background: color-mix(in srgb, var(--teal) 14%, transparent);
+}
+.sm-tint-purple {
+  background: color-mix(in srgb, var(--purple) 14%, transparent);
 }

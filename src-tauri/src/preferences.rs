@@ -22,6 +22,19 @@ pub enum Theme {
     Dark,
 }
 
+/// Motor por defecto de los modelos nuevos (FR-004, RS-10).
+///
+/// Solo fija el motor **inicial** de Nuevo modelo: el motor de cada modelo
+/// viaja dentro de su archivo.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Engine {
+    #[default]
+    Postgres,
+    Mysql,
+    Sqlite,
+}
+
 /// Geometría recordada de la ventana (FR-018).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WindowGeometry {
@@ -40,6 +53,8 @@ pub struct Preferences {
     pub show_welcome_on_start: bool,
     pub window: Option<WindowGeometry>,
     pub last_model_path: Option<String>,
+    pub engine: Engine,
+    pub last_folder: Option<String>,
 }
 
 impl Default for Preferences {
@@ -50,6 +65,8 @@ impl Default for Preferences {
             show_welcome_on_start: true,
             window: None,
             last_model_path: None,
+            engine: Engine::Postgres,
+            last_folder: None,
         }
     }
 }
@@ -60,6 +77,25 @@ impl Default for Preferences {
 pub struct PreferencesPatch {
     pub theme: Option<Theme>,
     pub show_welcome_on_start: Option<bool>,
+    pub engine: Option<Engine>,
+    /// Carpeta inicial del diálogo Nuevo modelo. `null` la olvida.
+    #[serde(default, deserialize_with = "double_option")]
+    pub last_folder: Option<Option<String>>,
+    /// Último modelo usado; se escribe al abrir y al guardar. `null` lo olvida.
+    #[serde(default, deserialize_with = "double_option")]
+    pub last_model_path: Option<Option<String>>,
+}
+
+/// Distingue «campo ausente» de «campo a `null`» en un parche.
+///
+/// Sin esto las dos cosas llegarían como `None` y no habría forma de olvidar
+/// una ruta: ausente es `None` y deja el valor anterior, `null` es
+/// `Some(None)` y lo borra.
+fn double_option<'de, D>(deserializer: D) -> Result<Option<Option<String>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Option::<String>::deserialize(deserializer).map(Some)
 }
 
 /// Resultado de la lectura: las preferencias y si hubo que recuperarse.
@@ -180,11 +216,23 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         .get("window")
         .and_then(|window| serde_json::from_value::<WindowGeometry>(window.clone()).ok());
 
-    let last_model_path = value
-        .get("lastModelPath")
-        .and_then(serde_json::Value::as_str)
-        .filter(|path| !path.trim().is_empty())
-        .map(str::to_string);
+    let last_model_path = optional_path(value, "lastModelPath");
+
+    // `engine` y `lastFolder` llegan con el Incremento 1: un archivo del
+    // Incremento 0 no los trae y caen a su valor por defecto sin recuperación,
+    // por eso `formatVersion` sigue en 1 (research.md R18).
+    let engine = match value.get("engine").and_then(serde_json::Value::as_str) {
+        Some("postgres") => Engine::Postgres,
+        Some("mysql") => Engine::Mysql,
+        Some("sqlite") => Engine::Sqlite,
+        Some(other) => {
+            log::warn!(target: SCOPE_PREFERENCES, "motor desconocido «{other}»; se usa «postgres»");
+            Engine::Postgres
+        }
+        None => defaults.engine,
+    };
+
+    let last_folder = optional_path(value, "lastFolder");
 
     Preferences {
         format_version: FORMAT_VERSION,
@@ -192,7 +240,18 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         show_welcome_on_start,
         window,
         last_model_path,
+        engine,
+        last_folder,
     }
+}
+
+/// Lee una ruta opcional, tratando el texto en blanco como ausente.
+fn optional_path(value: &serde_json::Value, key: &str) -> Option<String> {
+    value
+        .get(key)
+        .and_then(serde_json::Value::as_str)
+        .filter(|path| !path.trim().is_empty())
+        .map(str::to_string)
 }
 
 /// Guarda una copia del archivo original antes de reemplazarlo por los
@@ -240,6 +299,15 @@ pub fn apply_patch(current: &Preferences, patch: &PreferencesPatch) -> Preferenc
     }
     if let Some(show_welcome_on_start) = patch.show_welcome_on_start {
         next.show_welcome_on_start = show_welcome_on_start;
+    }
+    if let Some(engine) = patch.engine {
+        next.engine = engine;
+    }
+    if let Some(last_folder) = patch.last_folder.clone() {
+        next.last_folder = last_folder;
+    }
+    if let Some(last_model_path) = patch.last_model_path.clone() {
+        next.last_model_path = last_model_path;
     }
     next.format_version = FORMAT_VERSION;
     next
@@ -329,6 +397,8 @@ mod tests {
             show_welcome_on_start: false,
             window: Some(WindowGeometry { x: 0, y: 0, width: MIN_WIDTH, height: MIN_HEIGHT }),
             last_model_path: None,
+            engine: Engine::Mysql,
+            last_folder: Some("/Users/x/Proyectos".to_string()),
         };
 
         save_to(&path, &preferences).expect("guardar");
@@ -354,11 +424,54 @@ mod tests {
     #[test]
     fn el_parche_solo_cambia_lo_que_trae() {
         let current = Preferences::default();
-        let patch = PreferencesPatch { theme: Some(Theme::Light), show_welcome_on_start: None };
+        let patch = PreferencesPatch { theme: Some(Theme::Light), ..Default::default() };
 
         let next = apply_patch(&current, &patch);
 
         assert_eq!(next.theme, Theme::Light);
         assert!(next.show_welcome_on_start);
+        assert_eq!(next.engine, Engine::Postgres);
+    }
+
+    #[test]
+    fn un_archivo_del_incremento_0_carga_con_los_valores_nuevos_por_defecto() {
+        // Sin `engine` ni `lastFolder`, y sin subir `formatVersion`: no es una
+        // recuperación, es un archivo anterior que sigue siendo válido (R18).
+        let dir = temp_dir("incremento-0");
+        let path = file_path(&dir);
+        fs::write(
+            &path,
+            r#"{ "formatVersion": 1, "theme": "dark", "showWelcomeOnStart": false, "window": null, "lastModelPath": null }"#,
+        )
+        .expect("escritura");
+
+        let result = load_from(&path);
+
+        assert!(!result.recovered);
+        assert_eq!(result.preferences.theme, Theme::Dark);
+        assert!(!result.preferences.show_welcome_on_start);
+        assert_eq!(result.preferences.engine, Engine::Postgres);
+        assert_eq!(result.preferences.last_folder, None);
+    }
+
+    #[test]
+    fn el_parche_distingue_olvidar_una_ruta_de_no_tocarla() {
+        let current = Preferences {
+            last_folder: Some("/Users/x/Proyectos".to_string()),
+            last_model_path: Some("/Users/x/Proyectos/modelo.yaml".to_string()),
+            ..Default::default()
+        };
+
+        let sin_tocar: PreferencesPatch =
+            serde_json::from_str(r#"{ "engine": "sqlite" }"#).expect("parche");
+        let next = apply_patch(&current, &sin_tocar);
+        assert_eq!(next.engine, Engine::Sqlite);
+        assert_eq!(next.last_folder.as_deref(), Some("/Users/x/Proyectos"));
+
+        let olvidar: PreferencesPatch =
+            serde_json::from_str(r#"{ "lastModelPath": null }"#).expect("parche");
+        let next = apply_patch(&current, &olvidar);
+        assert_eq!(next.last_model_path, None);
+        assert_eq!(next.last_folder.as_deref(), Some("/Users/x/Proyectos"));
     }
 }

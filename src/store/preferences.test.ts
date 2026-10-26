@@ -1,11 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { IDENTITY, WINDOWS, resetStore } from '@/test/helpers'
-import {
-  DEFAULT_PREFERENCES,
-  resolveEffectiveTheme,
-  usePreferencesStore,
-} from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES, resolveEffectiveTheme } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
@@ -35,9 +32,9 @@ describe('almacén de preferencias', () => {
       recoveredReason: 'invalid_json',
     })
 
-    await usePreferencesStore.getState().load()
+    await useAppStore.getState().load()
 
-    expect(usePreferencesStore.getState().loadError).toMatch(/no se pudieron leer/i)
+    expect(useAppStore.getState().loadError).toMatch(/no se pudieron leer/i)
   })
 
   it('no avisa en el primer arranque, cuando no había archivo', async () => {
@@ -47,9 +44,9 @@ describe('almacén de preferencias', () => {
       recoveredReason: 'missing',
     })
 
-    await usePreferencesStore.getState().load()
+    await useAppStore.getState().load()
 
-    expect(usePreferencesStore.getState().loadError).toBeNull()
+    expect(useAppStore.getState().loadError).toBeNull()
   })
 
   it('revierte el tema si la escritura falla', async () => {
@@ -57,9 +54,9 @@ describe('almacén de preferencias', () => {
       new CommandError({ code: 'preferences_write_failed', message: 'disco lleno' }),
     )
 
-    await usePreferencesStore.getState().setTheme('dark')
+    await useAppStore.getState().setTheme('dark')
 
-    const state = usePreferencesStore.getState()
+    const state = useAppStore.getState()
     expect(state.preferences.theme).toBe('system')
     expect(state.effectiveTheme).toBe('light')
     expect(state.writeError).toMatch(/disco lleno/)
@@ -70,19 +67,19 @@ describe('almacén de preferencias', () => {
       new CommandError({ code: 'preferences_write_failed', message: 'sin permisos' }),
     )
 
-    await usePreferencesStore.getState().setShowWelcomeOnStart(false)
+    await useAppStore.getState().setShowWelcomeOnStart(false)
 
-    expect(usePreferencesStore.getState().preferences.showWelcomeOnStart).toBe(true)
-    expect(usePreferencesStore.getState().writeError).toMatch(/sin permisos/)
+    expect(useAppStore.getState().preferences.showWelcomeOnStart).toBe(true)
+    expect(useAppStore.getState().writeError).toMatch(/sin permisos/)
   })
 
   it('guarda el tema elegido cuando la escritura funciona', async () => {
     vi.mocked(preferencesUpdate).mockResolvedValue({ ...DEFAULT_PREFERENCES, theme: 'dark' })
 
-    await usePreferencesStore.getState().setTheme('dark')
+    await useAppStore.getState().setTheme('dark')
 
-    expect(usePreferencesStore.getState().preferences.theme).toBe('dark')
-    expect(usePreferencesStore.getState().effectiveTheme).toBe('dark')
+    expect(useAppStore.getState().preferences.theme).toBe('dark')
+    expect(useAppStore.getState().effectiveTheme).toBe('dark')
   })
 
   it('calcula el tema efectivo para los tres valores', () => {
@@ -93,10 +90,10 @@ describe('almacén de preferencias', () => {
   })
 
   it('las tres vías de Ajustes acaban en la misma acción', () => {
-    usePreferencesStore.getState().openPreferences()
-    expect(usePreferencesStore.getState().isPreferencesOpen).toBe(true)
+    useAppStore.getState().openPreferences()
+    expect(useAppStore.getState().isPreferencesOpen).toBe(true)
 
-    usePreferencesStore.getState().closePreferences()
-    expect(usePreferencesStore.getState().isPreferencesOpen).toBe(false)
+    useAppStore.getState().closePreferences()
+    expect(useAppStore.getState().isPreferencesOpen).toBe(false)
   })
 })

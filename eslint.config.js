@@ -32,4 +32,12 @@ export default tseslint.config(
     files: ['scripts/**/*.mjs'],
     languageOptions: { globals: { ...globals.node } },
   },
+  {
+    // El recorrido automatizado: Node por fuera, y por dentro los globales que
+    // inyectan WebdriverIO (`browser`, `expect`) y Mocha.
+    files: ['e2e/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.mocha, browser: 'readonly', expect: 'readonly' },
+    },
+  },
 )

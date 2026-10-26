@@ -1,6 +1,6 @@
 [package]
 name = "sql-designer"
-version = "1.0.0"
+version = "1.1.0"
 description = "Diseñador visual de bases de datos relacionales"
 authors = ["Jader Luis Diaz E."]
 edition = "2021"
@@ -14,6 +14,13 @@ path = "src/main.rs"
 tauri-build = { version = "2", features = [] }
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 
+# El servidor de WebDriver solo entra con `--features webdriver`, nunca en una
+# compilación normal ni en la de publicación: abre automatización por HTTP en
+# 127.0.0.1:4445 y existe únicamente para el recorrido automatizado de
+# `quickstart.md`.
+[features]
+webdriver = ["dep:tauri-plugin-wdio-webdriver", "dep:tauri-plugin-wdio"]
+
 [dependencies]
 tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-log = "2"
@@ -21,6 +28,9 @@ tauri-plugin-window-state = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 log = "0.4"
+trash = "5"
+tauri-plugin-wdio-webdriver = { version = "1.5.1", optional = true }
+tauri-plugin-wdio = { version = "1.5.1", optional = true }
 
 [profile.release]
 strip = true

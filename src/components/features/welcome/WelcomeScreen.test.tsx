@@ -4,19 +4,29 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { WelcomeScreen } from '@/components/features/welcome/WelcomeScreen'
 import { IDENTITY, MACOS, WINDOWS, resetStore } from '@/test/helpers'
-import { DEFAULT_PREFERENCES, usePreferencesStore } from '@/store/preferences'
+import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
-  return { ...actual, preferencesUpdate: vi.fn() }
+  return {
+    ...actual,
+    preferencesUpdate: vi.fn(),
+    fsUserPlaces: vi.fn(),
+    fsListDirectory: vi.fn(),
+  }
 })
 
-const { preferencesUpdate } = await import('@/lib/tauri/commands')
+const { fsListDirectory, fsUserPlaces, preferencesUpdate } = await import(
+  '@/lib/tauri/commands'
+)
 
 describe('Bienvenida', () => {
   beforeEach(() => {
     resetStore()
     vi.mocked(preferencesUpdate).mockResolvedValue(DEFAULT_PREFERENCES)
+    vi.mocked(fsUserPlaces).mockResolvedValue([])
+    vi.mocked(fsListDirectory).mockResolvedValue([])
   })
 
   it('muestra nombre, versión y fecha tal como las devuelve app_identity', () => {
@@ -45,7 +55,7 @@ describe('Bienvenida', () => {
     expect(screen.getByText('Ctrl+O')).toBeInTheDocument()
   })
 
-  it('las dos acciones están habilitadas y solo avisan', async () => {
+  it('las dos acciones abren su diálogo (FR-002, FR-012)', async () => {
     const user = userEvent.setup()
     render(<WelcomeScreen />)
 
@@ -53,8 +63,10 @@ describe('Bienvenida', () => {
     expect(nuevo).toBeEnabled()
 
     await user.click(nuevo)
+    expect(useAppStore.getState().dialog).toBe('new-model')
 
-    expect(usePreferencesStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
+    await user.click(screen.getByRole('button', { name: /abrir modelo/i }))
+    expect(useAppStore.getState().dialog).toBe('open-model')
   })
 
   it('la casilla refleja y cambia showWelcomeOnStart', async () => {
@@ -71,7 +83,7 @@ describe('Bienvenida', () => {
 
   it('avisa cuando las preferencias llegaron recuperadas', () => {
     resetStore()
-    usePreferencesStore.setState({ loadError: 'No se pudieron leer tus preferencias.' })
+    useAppStore.setState({ loadError: 'No se pudieron leer tus preferencias.' })
 
     render(<WelcomeScreen />)
 
