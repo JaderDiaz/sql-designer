@@ -143,28 +143,14 @@ describe('tamaño de la ventana según la pantalla (RS-01)', () => {
     vi.mocked(windowApplyMode).mockResolvedValue(undefined)
   })
 
-  it('arrancar en la Bienvenida no restaura la geometría recordada', async () => {
+  it('la geometría recordada ya no mueve la ventana', async () => {
     render(<App />)
 
     await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
 
-    // La geometría recordada es la del Editor; la Bienvenida sale centrada.
+    // La posición y el tamaño los decide la pantalla: la Bienvenida sale
+    // centrada y el Editor maximizado, no donde quedó la sesión anterior.
     expect(windowApplySavedGeometry).not.toHaveBeenCalled()
-  })
-
-  it('arrancar con un modelo recordado sí restaura la geometría', async () => {
-    const openModel = vi.fn().mockResolvedValue(true)
-    resetStore({
-      platform: WINDOWS,
-      preferences: { showWelcomeOnStart: false, lastModelPath: '/Users/ada/modelo.yaml' },
-    })
-    useAppStore.setState({ openModel })
-
-    render(<App />)
-
-    await waitFor(() => {
-      expect(windowApplySavedGeometry).toHaveBeenCalled()
-    })
   })
 
   it('la Bienvenida pide el modo diálogo y no lleva «Ampliar»', async () => {

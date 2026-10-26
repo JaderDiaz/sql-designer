@@ -124,10 +124,14 @@
     opacity: 1;
   }
 }
+/* El velo y lo que va encima tapan los controles propios de la ventana: con
+   un diálogo abierto, cerrar y minimizar quedan debajo, como en el lienzo. */
 .sm-dialog {
+  z-index: var(--z-overlay);
   animation: sm-dlg var(--duration-slow) var(--easing-spring-soft) both;
 }
 .sm-scrim {
+  z-index: var(--z-overlay);
   animation: sm-scrim var(--duration-base) var(--easing-out) both;
 }
 
@@ -143,6 +147,7 @@
   }
 }
 .sm-sheet {
+  z-index: var(--z-overlay);
   animation: sm-sheet var(--duration-slow) var(--easing-spring-soft) both;
 }
 @media (prefers-reduced-motion: reduce) {

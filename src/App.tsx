@@ -21,7 +21,6 @@ import { useAppShortcuts } from '@/hooks/useShortcut'
 import { useTheme } from '@/hooks/useTheme'
 import { measureStartupReady, windowApplyMode, windowSetCloseGuard } from '@/lib/tauri/commands'
 import { onCloseRequested, onPreferencesOpen } from '@/lib/tauri/events'
-import { windowApplySavedGeometry } from '@/lib/tauri/commands'
 import { useAppStore } from '@/store'
 import type { Preferences } from '@/lib/tauri/types'
 
@@ -89,9 +88,10 @@ export default function App() {
 
   useEffect(() => onCloseRequested(requestQuit), [requestQuit])
 
-  // La Bienvenida es un diálogo de 820 × 500 centrado y el Editor es la zona
-  // de trabajo: al entrar baja el mínimo de la ventana y, si todavía viene del
-  // tamaño pequeño, la abre en grande (RS-01).
+  // Cada pantalla tiene su ventana: la Bienvenida sale centrada con sus
+  // 820 × 500 y el Editor, que es la zona de trabajo, abre maximizado (RS-01).
+  // Por eso la geometría recordada ya no se restaura: la posición y el tamaño
+  // los decide la pantalla, no la sesión anterior.
   useEffect(() => {
     void windowApplyMode(screen === 'editor' ? 'editor' : 'welcome').catch(() => undefined)
   }, [screen])
@@ -107,17 +107,6 @@ export default function App() {
     if (path === null || resolveStartupScreen(preferences) !== 'last-model') return
     void openModel(path)
   }, [isLoaded, openModel, preferences])
-
-  // La geometría recordada es la del Editor, así que solo se restaura cuando
-  // la aplicación arranca abriendo un modelo: si arranca en la Bienvenida,
-  // manda el centro de la pantalla (FR-013 del Incremento 0).
-  const geometryApplied = useRef(false)
-  useEffect(() => {
-    if (!isLoaded || geometryApplied.current) return
-    geometryApplied.current = true
-    if (resolveStartupScreen(preferences) !== 'last-model') return
-    void windowApplySavedGeometry().catch(() => undefined)
-  }, [isLoaded, preferences])
 
   useEffect(() => {
     if (minElapsed) return undefined

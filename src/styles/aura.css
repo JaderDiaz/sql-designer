@@ -309,6 +309,13 @@
   outline-offset: 1px;
   animation: au-ring-in var(--duration-fast) var(--easing-out);
 }
+/* El anillo de foco lo dibuja `.au-input-wrap`, que es el que tiene las
+   esquinas redondeadas; sin esto el campo saca además el anillo cuadrado de
+   la regla global de `:focus-visible`. */
+.au-input-wrap .au-input:focus,
+.au-input-wrap .au-input:focus-visible {
+  outline: 0;
+}
 .au-input {
   flex: 1;
   min-width: 0;

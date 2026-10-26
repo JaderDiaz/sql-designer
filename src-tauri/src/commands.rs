@@ -466,10 +466,9 @@ pub async fn window_set_close_guard(
 
 /// Ajusta la ventana al modo de la pantalla que se está mostrando.
 ///
-/// La Bienvenida es un diálogo de tamaño fijo (RS-01); el Editor es la zona de
-/// trabajo, así que baja el mínimo, se puede ampliar y, si la ventana todavía
-/// viene del tamaño de la Bienvenida, crece hasta un tamaño cómodo sin salirse
-/// del monitor. Una ventana que el usuario ya agrandó se queda como está.
+/// La Bienvenida es un diálogo de tamaño fijo que siempre sale centrado
+/// (RS-01); el Editor es la zona de trabajo y siempre abre maximizado, con el
+/// mínimo bajado a 900 × 600 por si el usuario lo restaura después.
 ///
 /// @param mode `"welcome"` o `"editor"`.
 #[tauri::command]
@@ -502,12 +501,10 @@ pub async fn window_apply_mode<R: Runtime>(
             let minimum =
                 tauri::LogicalSize::new(window_state::EDITOR_MIN_SIZE.0, window_state::EDITOR_MIN_SIZE.1);
             apply(window.set_min_size(Some(minimum)))?;
-            // Solo crece si la ventana todavía viene del tamaño pequeño: una
-            // que el usuario ya agrandó o maximizó se queda como está.
-            if size.width <= minimum.width || size.height <= minimum.height {
-                let (width, height) = window_state::fit_editor_size(monitor_area(&window, scale));
-                apply(window.set_size(tauri::LogicalSize::new(width, height)))?;
-                apply(window.center())?;
+            // El Editor es la zona de trabajo: abre siempre maximizado. Si el
+            // usuario lo restaura después, el mínimo de 900 × 600 manda.
+            if !window.is_maximized().unwrap_or(false) {
+                apply(window.maximize())?;
             }
         }
         other => {
@@ -519,16 +516,6 @@ pub async fn window_apply_mode<R: Runtime>(
     }
 
     Ok(())
-}
-
-/// Área del monitor donde está la ventana, en píxeles lógicos.
-///
-/// @param window Ventana que se va a medir.
-/// @param scale Factor de escala del monitor.
-fn monitor_area<R: Runtime>(window: &WebviewWindow<R>, scale: f64) -> Option<(f64, f64)> {
-    let monitor = window.current_monitor().ok().flatten()?;
-    let available = monitor.size().to_logical::<f64>(scale);
-    Some((available.width, available.height))
 }
 
 /// Traduce el fallo de una operación de ventana al error del contrato.
