@@ -1,5 +1,7 @@
 import type { StateCreator } from 'zustand'
 
+import type { BrowserSlice } from '@/store/browser'
+import type { ModelSlice } from '@/store/model'
 import type { NavigationSlice } from '@/store/navigation'
 import type { PreferencesSlice } from '@/store/preferences'
 
@@ -13,7 +15,7 @@ import type { PreferencesSlice } from '@/store/preferences'
  */
 
 /** Estado completo del almacén: la unión de todas sus partes. */
-export type AppState = PreferencesSlice & NavigationSlice
+export type AppState = PreferencesSlice & NavigationSlice & ModelSlice & BrowserSlice
 
 /**
  * Firma de un creador de parte del almacén.

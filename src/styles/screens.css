@@ -93,6 +93,26 @@
   animation: sm-scrim var(--duration-base) var(--easing-out) both;
 }
 
+/* ---------- Hojas: los diálogos de archivo del lienzo ---------- */
+@keyframes sm-sheet {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sm-sheet {
+  animation: sm-sheet var(--duration-slow) var(--easing-spring-soft) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-sheet {
+    animation-duration: 1ms;
+  }
+}
+
 /* ---------- Ajustes: pestañas y rejilla del formulario ---------- */
 .sm-ptab {
   appearance: none;
@@ -295,4 +315,23 @@
 .sm-path:focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+}
+
+/* ---------- Editor: tarjeta de modelo vacío ---------- */
+.sm-start-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+.sm-tint-indigo {
+  background: color-mix(in srgb, var(--indigo) 14%, transparent);
+}
+.sm-tint-teal {
+  background: color-mix(in srgb, var(--teal) 14%, transparent);
+}
+.sm-tint-purple {
+  background: color-mix(in srgb, var(--purple) 14%, transparent);
 }

@@ -5,6 +5,7 @@ mod files;
 mod identity;
 mod logging;
 mod measure;
+mod places;
 mod preferences;
 mod recents;
 mod window_state;
@@ -108,6 +109,7 @@ fn main() {
             commands::measure_theme_applied,
             commands::measure_model_opened,
             commands::measure_model_saved,
+            commands::fs_user_places,
             commands::path_build_model,
             commands::model_read,
             commands::model_write,

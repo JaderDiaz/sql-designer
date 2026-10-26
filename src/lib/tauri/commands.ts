@@ -10,6 +10,7 @@ import type {
   ModelReadResult,
   ModelWriteResult,
   PathStat,
+  Place,
   Preferences,
   PreferencesLoadResult,
   PreferencesPatch,
@@ -226,4 +227,13 @@ export function measureModelOpened(millis: number, tables: number): Promise<numb
  */
 export function measureModelSaved(millis: number, tables: number): Promise<number | null> {
   return call<number | null>('measure_model_saved', { millis, tables })
+}
+
+/**
+ * Ubicaciones del usuario para la barra lateral de los diálogos (FR-007).
+ *
+ * Nunca falla: una ubicación que no se puede resolver no se lista.
+ */
+export function fsUserPlaces(): Promise<Place[]> {
+  return call<Place[]>('fs_user_places')
 }

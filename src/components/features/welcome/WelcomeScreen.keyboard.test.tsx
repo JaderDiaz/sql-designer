@@ -9,15 +9,16 @@ import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
-  return { ...actual, preferencesUpdate: vi.fn() }
+  return { ...actual, preferencesUpdate: vi.fn(), fsUserPlaces: vi.fn() }
 })
 
-const { preferencesUpdate } = await import('@/lib/tauri/commands')
+const { fsUserPlaces, preferencesUpdate } = await import('@/lib/tauri/commands')
 
 describe('Bienvenida con el teclado (FR-014, SC-004)', () => {
   beforeEach(() => {
     resetStore()
     vi.mocked(preferencesUpdate).mockResolvedValue(DEFAULT_PREFERENCES)
+    vi.mocked(fsUserPlaces).mockResolvedValue([])
   })
 
   it('tabulando se alcanzan y activan todos los controles', async () => {
@@ -33,7 +34,7 @@ describe('Bienvenida con el teclado (FR-014, SC-004)', () => {
     expect(nuevo).toHaveFocus()
 
     await user.keyboard('{Enter}')
-    expect(useAppStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
+    expect(useAppStore.getState().dialog).toBe('new-model')
 
     await user.tab()
     expect(abrir).toHaveFocus()

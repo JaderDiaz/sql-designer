@@ -9,8 +9,10 @@ import type { PlatformInfo } from '@/lib/tauri/types'
 /** Props de las acciones de la Bienvenida. */
 export interface WelcomeActionsProps {
   platform: PlatformInfo
-  /** Qué hacer con «Nuevo modelo…» y «Abrir modelo…»; aquí, avisar. */
-  onAction: () => void
+  /** Abre el diálogo de Nuevo modelo (FR-002). */
+  onNewModel: () => void
+  /** Qué hacer con «Abrir modelo…»; en esta fase, avisar. */
+  onOpenModel: () => void
   /** Abre la ventana de Ajustes (FR-020). */
   onOpenPreferences: () => void
 }
@@ -28,14 +30,19 @@ interface ActionRow {
  * Las filas de acción al pie de la barra lateral, como en el lienzo: icono,
  * texto y atajo (FR-003, FR-020). Entran escalonadas, una tras otra.
  *
- * «Nuevo modelo…» y «Abrir modelo…» quedan habilitadas y enfocables para que
- * el teclado y el lector de pantalla las alcancen (FR-014), pero en este
- * incremento solo avisan de que la acción llega después (FR-004).
+ * «Abrir modelo…» queda habilitada y enfocable para que el teclado y el lector
+ * de pantalla la alcancen (FR-014), aunque de momento solo avise de que llega
+ * con la historia de abrir.
  */
-export function WelcomeActions({ platform, onAction, onOpenPreferences }: WelcomeActionsProps) {
+export function WelcomeActions({
+  platform,
+  onNewModel,
+  onOpenModel,
+  onOpenPreferences,
+}: WelcomeActionsProps) {
   const rows: ActionRow[] = [
-    { label: 'Nuevo modelo…', icon: 'plus', key: 'N', onClick: onAction },
-    { label: 'Abrir modelo…', icon: 'folder-open', key: 'O', onClick: onAction },
+    { label: 'Nuevo modelo…', icon: 'plus', key: 'N', onClick: onNewModel },
+    { label: 'Abrir modelo…', icon: 'folder-open', key: 'O', onClick: onOpenModel },
     { label: 'Ajustes…', icon: 'settings', key: ',', onClick: onOpenPreferences },
   ]
 

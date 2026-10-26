@@ -19,8 +19,8 @@ import { NEXT_INCREMENT_NOTICE } from '@/store/preferences'
  *
  * Las zonas vacías de la barra lateral y de la cabecera arrastran la ventana.
  *
- * La lista de recientes llega en el Incremento 1; aquí se muestra su hueco con
- * el mensaje de que todavía está vacía.
+ * La lista de recientes llega con su propia historia; hasta entonces se
+ * muestra su hueco con el mensaje de que todavía está vacía.
  */
 export function WelcomeScreen() {
   const identity = useAppStore((state) => state.identity)
@@ -28,6 +28,7 @@ export function WelcomeScreen() {
   const loadError = useAppStore((state) => state.loadError)
   const showNotice = useAppStore((state) => state.showNotice)
   const openPreferences = useAppStore((state) => state.openPreferences)
+  const openNewModel = useAppStore((state) => state.openNewModel)
 
   return (
     <motion.section
@@ -60,7 +61,8 @@ export function WelcomeScreen() {
 
         <WelcomeActions
           platform={platform}
-          onAction={() => showNotice(NEXT_INCREMENT_NOTICE)}
+          onNewModel={openNewModel}
+          onOpenModel={() => showNotice(NEXT_INCREMENT_NOTICE)}
           onOpenPreferences={openPreferences}
         />
       </motion.aside>

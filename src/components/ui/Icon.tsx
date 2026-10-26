@@ -21,8 +21,10 @@ import {
   FolderPlus,
   HardDrive,
   Minus,
+  Layers,
   Monitor,
   Moon,
+  MousePointerClick,
   Pencil,
   Plus,
   Save,
@@ -31,6 +33,8 @@ import {
   Settings,
   Square,
   Sun,
+  Table2,
+  Tags,
   Trash2,
   TriangleAlert,
   X,
@@ -70,10 +74,14 @@ export type IconName =
   | 'folder'
   | 'folder-plus'
   | 'hard-drive'
+  | 'layers'
+  | 'mouse-pointer-click'
   | 'pencil'
   | 'save'
   | 'search'
   | 'search-x'
+  | 'table-2'
+  | 'tags'
   | 'trash-2'
   | 'triangle-alert'
 
@@ -117,10 +125,14 @@ const ICONS: Record<IconName, LucideIcon> = {
   folder: Folder,
   'folder-plus': FolderPlus,
   'hard-drive': HardDrive,
+  layers: Layers,
+  'mouse-pointer-click': MousePointerClick,
   pencil: Pencil,
   save: Save,
   search: Search,
   'search-x': SearchX,
+  'table-2': Table2,
+  tags: Tags,
   'trash-2': Trash2,
   'triangle-alert': TriangleAlert,
 }

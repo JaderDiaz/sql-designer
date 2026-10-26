@@ -1,6 +1,8 @@
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
+import { EditorScreen } from '@/components/features/editor/EditorScreen'
+import { NewModelDialog } from '@/components/features/new-model/NewModelDialog'
 import { PreferencesWindow } from '@/components/features/preferences/PreferencesWindow'
 import { SplashScreen } from '@/components/features/splash/SplashScreen'
 import { WelcomeScreen } from '@/components/features/welcome/WelcomeScreen'
@@ -21,9 +23,13 @@ export type StartupScreen = 'welcome' | 'last-model'
 /**
  * Decide qué se muestra al arrancar (FR-006).
  *
- * Con la casilla desmarcada y un modelo recordado se abriría ese modelo; si no
+ * Con la casilla desmarcada y un modelo recordado se abre ese modelo; si no
  * hay ninguno, se muestra la Bienvenida **sin** cambiar la preferencia, para
  * que el usuario no pierda su elección por un archivo que ya no está.
+ *
+ * Mientras abrir un modelo no esté implementado, `last-model` acaba igual que
+ * `welcome`: la decisión ya está aquí y quien la consume es la historia de
+ * abrir, que lleva la pantalla a `'editor'` por su cuenta.
  *
  * @param preferences Preferencias cargadas al arrancar.
  */
@@ -45,11 +51,11 @@ const SPLASH_MIN_MS = 650
  * luego la Bienvenida entra con su animación (SC-001).
  */
 export default function App() {
-  const preferences = useAppStore((state) => state.preferences)
   const notice = useAppStore((state) => state.notice)
   const dismissNotice = useAppStore((state) => state.dismissNotice)
   const openPreferences = useAppStore((state) => state.openPreferences)
   const isLoaded = useAppStore((state) => state.isLoaded)
+  const screen = useAppStore((state) => state.screen)
 
   // El suelo se cuenta desde que la página empezó a cargar, no desde que monta
   // React: las preferencias pueden llegar antes del primer fotograma, y con un
@@ -74,7 +80,6 @@ export default function App() {
     return () => window.clearTimeout(timer)
   }, [minElapsed])
 
-  const startup = resolveStartupScreen(preferences)
   const isReady = isLoaded && minElapsed
 
   useEffect(() => {
@@ -100,17 +105,17 @@ export default function App() {
           {isReady ? (
             <ScrollRegion key="screen" label="Contenido de la pantalla">
               {/*
-                En este incremento `last-model` acaba igual que `welcome`: abrir
-                un modelo llega en el Incremento 1 (anotado en spec.md,
-                Assumptions).
+                `startup` solo decide la pantalla del arranque; a partir de ahí
+                manda `screen`, que es lo que mueven crear, abrir y cerrar.
               */}
-              {startup === 'welcome' || startup === 'last-model' ? <WelcomeScreen /> : null}
+              {screen === 'editor' ? <EditorScreen /> : <WelcomeScreen />}
             </ScrollRegion>
           ) : (
             <SplashScreen key="splash" />
           )}
         </AnimatePresence>
         {notice ? <Toast title={notice} onDismiss={dismissNotice} /> : null}
+        <NewModelDialog />
       </AppShell>
       <PreferencesWindow />
     </MotionConfig>

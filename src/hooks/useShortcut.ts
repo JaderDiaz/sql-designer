@@ -43,15 +43,16 @@ export function useShortcut(shortcut: Shortcut, handler: () => void): void {
 /**
  * Registra los atajos de la aplicación.
  *
- * `⌘N`/`Ctrl+N` y `⌘O`/`Ctrl+O` muestran el mismo aviso que el clic, para que
- * la pantalla no anuncie un atajo que no responde (FR-003, FR-004);
- * `⌘,`/`Ctrl+,` abre Ajustes, que es la tercera vía de FR-020.
+ * `⌘N`/`Ctrl+N` abre Nuevo modelo (FR-002); `⌘O`/`Ctrl+O` muestra el mismo
+ * aviso que el clic, para que la pantalla no anuncie un atajo que no responde
+ * (FR-004); `⌘,`/`Ctrl+,` abre Ajustes, que es la tercera vía de FR-020.
  */
 export function useAppShortcuts(): void {
   const showNotice = useAppStore((state) => state.showNotice)
   const openPreferences = useAppStore((state) => state.openPreferences)
+  const openNewModel = useAppStore((state) => state.openNewModel)
 
-  useShortcut({ key: 'n', meta: true }, () => showNotice(NEXT_INCREMENT_NOTICE))
+  useShortcut({ key: 'n', meta: true }, openNewModel)
   useShortcut({ key: 'o', meta: true }, () => showNotice(NEXT_INCREMENT_NOTICE))
   useShortcut({ key: ',', meta: true }, openPreferences)
 }

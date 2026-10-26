@@ -9,15 +9,16 @@ import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
-  return { ...actual, preferencesUpdate: vi.fn() }
+  return { ...actual, preferencesUpdate: vi.fn(), fsUserPlaces: vi.fn() }
 })
 
-const { preferencesUpdate } = await import('@/lib/tauri/commands')
+const { fsUserPlaces, preferencesUpdate } = await import('@/lib/tauri/commands')
 
 describe('Bienvenida', () => {
   beforeEach(() => {
     resetStore()
     vi.mocked(preferencesUpdate).mockResolvedValue(DEFAULT_PREFERENCES)
+    vi.mocked(fsUserPlaces).mockResolvedValue([])
   })
 
   it('muestra nombre, versión y fecha tal como las devuelve app_identity', () => {
@@ -46,7 +47,7 @@ describe('Bienvenida', () => {
     expect(screen.getByText('Ctrl+O')).toBeInTheDocument()
   })
 
-  it('las dos acciones están habilitadas y solo avisan', async () => {
+  it('«Nuevo modelo…» abre el diálogo y «Abrir modelo…» todavía avisa', async () => {
     const user = userEvent.setup()
     render(<WelcomeScreen />)
 
@@ -54,7 +55,9 @@ describe('Bienvenida', () => {
     expect(nuevo).toBeEnabled()
 
     await user.click(nuevo)
+    expect(useAppStore.getState().dialog).toBe('new-model')
 
+    await user.click(screen.getByRole('button', { name: /abrir modelo/i }))
     expect(useAppStore.getState().notice).toBe('Esta acción llega en el Incremento 1')
   })
 

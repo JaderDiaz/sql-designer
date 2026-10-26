@@ -2,11 +2,12 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use serde::Serialize;
-use tauri::{AppHandle, Runtime, State, WebviewWindow, Window};
+use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow, Window};
 
 use crate::files::{self, BuiltModelPath, FileStamp, ModelReadResult, ModelWriteResult, PathStat};
 use crate::identity::AppIdentity;
 use crate::logging::{SCOPE_MEASURE, SCOPE_PREFERENCES, SCOPE_RECENTS, SCOPE_WINDOW_STATE};
+use crate::places::{self, Place, PlaceSources};
 use crate::recents::{self, RecentEntry, RecentEntryInput, RecentListEntry};
 use crate::measure::{self, StartupClock};
 use crate::preferences::{self, Preferences, PreferencesLoadResult, PreferencesPatch, Theme};
@@ -326,6 +327,25 @@ pub fn measure_theme_applied(millis: f64) {
         return;
     }
     log::info!(target: SCOPE_MEASURE, "SC-003 tema aplicado en {millis:.0} ms");
+}
+
+/// Ubicaciones del usuario para la barra lateral de los diálogos (FR-007, FR-012).
+///
+/// Nunca falla: una ubicación que no se puede resolver simplemente no se
+/// lista (`research.md` R6).
+#[tauri::command]
+pub async fn fs_user_places<R: Runtime>(app: AppHandle<R>) -> Vec<Place> {
+    let resolver = app.path();
+    let home = resolver.home_dir().ok();
+    let sources = PlaceSources {
+        desktop: resolver.desktop_dir().ok(),
+        documents: resolver.document_dir().ok(),
+        downloads: resolver.download_dir().ok(),
+        icloud: places::icloud_path(home.as_ref()),
+        home,
+        root: Some(places::root_path()),
+    };
+    places::build_places(&sources)
 }
 
 /// Anota los milisegundos que tardó en abrirse un modelo (SC-002).
