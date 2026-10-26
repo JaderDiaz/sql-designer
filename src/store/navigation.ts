@@ -35,6 +35,9 @@ export type Dialog =
  */
 export type PendingIntent = 'new-model' | 'open-model' | 'close'
 
+/** Respuesta a la pregunta por los cambios sin guardar (FR-028). */
+export type CloseAnswer = 'save' | 'discard' | 'cancel'
+
 /** Estado y acciones de la parte de navegación. */
 export interface NavigationSlice {
   screen: Screen
@@ -44,14 +47,18 @@ export interface NavigationSlice {
   openDialog: (dialog: Dialog) => void
   closeDialog: () => void
   setPendingIntent: (intent: PendingIntent | null) => void
+  requestClose: () => void
+  requestIntent: (intent: PendingIntent) => void
+  resolvePending: (answer: CloseAnswer) => Promise<void>
 }
 
 /**
  * Crea la parte de navegación del almacén.
  *
  * @param set Escritura del almacén compuesto.
+ * @param get Lectura del almacén compuesto.
  */
-export const createNavigationSlice: AppSlice<NavigationSlice> = (set) => ({
+export const createNavigationSlice: AppSlice<NavigationSlice> = (set, get) => ({
   screen: 'welcome',
   dialog: null,
   pendingIntent: null,
@@ -88,4 +95,79 @@ export const createNavigationSlice: AppSlice<NavigationSlice> = (set) => ({
   setPendingIntent(intent) {
     set({ pendingIntent: intent })
   },
+
+  /**
+   * Cierra el modelo, preguntando primero si hay cambios sin guardar
+   * (FR-027, FR-028).
+   */
+  requestClose() {
+    get().requestIntent('close')
+  },
+
+  /**
+   * Pide hacer algo que reemplaza o cierra el modelo abierto.
+   *
+   * Con cambios sin guardar no se hace nada todavía: se abre la pregunta y la
+   * intención queda apuntada hasta que haya respuesta (FR-030). Sin modelo
+   * abierto, o sin cambios, la intención se ejecuta en el momento.
+   *
+   * @param intent Qué se quería hacer.
+   */
+  requestIntent(intent) {
+    const { model, isDirty } = get()
+    if (model !== null && isDirty) {
+      set({ pendingIntent: intent, dialog: 'confirm-close' })
+      return
+    }
+    runIntent(intent, get)
+  },
+
+  /**
+   * Responde a la pregunta por los cambios sin guardar (FR-028, FR-030).
+   *
+   * «Guardar» escribe y solo entonces continúa; si el guardado falla o pide
+   * confirmación, la intención se queda esperando y no se pierde nada.
+   * «No guardar» continúa sin escribir. «Cancelar» deja el Editor como
+   * estaba, con sus cambios.
+   *
+   * @param answer Respuesta elegida en el diálogo.
+   */
+  async resolvePending(answer) {
+    const intent = get().pendingIntent
+
+    if (answer === 'cancel') {
+      set({ dialog: null, pendingIntent: null })
+      return
+    }
+
+    if (answer === 'save') {
+      set({ dialog: null })
+      const saved = await get().saveModel()
+      if (!saved) return
+    } else {
+      set({ dialog: null })
+    }
+
+    set({ pendingIntent: null })
+    if (intent !== null) runIntent(intent, get)
+  },
 })
+
+/**
+ * Ejecuta la intención que esperaba respuesta.
+ *
+ * @param intent Qué se quería hacer.
+ * @param get Lectura del almacén compuesto.
+ */
+function runIntent(intent: PendingIntent, get: () => AppStateForIntent): void {
+  if (intent === 'close') get().closeModel()
+  else if (intent === 'new-model') get().openNewModel()
+  else get().openOpenModel()
+}
+
+/** Lo que `runIntent` necesita del almacén. */
+interface AppStateForIntent {
+  closeModel: () => void
+  openNewModel: () => void
+  openOpenModel: () => void
+}

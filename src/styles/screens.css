@@ -19,6 +19,20 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+/* Punto de cambios sin guardar dentro del círculo rojo (RS-07). */
+.sm-traffic.is-dirty {
+  position: relative;
+}
+.sm-traffic.is-dirty::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(77, 0, 0, 0.55);
+}
 
 /* ---------- Filas de acción y filas de lista ---------- */
 .sm-act,

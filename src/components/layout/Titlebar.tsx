@@ -3,6 +3,15 @@ import { windowControls } from '@/lib/tauri/commands'
 
 /** Props de los controles de ventana. */
 export interface TitlebarProps {
+  /**
+   * Qué hace el círculo rojo. Sin esto cierra la ventana; el Editor le pasa
+   * su propio cierre, que vuelve a la Bienvenida (FR-027).
+   */
+  onClose?: () => void
+  /** Texto accesible del círculo rojo. */
+  closeLabel?: string
+  /** Punto de cambios sin guardar dentro del círculo rojo (RS-07). */
+  isDirty?: boolean
   className?: string
 }
 
@@ -15,11 +24,17 @@ export interface TitlebarProps {
  * en los dos sistemas, en el sitio que marca el lienzo. Esta ventana no se
  * maximiza, así que no hay tercer botón.
  */
-export function Titlebar({ className }: TitlebarProps) {
+export function Titlebar({ onClose, closeLabel, isDirty = false, className }: TitlebarProps) {
   return (
     <div className={cn('group absolute left-5 top-5 z-50 flex select-none gap-2', className)}>
-      <WindowButton action="close" label="Cerrar" tone="close" />
-      <WindowButton action="minimize" label="Minimizar" tone="minimize" />
+      <WindowButton
+        action="close"
+        label={closeLabel ?? 'Cerrar'}
+        tone="close"
+        onClick={onClose}
+        isDirty={isDirty}
+      />
+      <WindowButton action="minimize" label="Minimizar" tone="minimize" onClick={undefined} isDirty={false} />
     </div>
   )
 }
@@ -31,6 +46,9 @@ interface WindowButtonProps {
   action: 'minimize' | 'close'
   label: string
   tone: ControlTone
+  /** Acción propia; sin ella se manda la del sistema a Rust. */
+  onClick: (() => void) | undefined
+  isDirty: boolean
 }
 
 const TONE_COLOR: Record<ControlTone, string> = {
@@ -45,13 +63,13 @@ const TONE_PATH: Record<ControlTone, string> = {
 }
 
 /** Control de ventana; delega la acción en el comando de Rust. */
-function WindowButton({ action, label, tone }: WindowButtonProps) {
+function WindowButton({ action, label, tone, onClick, isDirty }: WindowButtonProps) {
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
-      onClick={() => void windowControls(action)}
+      onClick={onClick ?? (() => void windowControls(action))}
       style={{ background: TONE_COLOR[tone] }}
       className={cn(
         'flex h-3 w-3 items-center justify-center rounded-full',
@@ -59,6 +77,7 @@ function WindowButton({ action, label, tone }: WindowButtonProps) {
         'transition-[filter] duration-fast ease-standard active:brightness-90',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
         'focus-visible:outline-[var(--focus-ring)]',
+        isDirty ? 'sm-traffic is-dirty' : null,
       )}
     >
       <svg

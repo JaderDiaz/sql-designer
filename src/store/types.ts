@@ -4,6 +4,7 @@ import type { BrowserSlice } from '@/store/browser'
 import type { ModelSlice } from '@/store/model'
 import type { NavigationSlice } from '@/store/navigation'
 import type { PreferencesSlice } from '@/store/preferences'
+import type { RecentsSlice } from '@/store/recents'
 
 /**
  * Tipos del almacén único (principio IV de la constitución).
@@ -15,7 +16,11 @@ import type { PreferencesSlice } from '@/store/preferences'
  */
 
 /** Estado completo del almacén: la unión de todas sus partes. */
-export type AppState = PreferencesSlice & NavigationSlice & ModelSlice & BrowserSlice
+export type AppState = PreferencesSlice &
+  NavigationSlice &
+  ModelSlice &
+  BrowserSlice &
+  RecentsSlice
 
 /**
  * Firma de un creador de parte del almacén.

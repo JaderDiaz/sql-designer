@@ -333,6 +333,7 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
         dialog: get().dialog === 'stale' ? null : get().dialog,
       })
 
+      get().showNotice('Guardado')
       void measureModelSaved(performance.now() - startedMs, tableCount(model)).catch(
         () => undefined,
       )
@@ -352,13 +353,14 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       }
       if (error instanceof CommandError && error.code === 'path_not_found') {
         // La carpeta del modelo ya no está: se ofrece elegir otra (FR-045).
-        set({ saveError: error.message, choosePurpose: 'relocate-save', dialog: 'choose-folder' })
+        set({ saveError: error.message })
+        get().openChooseFolder('relocate-save', null)
         return false
       }
-      set({
-        saveError:
-          error instanceof Error ? error.message : 'No se pudo guardar el modelo.',
-      })
+      const message =
+        error instanceof Error ? error.message : 'No se pudo guardar el modelo.'
+      set({ saveError: message })
+      get().showNotice(`No se pudo guardar: ${message}`)
       return false
     }
   },

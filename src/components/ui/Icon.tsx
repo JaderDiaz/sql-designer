@@ -26,6 +26,7 @@ import {
   Moon,
   MousePointerClick,
   Pencil,
+  Redo2,
   Plus,
   Save,
   Search,
@@ -36,6 +37,7 @@ import {
   Table2,
   Tags,
   Trash2,
+  Undo2,
   TriangleAlert,
   X,
   type LucideIcon,
@@ -77,6 +79,8 @@ export type IconName =
   | 'layers'
   | 'mouse-pointer-click'
   | 'pencil'
+  | 'redo-2'
+  | 'undo-2'
   | 'save'
   | 'search'
   | 'search-x'
@@ -128,6 +132,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   layers: Layers,
   'mouse-pointer-click': MousePointerClick,
   pencil: Pencil,
+  'redo-2': Redo2,
+  'undo-2': Undo2,
   save: Save,
   search: Search,
   'search-x': SearchX,

@@ -5,6 +5,11 @@ import { Titlebar } from '@/components/layout/Titlebar'
 /** Props del armazón de ventana. */
 export interface AppShellProps {
   children: ReactNode
+  /**
+   * Si el armazón dibuja los controles de ventana. El Editor los trae en su
+   * propia cabecera, donde el círculo rojo cierra el modelo (FR-027).
+   */
+  showTitlebar?: boolean
 }
 
 /**
@@ -19,14 +24,14 @@ export interface AppShellProps {
  * la `ScrollRegion` que envuelva cada pantalla (RS-01). Los avisos flotan
  * sobre la pantalla como toasts; no hay pie fijo.
  */
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, showTitlebar = true }: AppShellProps) {
   return (
     <div
       data-tauri-drag-region
       className="relative flex h-full flex-col overflow-hidden rounded-xl bg-window text-label shadow-[inset_0_0_0_0.5px_var(--border-subtle)]"
     >
       <main className="flex min-h-0 flex-1 flex-col">{children}</main>
-      <Titlebar />
+      {showTitlebar ? <Titlebar /> : null}
     </div>
   )
 }

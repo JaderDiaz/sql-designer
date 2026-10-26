@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useEffect } from 'react'
 
+import { EditorChrome } from '@/components/layout/EditorChrome'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { riseIn, stagger } from '@/lib/motion'
@@ -85,6 +86,8 @@ export function EditorScreen() {
       animate="visible"
       className="flex h-full min-h-0 w-full flex-col bg-canvas"
     >
+      <EditorChrome />
+
       <ScrollRegion label="Lienzo del modelo" className="flex items-center justify-center p-6">
         <motion.div
           variants={riseIn}

@@ -4,6 +4,7 @@ import { createBrowserSlice } from '@/store/browser'
 import { createModelSlice } from '@/store/model'
 import { createNavigationSlice } from '@/store/navigation'
 import { createPreferencesSlice } from '@/store/preferences'
+import { createRecentsSlice } from '@/store/recents'
 import type { AppState } from '@/store/types'
 
 /**
@@ -17,4 +18,5 @@ export const useAppStore = create<AppState>()((...args) => ({
   ...createNavigationSlice(...args),
   ...createModelSlice(...args),
   ...createBrowserSlice(...args),
+  ...createRecentsSlice(...args),
 }))

@@ -26,8 +26,7 @@ export function WelcomeScreen() {
   const platform = useAppStore((state) => state.platform)
   const loadError = useAppStore((state) => state.loadError)
   const openPreferences = useAppStore((state) => state.openPreferences)
-  const openNewModel = useAppStore((state) => state.openNewModel)
-  const openOpenModel = useAppStore((state) => state.openOpenModel)
+  const requestIntent = useAppStore((state) => state.requestIntent)
 
   return (
     <motion.section
@@ -60,8 +59,8 @@ export function WelcomeScreen() {
 
         <WelcomeActions
           platform={platform}
-          onNewModel={openNewModel}
-          onOpenModel={openOpenModel}
+          onNewModel={() => requestIntent('new-model')}
+          onOpenModel={() => requestIntent('open-model')}
           onOpenPreferences={openPreferences}
         />
       </motion.aside>

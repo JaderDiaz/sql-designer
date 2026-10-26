@@ -1,7 +1,10 @@
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
+import { ConfirmCloseDialog } from '@/components/features/editor/ConfirmCloseDialog'
 import { EditorScreen } from '@/components/features/editor/EditorScreen'
+import { RenameModelDialog } from '@/components/features/editor/RenameModelDialog'
+import { StaleFileDialog } from '@/components/features/editor/StaleFileDialog'
 import { NewModelDialog } from '@/components/features/new-model/NewModelDialog'
 import { FileErrorDialog } from '@/components/features/open-model/FileErrorDialog'
 import { OpenModelDialog } from '@/components/features/open-model/OpenModelDialog'
@@ -102,7 +105,7 @@ export default function App() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <AppShell>
+      <AppShell showTitlebar={screen !== 'editor'}>
         <AnimatePresence mode="wait" initial={false}>
           {isReady ? (
             <ScrollRegion key="screen" label="Contenido de la pantalla">
@@ -120,6 +123,9 @@ export default function App() {
         <NewModelDialog />
         <OpenModelDialog />
         <FileErrorDialog />
+        <RenameModelDialog />
+        <StaleFileDialog />
+        <ConfirmCloseDialog />
       </AppShell>
       <PreferencesWindow />
     </MotionConfig>
