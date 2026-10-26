@@ -535,7 +535,15 @@ mod tests {
 
         let error = write_model(&ocupado, "nuevo", None, true).expect_err("debe fallar");
 
-        assert_eq!(error.code, "model_write_failed");
+        // El código depende del sistema: renombrar encima de un directorio da
+        // «acceso denegado» en Windows y un error sin traducción propia en
+        // macOS. Lo que importa y es igual en los dos es que la escritura
+        // falla, el archivo anterior sigue entero y el temporal no se queda.
+        assert!(
+            error.code == "model_write_failed" || error.code == "path_denied",
+            "código inesperado: {}",
+            error.code
+        );
         assert_eq!(fs::read_to_string(&path).expect("lectura"), "contenido anterior");
         assert!(!dir.join(format!(".ocupado.yaml.{}.tmp", std::process::id())).exists());
     }
