@@ -27,7 +27,14 @@ export function ScrollRegion({ children, className, label, dragRegion }: ScrollR
       tabIndex={-1}
       aria-label={label}
       className={cn('min-h-0 flex-1', className)}
-      style={{ overflowY: 'auto', overflowX: 'hidden', overscrollBehavior: 'contain' }}
+      style={{
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        overscrollBehavior: 'contain',
+        // Al llegar con el tabulador, el navegador pega el elemento al borde
+        // de la región y le corta el anillo de foco: este margen se lo deja.
+        scrollPadding: 10,
+      }}
     >
       {children}
     </div>

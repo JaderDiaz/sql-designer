@@ -105,7 +105,7 @@ export function RecentsList() {
       role="listbox"
       aria-label="Modelos recientes"
       onKeyDown={onKeyDown}
-      className="-my-1 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto px-3 py-2"
+      className="-my-1 flex min-h-0 flex-1 scroll-p-2.5 flex-col gap-0.5 overflow-y-auto px-3 py-2"
       style={{ overscrollBehavior: 'contain' }}
     >
       {recents.map((entry, index) => {

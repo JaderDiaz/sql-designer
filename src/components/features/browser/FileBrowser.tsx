@@ -174,7 +174,7 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <div className="w-[172px] flex-none overflow-auto border-r-[0.5px] border-separator bg-sidebar p-2">
+        <div className="w-[172px] flex-none scroll-p-2.5 overflow-auto border-r-[0.5px] border-separator bg-sidebar p-2">
           <Sidebar
             label="Ubicaciones"
             sections={toSections(

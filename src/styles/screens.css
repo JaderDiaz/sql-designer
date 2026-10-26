@@ -326,8 +326,11 @@
   flex: 1;
   overflow: auto;
   /* El relleno vertical le deja sitio al anillo de foco de la primera y la
-     última fila: la lista desplaza, y lo que desplaza recorta. */
+     última fila: la lista desplaza, y lo que desplaza recorta. El mismo
+     margen va en `scroll-padding`, porque al llegar con el tabulador el
+     navegador pega la fila al borde y el relleno no la salva. */
   padding: var(--space-2) 10px;
+  scroll-padding: var(--space-2) 10px;
   display: flex;
   flex-direction: column;
   gap: 1px;

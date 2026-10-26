@@ -82,7 +82,7 @@ export function Sheet({
           desplazamiento recorta en los dos ejes aunque solo se pida en uno.
           Doce píxeles porque el anillo no solo se sale 3 px al posarse: entra
           desde 7 px con la animación `au-ring-in` de Aura. */}
-      <div className="-m-3 min-h-0 flex-1 overflow-y-auto p-3">{children}</div>
+      <div className="-m-3 min-h-0 flex-1 scroll-p-3 overflow-y-auto p-3">{children}</div>
       {footer ? <div className="flex justify-end gap-2 pt-1">{footer}</div> : null}
     </>
   )
