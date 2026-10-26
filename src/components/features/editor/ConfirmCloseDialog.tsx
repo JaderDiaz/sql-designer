@@ -8,6 +8,10 @@ import { useAppStore } from '@/store'
  *
  * Esc equivale a «Cancelar», que es lo que hace Radix al cerrar la hoja: la
  * respuesta destructiva nunca es la de salirse sin decidir.
+ *
+ * El orden y los tonos son los del lienzo: «No guardar» a la izquierda y en
+ * tono normal —no destructivo—, «Cancelar» en medio y «Guardar» como acción
+ * principal, que es además la que recibe el foco.
  */
 export function ConfirmCloseDialog() {
   const dialog = useAppStore((state) => state.dialog)
@@ -20,18 +24,14 @@ export function ConfirmCloseDialog() {
       onOpenChange={(next) => {
         if (!next) void resolvePending('cancel')
       }}
-      icon="triangle-alert"
-      iconClassName="bg-warning-soft"
-      iconColorClassName="text-orange"
-      title="¿Guardar los cambios?"
-      description={`«${model?.name ?? ''}» tiene cambios sin guardar. Si no los guardas, se perderán.`}
-      width={400}
+      icon="save"
+      title={`¿Guardar los cambios de «${model?.name ?? ''}»?`}
+      description="Si no guardas, se perderán los cambios hechos desde la última vez que guardaste."
+      width={380}
       footer={
         <>
+          <Button onClick={() => void resolvePending('discard')}>No guardar</Button>
           <Button onClick={() => void resolvePending('cancel')}>Cancelar</Button>
-          <Button variant="destructive" onClick={() => void resolvePending('discard')}>
-            No guardar
-          </Button>
           <Button variant="primary" onClick={() => void resolvePending('save')}>
             Guardar
           </Button>

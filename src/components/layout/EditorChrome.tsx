@@ -1,5 +1,6 @@
 import { Titlebar } from '@/components/layout/Titlebar'
 import { Button } from '@/components/ui/Button'
+import { formatTime } from '@/lib/format'
 import { ENGINE_LABELS } from '@/lib/model/types'
 import { shortcutLabel } from '@/lib/platform'
 import { useAppStore } from '@/store'
@@ -19,10 +20,7 @@ import { useAppStore } from '@/store'
 export function saveStatusText(isDirty: boolean, savedAtMs: number | null): string {
   if (isDirty) return 'Cambios sin guardar'
   if (savedAtMs === null) return 'Guardado'
-  const time = new Intl.DateTimeFormat('es', { hour: 'numeric', minute: '2-digit' }).format(
-    new Date(savedAtMs),
-  )
-  return `Guardado a las ${time}`
+  return `Guardado a las ${formatTime(savedAtMs)}`
 }
 
 export function EditorChrome() {
@@ -51,6 +49,7 @@ export function EditorChrome() {
         onClose={requestClose}
         closeLabel={closeLabel}
         isDirty={isDirty}
+        canZoom
         className="relative left-0 top-0 mr-2 z-auto"
       />
 
@@ -64,8 +63,8 @@ export function EditorChrome() {
       <Button
         variant="plain"
         icon="pencil"
-        aria-label="Renombrar el modelo"
-        title="Renombrar el modelo"
+        aria-label="Renombrar modelo"
+        title="Renombrar modelo"
         onClick={() => openDialog('rename')}
       />
 

@@ -28,7 +28,7 @@ export function TrashConfirmDialog() {
       description={
         trashTarget === null
           ? ''
-          : `Se quita de recientes y el archivo de ${trashTarget.folder} pasa a la papelera, desde donde puedes recuperarlo.`
+          : `Se quita de recientes y el archivo de ${trashTarget.folder} pasa a la Papelera, desde donde puedes recuperarlo.`
       }
       width={380}
       footer={

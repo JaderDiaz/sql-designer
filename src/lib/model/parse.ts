@@ -25,12 +25,51 @@ import type { Locate, ValidationIssue, ValuePath } from '@/lib/model/validate'
  */
 
 /** Resultado de leer un archivo del modelo. */
-export type ParseResult =
-  | { ok: true; model: Model }
-  | { ok: false; errors: ValidationIssue[] }
+export type ParseResult = { ok: true; model: Model } | { ok: false; errors: ValidationIssue[] }
 
 /** Primera línea y columna del archivo, cuando no se sabe situar el fallo. */
 const START = { line: 1, column: 1 }
+
+/**
+ * Lo que dice cada error de sintaxis de la librería `yaml`, en español.
+ *
+ * La librería escribe sus mensajes en inglés, y el diálogo de archivo con
+ * errores tiene que estar en español entero (FR-041, RS-12); por eso se
+ * traduce por el código del error, que es estable, y no por su texto.
+ */
+const SYNTAX_MESSAGES: Record<string, string> = {
+  ALIAS_PROPS: 'un alias no admite etiqueta ni ancla',
+  BAD_ALIAS: 'hay un alias mal escrito',
+  BAD_DIRECTIVE: 'hay una directiva mal escrita',
+  BAD_DQ_ESCAPE: 'hay un escape mal escrito dentro de un texto entre comillas',
+  BAD_INDENT: 'la sangría no cuadra',
+  BAD_PROP_ORDER: 'el ancla y la etiqueta van antes del valor',
+  BAD_SCALAR_START: 'un valor no puede empezar por ese carácter',
+  BLOCK_AS_IMPLICIT_KEY: 'una clave no puede ocupar un bloque',
+  BLOCK_IN_FLOW: 'no se puede abrir un bloque dentro de una lista entre corchetes',
+  DUPLICATE_KEY: 'hay una clave repetida',
+  IMPOSSIBLE: 'el archivo tiene algo que la lectura no sabe interpretar',
+  KEY_OVER_1024_CHARS: 'hay una clave demasiado larga',
+  MISSING_CHAR: 'falta un carácter',
+  MULTILINE_IMPLICIT_KEY: 'una clave no puede ocupar varias líneas',
+  MULTIPLE_ANCHORS: 'hay más de un ancla en el mismo valor',
+  MULTIPLE_DOCS: 'el archivo tiene más de un documento',
+  MULTIPLE_TAGS: 'hay más de una etiqueta en el mismo valor',
+  NON_STRING_KEY: 'las claves tienen que ser texto',
+  RESOURCE_EXHAUSTION: 'el archivo es demasiado grande para leerlo',
+  TAB_AS_INDENT: 'la sangría lleva tabuladores; se sangra con espacios',
+  TAG_RESOLVE_FAILED: 'hay una etiqueta que no se reconoce',
+  UNEXPECTED_TOKEN: 'hay algo donde no se esperaba',
+  BAD_COLLECTION_TYPE: 'la etiqueta no cuadra con lo que hay escrito',
+}
+
+/** Mensaje del error de sintaxis, siempre en español. */
+function syntaxMessage(code: string): string {
+  const reason = SYNTAX_MESSAGES[code]
+  return reason === undefined
+    ? 'El archivo no es YAML válido.'
+    : `El archivo no es YAML válido: ${reason}.`
+}
 
 /**
  * Construye la función que sitúa una ruta del documento en el texto.
@@ -39,10 +78,7 @@ const START = { line: 1, column: 1 }
  * por la ruta hasta el primer nodo que sí lo tenga, para que el diálogo señale
  * el sitio más cercano al fallo en lugar del principio del archivo.
  */
-function createLocator(
-  doc: ReturnType<typeof parseDocument>,
-  lineCounter: LineCounter,
-): Locate {
+function createLocator(doc: ReturnType<typeof parseDocument>, lineCounter: LineCounter): Locate {
   const offsetOf = (path: ValuePath): number | null => {
     const node: unknown = path.length === 0 ? doc.contents : doc.getIn(path, true)
     if (node !== null && typeof node === 'object' && 'range' in node) {
@@ -108,7 +144,9 @@ function toTable(source: Record<string, unknown>): Table {
     schema: source['schema'] as string,
     ...withText(source, 'comment'),
     fields: (source['fields'] as Array<Record<string, unknown>>).map(toField),
-    ...(Array.isArray(source['primaryKey']) ? { primaryKey: source['primaryKey'] as string[] } : {}),
+    ...(Array.isArray(source['primaryKey'])
+      ? { primaryKey: source['primaryKey'] as string[] }
+      : {}),
     ...(uniques ? { uniques: uniques.map(toNamedFields) } : {}),
     ...(indexes ? { indexes: indexes.map(toNamedFields) } : {}),
     ...(position ? { position: { x: position.x, y: position.y } } : {}),
@@ -194,7 +232,7 @@ export function parseModel(text: string): ParseResult {
       const position = error.linePos?.[0]
       return {
         path: '(archivo)',
-        message: `El archivo no es YAML válido: ${error.message.split(' at line')[0] ?? error.message}.`,
+        message: syntaxMessage(error.code),
         line: position?.line ?? START.line,
         column: position?.col ?? START.column,
         code: 'syntax',

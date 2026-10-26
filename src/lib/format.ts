@@ -6,8 +6,13 @@
  * y el separador decimal salgan del sistema y no de una tabla a mano (RS-12).
  */
 
-/** Hora de un instante del día de hoy: «9:12 a. m.». */
-const TIME = new Intl.DateTimeFormat('es', { hour: 'numeric', minute: '2-digit' })
+/**
+ * Hora de un instante del día de hoy: «9:12 a. m.».
+ *
+ * Doce horas con «a. m.» y «p. m.», que es como las escribe el lienzo; el
+ * idioma `es` a secas daría «14:12».
+ */
+const TIME = new Intl.DateTimeFormat('es', { hour: 'numeric', minute: '2-digit', hour12: true })
 
 /** Fecha de un día de este año o de otro: «20 oct 2026». */
 const DATE = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -27,6 +32,15 @@ function isSameDay(left: Date, right: Date): boolean {
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate()
   )
+}
+
+/**
+ * Hora suelta de un instante, para la cabecera del Editor.
+ *
+ * @param millis Instante en milisegundos desde la época.
+ */
+export function formatTime(millis: number): string {
+  return TIME.format(new Date(millis))
 }
 
 /**

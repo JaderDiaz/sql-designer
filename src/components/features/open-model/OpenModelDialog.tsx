@@ -69,9 +69,32 @@ export function OpenModelDialog() {
           onActivateFile={(path) => open(path)}
           className="flex min-w-0 flex-1 flex-col"
         />
-        {preview === null ? null : <PreviewPanel preview={preview} onOpen={() => open()} />}
+        {preview === null ? <EmptyPreview /> : <PreviewPanel preview={preview} onOpen={() => open()} />}
       </div>
     </BrowserDialog>
+  )
+}
+
+/**
+ * Panel derecho mientras no hay nada seleccionado.
+ *
+ * Ocupa el mismo ancho que la vista previa a propósito: en el lienzo el panel
+ * está siempre, y sin él la lista daría un salto de 220 px al seleccionar el
+ * primer archivo.
+ */
+function EmptyPreview() {
+  return (
+    <aside
+      aria-label="Vista previa"
+      className="flex w-[220px] flex-none flex-col items-center justify-center gap-2 border-l-[0.5px] border-separator px-5 py-6 text-center"
+    >
+      <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-fill-hover">
+        <Icon name="file-code" size={26} className="text-label-tertiary" />
+      </span>
+      <span className="text-[12px] leading-4 text-label-secondary">
+        Selecciona un modelo para ver sus datos.
+      </span>
+    </aside>
   )
 }
 

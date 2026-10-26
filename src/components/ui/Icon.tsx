@@ -6,6 +6,7 @@ import {
   ChevronRight,
   ChevronsUpDown,
   CircleArrowDown,
+  CircleCheck,
   CircleMinus,
   ClipboardCopy,
   Clock,
@@ -22,6 +23,8 @@ import {
   FolderOpen,
   FolderPlus,
   HardDrive,
+  History,
+  Info,
   Minus,
   Layers,
   Monitor,
@@ -66,6 +69,7 @@ export type IconName =
   | 'chevron-right'
   | 'chevrons-up-down'
   | 'circle-arrow-down'
+  | 'circle-check'
   | 'circle-minus'
   | 'clock'
   | 'cloud'
@@ -80,6 +84,8 @@ export type IconName =
   | 'folder'
   | 'folder-plus'
   | 'hard-drive'
+  | 'history'
+  | 'info'
   | 'layers'
   | 'mouse-pointer-click'
   | 'pencil'
@@ -121,6 +127,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   'chevron-right': ChevronRight,
   'chevrons-up-down': ChevronsUpDown,
   'circle-arrow-down': CircleArrowDown,
+  'circle-check': CircleCheck,
   'circle-minus': CircleMinus,
   clock: Clock,
   cloud: Cloud,
@@ -135,6 +142,8 @@ const ICONS: Record<IconName, LucideIcon> = {
   folder: Folder,
   'folder-plus': FolderPlus,
   'hard-drive': HardDrive,
+  history: History,
+  info: Info,
   layers: Layers,
   'mouse-pointer-click': MousePointerClick,
   pencil: Pencil,

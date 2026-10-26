@@ -93,6 +93,12 @@ export interface GeometryApplyResult {
 /** Acciones de los controles propios de la barra de título (FR-012). */
 export type WindowControlAction = 'minimize' | 'toggle_maximize' | 'close' | 'start_drag'
 
+/**
+ * Modo de ventana según la pantalla: la Bienvenida es un diálogo de tamaño
+ * fijo y el Editor es la zona de trabajo, que se puede agrandar.
+ */
+export type WindowMode = 'welcome' | 'editor'
+
 /** Códigos de error que devuelven los comandos. */
 export type AppErrorCode =
   | 'preferences_unreadable'

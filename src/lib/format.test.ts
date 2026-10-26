@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatModified, formatSize } from '@/lib/format'
+import { formatModified, formatSize, formatTime } from '@/lib/format'
 
 /** Instante fijo del escenario: 24 de octubre de 2026, 15:00 local. */
 const NOW = new Date(2026, 9, 24, 15, 0).getTime()
@@ -11,10 +11,16 @@ describe('formato de fechas y tamaños (RS-12)', () => {
     const ayer = new Date(2026, 9, 23, 9, 12).getTime()
     const antes = new Date(2026, 9, 20, 9, 12).getTime()
 
-    expect(formatModified(hoy, NOW)).toMatch(/^Hoy, 9:12/)
+    expect(formatModified(hoy, NOW)).toBe('Hoy, 9:12 a. m.')
     expect(formatModified(ayer, NOW)).toBe('Ayer')
     expect(formatModified(antes, NOW)).toContain('oct')
     expect(formatModified(antes, NOW)).toContain('2026')
+  })
+
+  it('la hora va en doce horas, como la escribe el lienzo', () => {
+    expect(formatTime(new Date(2026, 9, 24, 9, 12).getTime())).toBe('9:12 a. m.')
+    expect(formatTime(new Date(2026, 9, 24, 14, 13).getTime())).toBe('2:13 p. m.')
+    expect(formatModified(new Date(2026, 9, 24, 14, 13).getTime(), NOW)).toBe('Hoy, 2:13 p. m.')
   })
 
   it('un instante que el sistema no sabe dar se dibuja como raya', () => {

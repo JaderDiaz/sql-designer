@@ -19,7 +19,7 @@ import { Toast } from '@/components/ui/Toast'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { useAppShortcuts } from '@/hooks/useShortcut'
 import { useTheme } from '@/hooks/useTheme'
-import { measureStartupReady, windowSetCloseGuard } from '@/lib/tauri/commands'
+import { measureStartupReady, windowApplyMode, windowSetCloseGuard } from '@/lib/tauri/commands'
 import { onCloseRequested, onPreferencesOpen } from '@/lib/tauri/events'
 import { windowApplySavedGeometry } from '@/lib/tauri/commands'
 import { useAppStore } from '@/store'
@@ -88,6 +88,13 @@ export default function App() {
   }, [isDirty])
 
   useEffect(() => onCloseRequested(requestQuit), [requestQuit])
+
+  // La Bienvenida es un diálogo de 820 × 500 y el Editor es la zona de
+  // trabajo: al entrar baja el mínimo de la ventana y, si todavía viene del
+  // tamaño pequeño, la abre en grande (RS-01).
+  useEffect(() => {
+    void windowApplyMode(screen === 'editor' ? 'editor' : 'welcome').catch(() => undefined)
+  }, [screen])
 
   // El modelo recordado se abre una sola vez, cuando las preferencias ya están
   // cargadas: después manda `screen`, que es lo que mueven crear, abrir y

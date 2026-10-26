@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn'
 import { windowControls } from '@/lib/tauri/commands'
+import type { WindowControlAction } from '@/lib/tauri/types'
 
 /** Props de los controles de ventana. */
 export interface TitlebarProps {
@@ -12,19 +13,31 @@ export interface TitlebarProps {
   closeLabel?: string
   /** Punto de cambios sin guardar dentro del círculo rojo (RS-07). */
   isDirty?: boolean
+  /**
+   * Muestra el círculo verde de ampliar. Solo lo lleva el Editor, que es la
+   * zona de trabajo y sí se puede agrandar; la Bienvenida es un diálogo de
+   * tamaño fijo.
+   */
+  canZoom?: boolean
   className?: string
 }
 
 /**
  * Controles propios de la ventana (FR-012).
  *
- * La ventana va sin decoración del sistema, así que cerrar y minimizar se
- * dibujan aquí: círculos de 12 px con su símbolo, que aparece al pasar el
- * cursor por el grupo o al enfocar con el teclado. Van arriba a la izquierda
- * en los dos sistemas, en el sitio que marca el lienzo. Esta ventana no se
- * maximiza, así que no hay tercer botón.
+ * La ventana va sin decoración del sistema, así que cerrar, minimizar y
+ * ampliar se dibujan aquí: círculos de 12 px con su símbolo, que aparece al
+ * pasar el cursor por el grupo o al enfocar con el teclado. Van arriba a la
+ * izquierda en los dos sistemas, en el sitio que marca el lienzo. El tercer
+ * círculo solo sale donde ampliar tiene sentido.
  */
-export function Titlebar({ onClose, closeLabel, isDirty = false, className }: TitlebarProps) {
+export function Titlebar({
+  onClose,
+  closeLabel,
+  isDirty = false,
+  canZoom = false,
+  className,
+}: TitlebarProps) {
   return (
     <div className={cn('group absolute left-5 top-5 z-50 flex select-none gap-2', className)}>
       <WindowButton
@@ -34,16 +47,31 @@ export function Titlebar({ onClose, closeLabel, isDirty = false, className }: Ti
         onClick={onClose}
         isDirty={isDirty}
       />
-      <WindowButton action="minimize" label="Minimizar" tone="minimize" onClick={undefined} isDirty={false} />
+      <WindowButton
+        action="minimize"
+        label="Minimizar"
+        tone="minimize"
+        onClick={undefined}
+        isDirty={false}
+      />
+      {canZoom ? (
+        <WindowButton
+          action="toggle_maximize"
+          label="Ampliar"
+          tone="zoom"
+          onClick={undefined}
+          isDirty={false}
+        />
+      ) : null}
     </div>
   )
 }
 
 /** Color y símbolo de cada control. */
-type ControlTone = 'close' | 'minimize'
+type ControlTone = 'close' | 'minimize' | 'zoom'
 
 interface WindowButtonProps {
-  action: 'minimize' | 'close'
+  action: WindowControlAction
   label: string
   tone: ControlTone
   /** Acción propia; sin ella se manda la del sistema a Rust. */
@@ -54,12 +82,14 @@ interface WindowButtonProps {
 const TONE_COLOR: Record<ControlTone, string> = {
   close: 'var(--traffic-close)',
   minimize: 'var(--traffic-minimize)',
+  zoom: 'var(--traffic-zoom)',
 }
 
 /** Trazo del símbolo, sobre una caja de 12 × 12. */
 const TONE_PATH: Record<ControlTone, string> = {
   close: 'M4.2 4.2 7.8 7.8M7.8 4.2 4.2 7.8',
   minimize: 'M3.8 6h4.4',
+  zoom: 'M4.4 7.6V4.4h3.2M7.6 4.4 4.4 7.6',
 }
 
 /** Control de ventana; delega la acción en el comando de Rust. */

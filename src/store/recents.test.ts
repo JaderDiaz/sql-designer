@@ -19,9 +19,8 @@ vi.mock('@/lib/tauri/commands', async (importOriginal) => {
 })
 
 const { CommandError } = await import('@/lib/tauri/commands')
-const { modelRead, modelWrite, recentsList, recentsRemove, recentsTouch } = await import(
-  '@/lib/tauri/commands'
-)
+const { modelRead, modelWrite, recentsList, recentsRemove, recentsTouch } =
+  await import('@/lib/tauri/commands')
 
 /**
  * Entrada de ejemplo tal como la devuelve `recents_list`.
@@ -61,9 +60,9 @@ describe('estado de una entrada (data-model.md §2)', () => {
   })
 
   it('un sello que no coincide con el disco es «stale»', () => {
-    expect(
-      resolveState(record(PATH, { diskStamp: { modifiedMs: 2_000, sizeBytes: 460 } })),
-    ).toBe('stale')
+    expect(resolveState(record(PATH, { diskStamp: { modifiedMs: 2_000, sizeBytes: 460 } }))).toBe(
+      'stale',
+    )
   })
 
   it('la fila lleva el archivo y la carpeta separados', () => {
@@ -95,6 +94,32 @@ describe('lista de recientes (FR-031, FR-035)', () => {
     expect(new Set(recents.map((entry) => entry.path)).size).toBe(10)
   })
 
+  it('la lista nace con el modelo más reciente marcado', async () => {
+    vi.mocked(recentsList).mockResolvedValue([
+      record(PATH, { usedAtMs: 2_000 }),
+      record('/Users/ada/otro.yaml', { usedAtMs: 1_000 }),
+    ])
+
+    await useAppStore.getState().refreshRecents()
+
+    // El lienzo nunca deja la lista sin selección: «Abrir» está activo desde
+    // el primer momento.
+    expect(useAppStore.getState().recentSelection).toBe(PATH)
+  })
+
+  it('refrescar conserva la fila marcada si sigue en la lista', async () => {
+    vi.mocked(recentsList).mockResolvedValue([
+      record(PATH, { usedAtMs: 2_000 }),
+      record('/Users/ada/otro.yaml', { usedAtMs: 1_000 }),
+    ])
+    await useAppStore.getState().refreshRecents()
+    useAppStore.getState().selectRecent('/Users/ada/otro.yaml')
+
+    await useAppStore.getState().refreshRecents()
+
+    expect(useAppStore.getState().recentSelection).toBe('/Users/ada/otro.yaml')
+  })
+
   it('una lista que no se puede leer deja la Bienvenida con la lista vacía', async () => {
     vi.mocked(recentsList).mockRejectedValue(new Error('sin permiso'))
 
@@ -104,7 +129,7 @@ describe('lista de recientes (FR-031, FR-035)', () => {
     expect(useAppStore.getState().isRecentsLoading).toBe(false)
   })
 
-  it('quitar una entrada no toca el archivo y suelta la selección', async () => {
+  it('quitar la única entrada no toca el archivo y deja la lista sin selección', async () => {
     vi.mocked(recentsList).mockResolvedValue([record(PATH)])
     await useAppStore.getState().refreshRecents()
     useAppStore.getState().selectRecent(PATH)

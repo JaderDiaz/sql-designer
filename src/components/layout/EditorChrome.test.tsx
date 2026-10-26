@@ -79,7 +79,7 @@ describe('cabecera del Editor (FR-018, FR-019, RS-07)', () => {
     const user = userEvent.setup()
     renderChrome()
 
-    await user.click(screen.getByRole('button', { name: 'Renombrar el modelo' }))
+    await user.click(screen.getByRole('button', { name: 'Renombrar modelo' }))
 
     expect(useAppStore.getState().dialog).toBe('rename')
   })
@@ -93,9 +93,19 @@ describe('cabecera del Editor (FR-018, FR-019, RS-07)', () => {
     expect(useAppStore.getState().screen).toBe('welcome')
   })
 
+  it('la ventana del Editor se cierra, se minimiza y se amplía (RS-01)', () => {
+    renderChrome()
+
+    // El Editor es la zona de trabajo: a diferencia de la Bienvenida, que es
+    // un diálogo de tamaño fijo, aquí sí se puede agrandar la ventana.
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Minimizar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ampliar' })).toBeInTheDocument()
+  })
+
   it('el texto del estado dice la hora solo cuando está guardado', () => {
     expect(saveStatusText(true, SAVED_AT)).toBe('Cambios sin guardar')
     expect(saveStatusText(false, null)).toBe('Guardado')
-    expect(saveStatusText(false, SAVED_AT)).toMatch(/^Guardado a las 9:12/)
+    expect(saveStatusText(false, SAVED_AT)).toBe('Guardado a las 9:12 a. m.')
   })
 })

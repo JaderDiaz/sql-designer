@@ -21,6 +21,7 @@ import type {
   RecentEntryInput,
   RecentEntryRecord,
   WindowControlAction,
+  WindowMode,
 } from './types'
 
 /**
@@ -259,6 +260,18 @@ export function fsListDirectory(path: string, only?: ListOnly): Promise<Director
  */
 export function fsCreateDirectory(parent: string, name: string): Promise<CreatedDirectory> {
   return call<CreatedDirectory>('fs_create_directory', { parent, name })
+}
+
+/**
+ * Ajusta la ventana al modo de la pantalla visible.
+ *
+ * La Bienvenida es un diálogo de tamaño fijo; el Editor es la zona de trabajo:
+ * baja el mínimo, se puede ampliar y abre en grande la primera vez.
+ *
+ * @param mode Pantalla que se va a mostrar.
+ */
+export function windowApplyMode(mode: WindowMode): Promise<void> {
+  return call<void>('window_apply_mode', { mode })
 }
 
 /**

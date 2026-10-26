@@ -70,6 +70,33 @@ pub fn clamp_to_monitors(
     (result, result != geometry)
 }
 
+/// Tamaño de la ventana cuando se ve la Bienvenida, en píxeles lógicos.
+pub const WELCOME_SIZE: (f64, f64) = (820.0, 500.0);
+
+/// Tamaño mínimo de la ventana cuando se trabaja en el Editor.
+pub const EDITOR_MIN_SIZE: (f64, f64) = (900.0, 600.0);
+
+/// Tamaño con el que el Editor abre si la ventana viene del tamaño pequeño.
+pub const EDITOR_SIZE: (f64, f64) = (1280.0, 800.0);
+
+/// Margen que se deja libre alrededor al abrir el Editor, en píxeles lógicos.
+pub const EDITOR_MARGIN: f64 = 80.0;
+
+/// Tamaño con el que abre el Editor en un monitor concreto.
+///
+/// El Editor es la zona de trabajo y abre en grande, pero nunca más grande que
+/// el monitor menos su margen; en un monitor pequeño se queda en el mínimo de
+/// 900 × 600, que es lo que la pantalla necesita para no apretarse.
+///
+/// @param available Área utilizable del monitor en píxeles lógicos, o `None`
+/// si el sistema no la sabe decir.
+pub fn fit_editor_size(available: Option<(f64, f64)>) -> (f64, f64) {
+    let Some((width, height)) = available else { return EDITOR_SIZE };
+    let fit_width = EDITOR_SIZE.0.min((width - EDITOR_MARGIN).max(EDITOR_MIN_SIZE.0));
+    let fit_height = EDITOR_SIZE.1.min((height - EDITOR_MARGIN).max(EDITOR_MIN_SIZE.1));
+    (fit_width, fit_height)
+}
+
 /// Convierte píxeles físicos a lógicos antes de comparar con el mínimo.
 ///
 /// `tauri-plugin-window-state` guarda el tamaño en píxeles físicos, así que
@@ -91,6 +118,26 @@ mod tests {
 
     const PRIMARY: MonitorArea = MonitorArea { x: 0, y: 0, width: 1920, height: 1080 };
     const SECONDARY: MonitorArea = MonitorArea { x: 1920, y: 0, width: 1920, height: 1080 };
+
+    #[test]
+    fn el_editor_abre_en_grande_en_un_monitor_grande() {
+        assert_eq!(fit_editor_size(Some((1920.0, 1080.0))), EDITOR_SIZE);
+    }
+
+    #[test]
+    fn sin_monitor_el_editor_usa_su_tamano_de_siempre() {
+        assert_eq!(fit_editor_size(None), EDITOR_SIZE);
+    }
+
+    #[test]
+    fn en_un_monitor_justo_el_editor_deja_el_margen() {
+        assert_eq!(fit_editor_size(Some((1024.0, 768.0))), (944.0, 688.0));
+    }
+
+    #[test]
+    fn en_un_monitor_pequeno_el_editor_se_queda_en_el_minimo() {
+        assert_eq!(fit_editor_size(Some((800.0, 600.0))), EDITOR_MIN_SIZE);
+    }
 
     #[test]
     fn rectangulo_dentro_del_area_queda_intacto() {

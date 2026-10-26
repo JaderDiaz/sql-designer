@@ -116,6 +116,21 @@ export function toEntry(record: RecentEntryRecord): RecentEntry {
   }
 }
 
+/**
+ * Fila que queda marcada tras cambiar la lista.
+ *
+ * El lienzo nunca deja la lista sin selección: si la fila marcada ya no está
+ * —o no había ninguna—, se marca la primera, que es el modelo más reciente, y
+ * así «Abrir» queda activo desde el primer momento.
+ *
+ * @param list Lista de recientes ya ordenada.
+ * @param current Ruta marcada hasta ahora.
+ */
+export function resolveSelection(list: RecentEntry[], current: string | null): string | null {
+  if (current !== null && list.some((row) => row.path === current)) return current
+  return list[0]?.path ?? null
+}
+
 /** Texto de la fila según su estado (FR-033). */
 export function recentStateLabel(state: RecentState): string | null {
   if (state === 'missing') return 'No encontrado'
@@ -141,11 +156,12 @@ export const createRecentsSlice: AppSlice<RecentsSlice> = (set, get) => ({
   async refreshRecents() {
     set({ isRecentsLoading: true })
     try {
-      set({ recents: (await recentsList()).map(toEntry) })
+      const list = (await recentsList()).map(toEntry)
+      set({ recents: list, recentSelection: resolveSelection(list, get().recentSelection) })
     } catch {
       // Una lista que no se puede leer se muestra vacía: la Bienvenida sigue
       // funcionando y crear o abrir no dependen de ella.
-      set({ recents: [] })
+      set({ recents: [], recentSelection: null })
     } finally {
       set({ isRecentsLoading: false })
     }
@@ -239,8 +255,9 @@ export const createRecentsSlice: AppSlice<RecentsSlice> = (set, get) => ({
     } catch {
       set({ recents: get().recents.filter((row) => row.path !== path) })
     }
+    const selection = get().recentSelection
     set({
-      recentSelection: get().recentSelection === path ? null : get().recentSelection,
+      recentSelection: resolveSelection(get().recents, selection === path ? null : selection),
       missingTarget: null,
       trashTarget: null,
     })
@@ -371,7 +388,7 @@ export const createRecentsSlice: AppSlice<RecentsSlice> = (set, get) => ({
 
     set({ dialog: null })
     await get().removeRecent(target.path)
-    get().showNotice(`«${target.fileName}» está en la papelera`)
+    get().showNotice(`«${target.fileName}» está en la Papelera`)
   },
 
   /** Cierra los avisos propios de Recientes. */

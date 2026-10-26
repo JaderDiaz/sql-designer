@@ -33,8 +33,14 @@ describe('pregunta por los cambios sin guardar (FR-028)', () => {
   it('nombra el modelo y ofrece las tres respuestas', () => {
     renderDialog()
 
-    expect(screen.getByRole('heading', { name: '¿Guardar los cambios?' })).toBeInTheDocument()
-    expect(screen.getByText(/«Livy · Reservas» tiene cambios sin guardar/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: '¿Guardar los cambios de «Livy · Reservas»?' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Si no guardas, se perderán los cambios hechos desde la última vez que guardaste.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Guardar' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'No guardar' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Cancelar' })).toBeInTheDocument()

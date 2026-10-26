@@ -54,7 +54,7 @@ export function RenameModelDialog() {
         if (!next) closeDialog()
       }}
       icon="pencil"
-      title="Renombrar el modelo"
+      title="Renombrar modelo"
       description={`El archivo sigue siendo ${fileName}.`}
       onSubmit={confirm}
       footer={

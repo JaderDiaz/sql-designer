@@ -37,6 +37,12 @@ describe('parseModel', () => {
     expect(first?.code).toBe('syntax')
     expect(first?.line).toBe(8)
     expect(first?.message).toContain('no es YAML válido')
+    // El mensaje de la librería viene en inglés; el diálogo lo tiene que
+    // decir en español entero (FR-041).
+    expect(first?.message).not.toMatch(/[a-z] [a-z]+ed /)
+    expect(first?.message).toBe(
+      'El archivo no es YAML válido: la sangría lleva tabuladores; se sangra con espacios.',
+    )
   })
 
   it('rechaza una clave desconocida y dice en qué línea está', () => {

@@ -39,6 +39,7 @@ export default {
         teal: 'var(--teal)',
         purple: 'var(--purple)',
         orange: 'var(--orange)',
+        green: 'var(--green)',
         red: 'var(--red)',
         'danger-solid': 'var(--danger-solid)',
         'danger-text': 'var(--danger-text)',

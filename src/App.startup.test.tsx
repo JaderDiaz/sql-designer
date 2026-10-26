@@ -11,6 +11,7 @@ vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   return {
     ...actual,
     preferencesUpdate: vi.fn(),
+    windowApplyMode: vi.fn(),
     windowApplySavedGeometry: vi.fn(),
     windowControls: vi.fn(),
   }
@@ -22,7 +23,13 @@ vi.mock('@/lib/tauri/events', () => ({
   onCloseRequested: () => () => undefined,
 }))
 
-const { windowApplySavedGeometry } = await import('@/lib/tauri/commands')
+const { windowApplyMode, windowApplySavedGeometry } = await import('@/lib/tauri/commands')
+
+// El efecto del modo de ventana corre en cada montaje de `App`, así que el
+// doble tiene que devolver una promesa en todas las pruebas del archivo.
+beforeEach(() => {
+  vi.mocked(windowApplyMode).mockResolvedValue(undefined)
+})
 
 describe('decisión de arranque (FR-006)', () => {
   beforeEach(() => {
@@ -124,5 +131,37 @@ describe('cambio de tema sin perder la pantalla (FR-009, SC-003)', () => {
     // Mismo nodo: la pantalla no se desmontó al cambiar el tema.
     expect(screen.getByRole('checkbox', { name: /mostrar esta ventana al abrir/i })).toBe(casilla)
     expect(casilla).toHaveFocus()
+  })
+})
+
+describe('tamaño de la ventana según la pantalla (RS-01)', () => {
+  beforeEach(() => {
+    resetStore({ platform: WINDOWS })
+    vi.mocked(windowApplySavedGeometry).mockResolvedValue({ applied: false, clamped: false })
+    vi.mocked(windowApplyMode).mockClear()
+    vi.mocked(windowApplyMode).mockResolvedValue(undefined)
+  })
+
+  it('la Bienvenida pide el modo diálogo y no lleva «Ampliar»', async () => {
+    render(<App />)
+
+    await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
+
+    expect(windowApplyMode).toHaveBeenCalledWith('welcome')
+    expect(screen.queryByRole('button', { name: 'Ampliar' })).not.toBeInTheDocument()
+  })
+
+  it('al entrar al Editor pide el modo zona de trabajo', async () => {
+    render(<App />)
+
+    await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
+
+    await act(async () => {
+      useAppStore.setState({ screen: 'editor' })
+    })
+
+    await waitFor(() => {
+      expect(windowApplyMode).toHaveBeenCalledWith('editor')
+    })
   })
 })

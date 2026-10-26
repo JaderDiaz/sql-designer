@@ -22,9 +22,8 @@ vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   }
 })
 
-const { fsListDirectory, fsUserPlaces, modelRead, preferencesUpdate, recentsTouch } = await import(
-  '@/lib/tauri/commands'
-)
+const { fsListDirectory, fsUserPlaces, modelRead, preferencesUpdate, recentsTouch } =
+  await import('@/lib/tauri/commands')
 
 const FOLDER = '/Users/ada/Proyectos/livy'
 
@@ -102,11 +101,14 @@ describe('Abrir modelo (FR-012 a FR-017)', () => {
     })
   })
 
-  it('sin selección «Abrir» está deshabilitado y no hay vista previa', async () => {
+  it('sin selección «Abrir» está deshabilitado y la vista previa está vacía', async () => {
     await renderOpen()
 
     expect(screen.getByRole('button', { name: 'Abrir' })).toBeDisabled()
-    expect(screen.queryByRole('complementary', { name: 'Vista previa' })).not.toBeInTheDocument()
+    // El panel se reserva desde el principio para que la ventana no salte de
+    // ancho al seleccionar el primer archivo.
+    const preview = screen.getByRole('complementary', { name: 'Vista previa' })
+    expect(preview).toHaveTextContent('Selecciona un modelo para ver sus datos.')
   })
 
   it('la vista previa muestra los cinco datos del modelo seleccionado', async () => {
@@ -156,9 +158,7 @@ describe('Abrir modelo (FR-012 a FR-017)', () => {
       await useAppStore.getState().openModel(`${FOLDER}/facturacion.yaml`)
     })
 
-    expect(
-      await screen.findByText('No se pudo abrir «facturacion.yaml»'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('No se pudo abrir «facturacion.yaml»')).toBeInTheDocument()
     expect(screen.getByText(/Línea 8:/)).toBeInTheDocument()
     expect(useAppStore.getState().screen).toBe('welcome')
   })
@@ -199,8 +199,6 @@ describe('Abrir modelo (FR-012 a FR-017)', () => {
     await renderOpen([])
 
     expect(screen.getByText('No hay modelos aquí')).toBeInTheDocument()
-    expect(
-      screen.getByText('Los modelos de SQL Designer son archivos .yaml.'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Los modelos de SQL Designer son archivos .yaml.')).toBeInTheDocument()
   })
 })

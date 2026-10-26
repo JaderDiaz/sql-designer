@@ -132,6 +132,7 @@ fn main() {
             commands::clipboard_write_text,
             commands::trash_move,
             commands::window_set_close_guard,
+            commands::window_apply_mode,
             commands::model_read,
             commands::model_write,
             commands::model_stat,

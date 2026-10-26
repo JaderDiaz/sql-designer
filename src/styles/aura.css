@@ -228,94 +228,37 @@
 }
 
 /* ---------- Toast ---------- */
-.au-toaster {
+/* Píldora de cristal abajo al centro, como el aviso del lienzo. */
+.au-pill {
   position: absolute;
+  left: 50%;
+  bottom: 64px;
+  transform: translateX(-50%);
   z-index: var(--z-toast);
-  top: var(--space-4);
-  right: var(--space-4);
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--space-2);
-  width: 340px;
-  max-width: calc(100% - 32px);
-  pointer-events: none;
-}
-.au-toast {
-  position: relative;
-  display: flex;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-3);
-  border-radius: var(--radius-xl);
-  pointer-events: auto;
-  background: var(--glass-thick);
-  -webkit-backdrop-filter: var(--backdrop-thick);
-  backdrop-filter: var(--backdrop-thick);
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  font: 400 12px/16px var(--font-sans);
+  color: var(--label);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--backdrop-regular);
+  backdrop-filter: var(--backdrop-regular);
   box-shadow: var(--shadow-popover);
-  animation: au-toast-in var(--duration-slow) var(--easing-spring-soft);
+  animation: au-pill-in var(--duration-slow) var(--easing-spring-soft);
 }
-@keyframes au-toast-in {
+@keyframes au-pill-in {
   from {
     opacity: 0;
-    transform: translateX(calc(100% + 24px));
+    transform: translate(-50%, 8px);
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translateX(-50%);
   }
-}
-.au-toast-icon {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--on-accent);
-}
-.au-toast-text {
-  min-width: 0;
-  flex: 1;
-}
-.au-toast-head {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-}
-.au-toast-title {
-  font: 600 13px/18px var(--font-sans);
-  color: var(--label);
-}
-.au-toast-body {
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--label-secondary);
-}
-.au-toast-close {
-  position: absolute;
-  top: -6px;
-  left: -6px;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  cursor: default;
-  background: var(--bg-raised);
-  color: var(--label-secondary);
-  box-shadow: var(--shadow-control);
-  opacity: 0;
-  transform: scale(0.8);
-  transition:
-    opacity var(--duration-fast),
-    transform var(--duration-fast) var(--easing-spring);
-}
-.au-toast:hover .au-toast-close,
-.au-toast-close:focus-visible {
-  opacity: 1;
-  transform: none;
 }
 
 /* ---------- Text field ---------- */
@@ -359,7 +302,9 @@
   transition: box-shadow var(--duration-fast) var(--easing-standard);
 }
 .au-input-wrap:focus-within {
-  box-shadow: inset 0 0 0 1px var(--focus-ring), var(--shadow-focus);
+  box-shadow:
+    inset 0 0 0 1px var(--focus-ring),
+    var(--shadow-focus);
   outline: 2px solid var(--focus-ring);
   outline-offset: 1px;
   animation: au-ring-in var(--duration-fast) var(--easing-out);
@@ -467,7 +412,9 @@
     transform var(--duration-instant);
 }
 .au-select-trigger:hover:not(:disabled) {
-  box-shadow: var(--shadow-control), inset 0 0 0 100px var(--fill-hover);
+  box-shadow:
+    var(--shadow-control),
+    inset 0 0 0 100px var(--fill-hover);
 }
 .au-select-trigger:active:not(:disabled) {
   transform: scale(0.99);
@@ -591,7 +538,19 @@
 .au-ctx-menu {
   position: static;
   top: auto;
+  /* Ancho fijo del lienzo: sin él, una ruta larga en el encabezado estira el
+     menú y Radix acaba abriéndolo del lado contrario al puntero. */
+  width: 236px;
+  min-width: 236px;
   animation-duration: 120ms;
+}
+.au-ctx-menu .au-menu-title {
+  min-width: 0;
+}
+.au-ctx-menu .au-menu-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /*
