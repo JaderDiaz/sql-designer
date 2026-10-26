@@ -89,8 +89,8 @@ export default function App() {
 
   useEffect(() => onCloseRequested(requestQuit), [requestQuit])
 
-  // La Bienvenida es un diálogo de 820 × 500 y el Editor es la zona de
-  // trabajo: al entrar baja el mínimo de la ventana y, si todavía viene del
+  // La Bienvenida es un diálogo de 820 × 500 centrado y el Editor es la zona
+  // de trabajo: al entrar baja el mínimo de la ventana y, si todavía viene del
   // tamaño pequeño, la abre en grande (RS-01).
   useEffect(() => {
     void windowApplyMode(screen === 'editor' ? 'editor' : 'welcome').catch(() => undefined)
@@ -108,9 +108,16 @@ export default function App() {
     void openModel(path)
   }, [isLoaded, openModel, preferences])
 
+  // La geometría recordada es la del Editor, así que solo se restaura cuando
+  // la aplicación arranca abriendo un modelo: si arranca en la Bienvenida,
+  // manda el centro de la pantalla (FR-013 del Incremento 0).
+  const geometryApplied = useRef(false)
   useEffect(() => {
+    if (!isLoaded || geometryApplied.current) return
+    geometryApplied.current = true
+    if (resolveStartupScreen(preferences) !== 'last-model') return
     void windowApplySavedGeometry().catch(() => undefined)
-  }, [])
+  }, [isLoaded, preferences])
 
   useEffect(() => {
     if (minElapsed) return undefined

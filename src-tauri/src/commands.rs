@@ -490,9 +490,13 @@ pub async fn window_apply_mode<R: Runtime>(
             if window.is_maximized().unwrap_or(false) {
                 apply(window.unmaximize())?;
             }
-            if size.width > welcome.width || size.height > welcome.height {
+            // La Bienvenida siempre sale en el centro y con su tamaño: donde
+            // quedó el Editor no la mueve, porque es el punto de partida de la
+            // aplicación, no una ventana de trabajo.
+            if size.width != welcome.width || size.height != welcome.height {
                 apply(window.set_size(welcome))?;
             }
+            apply(window.center())?;
         }
         "editor" => {
             let minimum =

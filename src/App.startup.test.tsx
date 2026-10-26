@@ -137,9 +137,34 @@ describe('cambio de tema sin perder la pantalla (FR-009, SC-003)', () => {
 describe('tamaño de la ventana según la pantalla (RS-01)', () => {
   beforeEach(() => {
     resetStore({ platform: WINDOWS })
+    vi.mocked(windowApplySavedGeometry).mockClear()
     vi.mocked(windowApplySavedGeometry).mockResolvedValue({ applied: false, clamped: false })
     vi.mocked(windowApplyMode).mockClear()
     vi.mocked(windowApplyMode).mockResolvedValue(undefined)
+  })
+
+  it('arrancar en la Bienvenida no restaura la geometría recordada', async () => {
+    render(<App />)
+
+    await screen.findByRole('heading', { level: 1, name: /sql designer/i }, { timeout: 3000 })
+
+    // La geometría recordada es la del Editor; la Bienvenida sale centrada.
+    expect(windowApplySavedGeometry).not.toHaveBeenCalled()
+  })
+
+  it('arrancar con un modelo recordado sí restaura la geometría', async () => {
+    const openModel = vi.fn().mockResolvedValue(true)
+    resetStore({
+      platform: WINDOWS,
+      preferences: { showWelcomeOnStart: false, lastModelPath: '/Users/ada/modelo.yaml' },
+    })
+    useAppStore.setState({ openModel })
+
+    render(<App />)
+
+    await waitFor(() => {
+      expect(windowApplySavedGeometry).toHaveBeenCalled()
+    })
   })
 
   it('la Bienvenida pide el modo diálogo y no lleva «Ampliar»', async () => {
