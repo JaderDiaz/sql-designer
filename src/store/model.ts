@@ -72,6 +72,7 @@ export interface ModelSlice {
   openModel: (path: string) => Promise<boolean>
   renameModel: (name: string) => void
   saveModel: (options?: { force?: boolean }) => Promise<boolean>
+  saveModelAs: (folder: string) => Promise<boolean>
   closeModel: () => void
   undo: () => void
   redo: () => void
@@ -359,6 +360,55 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       }
       const message =
         error instanceof Error ? error.message : 'No se pudo guardar el modelo.'
+      set({ saveError: message })
+      get().showNotice(`No se pudo guardar: ${message}`)
+      return false
+    }
+  },
+
+  /**
+   * Guarda el modelo en otra carpeta y adopta esa ruta (FR-045).
+   *
+   * Es la salida del guardado que falló porque su carpeta ya no existe: se
+   * escribe sin sello esperado, porque allí no había nada que pisar, y la
+   * ruta nueva pasa a ser la del modelo, también en Recientes.
+   *
+   * @param folder Carpeta elegida en Elegir carpeta.
+   * @returns `true` si el archivo quedó escrito en la carpeta nueva.
+   */
+  async saveModelAs(folder) {
+    const { model, path } = get()
+    if (model === null) return false
+
+    const stem = toFileStem(path === null ? model.name : fileNameOf(path).replace(/\.yaml$/i, ''))
+    try {
+      const built = await pathBuildModel(folder, stem === '' ? toFileStem(model.name) : stem)
+      const written = await modelWrite(built.path, serializeModel(model))
+      set({
+        path: built.path,
+        savedModel: model,
+        stamp: written.stamp,
+        isDirty: false,
+        savedAtMs: Date.now(),
+        saveError: null,
+        dialog: null,
+      })
+      get().showNotice('Guardado')
+
+      await Promise.all([
+        recentsTouch({
+          path: built.path,
+          name: model.name,
+          engine: model.engine,
+          tables: tableCount(model),
+          stamp: written.stamp,
+          invalid: false,
+        }),
+        preferencesUpdate({ lastFolder: folder, lastModelPath: built.path }),
+      ]).catch(() => undefined)
+      return true
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo guardar el modelo.'
       set({ saveError: message })
       get().showNotice(`No se pudo guardar: ${message}`)
       return false

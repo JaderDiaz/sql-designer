@@ -9,6 +9,7 @@ import { fileNameOf } from '@/lib/model/summary'
 import type { DirectoryEntry } from '@/lib/tauri/types'
 import { useAppStore } from '@/store'
 import {
+  EMPTY_FOLDER_HINT,
   EMPTY_FOLDER_TITLE,
   NO_MODELS_HINT,
   NO_MODELS_TITLE,
@@ -78,6 +79,7 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
   const goToFolder = useAppStore((state) => state.goToFolder)
   const goToPlace = useAppStore((state) => state.goToPlace)
 
+  const onlyFolders = only === 'folders'
   const visible = filterEntries(entries, query)
   const place = places.find((candidate) => candidate.id === placeId)
   const folderName = place?.label ?? (browsePath === null ? '—' : fileNameOf(browsePath))
@@ -110,14 +112,12 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
       <EmptyState
         icon="search-x"
         title={NO_RESULTS_TITLE}
-        description={`Ningún archivo coincide con «${query.trim()}».`}
+        description={`${
+          onlyFolders ? 'Ninguna carpeta coincide' : 'Ningún archivo coincide'
+        } con «${query.trim()}».`}
       />
-    ) : only === 'folders' ? (
-      <EmptyState
-        icon="folder-open"
-        title={EMPTY_FOLDER_TITLE}
-        description="Aquí no hay ninguna carpeta todavía."
-      />
+    ) : onlyFolders ? (
+      <EmptyState icon="folder-open" title={EMPTY_FOLDER_TITLE} description={EMPTY_FOLDER_HINT} />
     ) : (
       <EmptyState icon="folder-open" title={NO_MODELS_TITLE} description={NO_MODELS_HINT} />
     )
@@ -147,7 +147,7 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
         </span>
         <div className="flex-1" />
         <SearchField
-          label="Buscar archivos"
+          label={onlyFolders ? 'Buscar carpetas' : 'Buscar archivos'}
           value={query}
           onValueChange={setQuery}
           className="w-[180px]"
@@ -180,8 +180,8 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
           )}
           <FileList
             label={`Contenido de ${folderName}`}
-            metaLabel="Modificado"
-            metaWidth={116}
+            metaLabel={onlyFolders ? 'Fecha de modificación' : 'Modificado'}
+            metaWidth={onlyFolders ? 130 : 116}
             rows={rows}
             value={selection}
             onValueChange={(id) => void select(id)}

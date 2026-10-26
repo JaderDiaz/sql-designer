@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
+import { ChooseFolderDialog } from '@/components/features/choose-folder/ChooseFolderDialog'
 import { ConfirmCloseDialog } from '@/components/features/editor/ConfirmCloseDialog'
 import { EditorScreen } from '@/components/features/editor/EditorScreen'
 import { RenameModelDialog } from '@/components/features/editor/RenameModelDialog'
@@ -122,6 +123,7 @@ export default function App() {
         {notice ? <Toast title={notice} onDismiss={dismissNotice} /> : null}
         <NewModelDialog />
         <OpenModelDialog />
+        <ChooseFolderDialog />
         <FileErrorDialog />
         <RenameModelDialog />
         <StaleFileDialog />

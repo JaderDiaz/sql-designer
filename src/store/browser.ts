@@ -38,6 +38,9 @@ export const NO_MODELS_HINT = 'Los modelos de SQL Designer son archivos .yaml.'
 /** Texto que se muestra cuando la carpeta no tiene ninguna subcarpeta (FR-009). */
 export const EMPTY_FOLDER_TITLE = 'Carpeta vacía'
 
+/** Explicación que acompaña a «Carpeta vacía» (FR-009). */
+export const EMPTY_FOLDER_HINT = 'Crea una carpeta nueva o elige otra ubicación.'
+
 /** Estado y acciones del explorador. */
 export interface BrowserSlice {
   /** Ubicaciones del usuario, ya filtradas por las que existen. */

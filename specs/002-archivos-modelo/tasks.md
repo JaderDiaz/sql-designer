@@ -220,16 +220,16 @@ carpeta nueva, sin perder el borrador de Nuevo modelo.
 
 ### Tests for User Story 2
 
-- [ ] T073 [P] [US2] Escribir `src/components/features/choose-folder/ChooseFolderDialog.test.tsx`: solo se seleccionan carpetas, «Sin resultados» y «Carpeta vacía» con sus textos, «Nueva carpeta» deja «carpeta sin título» seleccionada, «Elegir» devuelve la carpeta al borrador y «Cancelar» lo deja intacto
+- [X] T073 [P] [US2] Escribir `src/components/features/choose-folder/ChooseFolderDialog.test.tsx`: solo se seleccionan carpetas, «Sin resultados» y «Carpeta vacía» con sus textos, «Nueva carpeta» deja «carpeta sin título» seleccionada, «Elegir» devuelve la carpeta al borrador y «Cancelar» lo deja intacto
 
 ### Implementation for User Story 2
 
-- [ ] T074 [US2] Implementar `fs_create_directory` en `src-tauri/src/files.rs` y `commands.rs`: crea la carpeta, **desambigua el nombre en Rust** numerando ` 2`, ` 3`… cuando ya existe, y devuelve `{ name, path }`; errores `path_invalid`, `path_denied` y `path_not_found` (FR-010)
-- [ ] T075 [P] [US2] Escribir la prueba de `fs_create_directory` en Rust: nombre libre, nombre repetido dos veces seguidas, nombre con separador ⇒ `path_invalid`, y padre inexistente ⇒ `path_not_found`
-- [ ] T076 [US2] Crear `src/components/features/choose-folder/ChooseFolderDialog.tsx` según `project/ElegirCarpeta.dc.html`: barra con Atrás, Adelante, ubicación y buscador, `Sidebar`, `FileList` en modo `only: 'folders'` con los archivos atenuados, pie con «Nueva carpeta», la ruta elegida en monoespaciada, «Cancelar» y «Elegir»
-- [ ] T077 [US2] Montar el diálogo encima de Nuevo modelo sin cerrarlo (`dialog: 'choose-folder'` sobre el borrador del slice `browser`), de modo que al volver el nombre y el motor escritos siguen ahí (FR-011)
-- [ ] T078 [US2] Deshabilitar «Nueva carpeta» donde no se puede escribir, usando el `canCreateFolder` que devuelve `fs_user_places`
-- [ ] T079 [US2] Implementar el guardado en otra carpeta cuando `model_write` devuelve `path_not_found`: reutilizar `ChooseFolderDialog` con `choosePurpose: 'relocate-save'`, guardar allí sin `expectedStamp`, adoptar la ruta nueva en el slice `model` y actualizar Recientes y `lastFolder` (FR-045, cierra el caso borde del archivo movido por fuera)
+- [X] T074 [US2] Implementar `fs_create_directory` en `src-tauri/src/files.rs` y `commands.rs`: crea la carpeta, **desambigua el nombre en Rust** numerando ` 2`, ` 3`… cuando ya existe, y devuelve `{ name, path }`; errores `path_invalid`, `path_denied` y `path_not_found` (FR-010)
+- [X] T075 [P] [US2] Escribir la prueba de `fs_create_directory` en Rust: nombre libre, nombre repetido dos veces seguidas, nombre con separador ⇒ `path_invalid`, y padre inexistente ⇒ `path_not_found`
+- [X] T076 [US2] Crear `src/components/features/choose-folder/ChooseFolderDialog.tsx` según `project/ElegirCarpeta.dc.html`: barra con Atrás, Adelante, ubicación y buscador, `Sidebar`, `FileList` en modo `only: 'folders'` con los archivos atenuados, pie con «Nueva carpeta», la ruta elegida en monoespaciada, «Cancelar» y «Elegir»
+- [X] T077 [US2] Montar el diálogo encima de Nuevo modelo sin cerrarlo (`dialog: 'choose-folder'` sobre el borrador del slice `browser`), de modo que al volver el nombre y el motor escritos siguen ahí (FR-011)
+- [X] T078 [US2] Deshabilitar «Nueva carpeta» donde no se puede escribir, usando el `canCreateFolder` que devuelve `fs_user_places`
+- [X] T079 [US2] Implementar el guardado en otra carpeta cuando `model_write` devuelve `path_not_found`: reutilizar `ChooseFolderDialog` con `choosePurpose: 'relocate-save'`, guardar allí sin `expectedStamp`, adoptar la ruta nueva en el slice `model` y actualizar Recientes y `lastFolder` (FR-045, cierra el caso borde del archivo movido por fuera)
 
 **Checkpoint**: crear un modelo en cualquier carpeta, incluida una recién creada.
 Escenario 2 de `quickstart.md` en verde.
