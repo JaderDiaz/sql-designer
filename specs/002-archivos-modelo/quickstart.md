@@ -42,6 +42,32 @@ Las cuatro tienen que pasar sin avisos nuevos (puerta 1 de la constitución).
 | `src-tauri/src/files.rs` | Escritura atómica, sello obsoleto, listado con filtro, carpeta nueva numerada | FR-010, FR-021, FR-022, FR-025 |
 | `src-tauri/src/recents.rs` | 11 entradas descartan la más antigua; `recents.json` dañado se recupera con `.bak` | FR-032 |
 
+## Recorrido automatizado
+
+Los ocho escenarios de abajo están automatizados: conducen la aplicación de verdad
+—no una maqueta— con el servidor de WebDriver que el binario monta cuando se
+compila con `--features webdriver`.
+
+```bash
+npm run e2e           # compila el binario del recorrido y ejecuta los ocho escenarios
+```
+
+Qué hace por dentro (`e2e/wdio.conf.js`, `e2e/soporte/`):
+
+- Aparta `preferences.json`, `recents.json` y `.window-state.json` del usuario con
+  el sufijo `.antes-del-recorrido` y los repone al terminar.
+- Crea una carpeta temporal con `modelo.yaml`, `roto.yaml`, `modelo-50-tablas.yaml`,
+  `notas.md`, `vacia/` y `otra-carpeta/`, y la borra al final.
+- Levanta Vite: una compilación de depuración carga la interfaz desde `devUrl`.
+- Arranca cada escenario en la Bienvenida, porque el arranque reabre el último
+  modelo cuando las preferencias lo recuerdan.
+- Comprueba en el disco lo que la aplicación escribe: los `.yaml`, la lista de
+  recientes y las preferencias.
+
+Lo que el recorrido no puede hacer, y por eso sigue necesitando a una persona:
+cambiar el tema o «Reducir movimiento» del sistema, comprobar «Mostrar en Finder»
+y recorrer todo en Windows.
+
 ## Escenario 1 · Crear un modelo (FR-001 a FR-006)
 
 ```bash
@@ -96,8 +122,10 @@ printf 'formatVersion: 1\nname: Roto\nengine: postgres\nschemas\n  - name: publi
 1. Bienvenida → **Abrir modelo…** (⌘O / Ctrl+O) y navega a esa carpeta.
 2. Selecciona `modelo.yaml`. **Esperado**: la vista previa muestra nombre, archivo,
    motor, tablas, relaciones, tamaño y fecha.
-3. Sin selección válida, **Abrir** está deshabilitado; un `.md` o un `.png` se ve
-   atenuado y no se puede seleccionar.
+3. Sin selección válida, **Abrir** está deshabilitado. Un `.md` o un `.png` no
+   aparece en la lista: el listado de Rust solo devuelve carpetas y `.yaml`
+   (`ListOnly::Models` en `src-tauri/src/files.rs`), así que no hay nada que ver
+   atenuado.
 4. Doble clic en `modelo.yaml`. **Esperado**: el Editor con el modelo tal como se
    guardó y la cabecera en «Guardado · <motor>».
 5. Vuelve a Abrir modelo y selecciona `roto.yaml`. **Esperado**: la vista previa lo
@@ -128,8 +156,12 @@ printf '\n# tocado por fuera\n' >> ~/Documents/modelo.yaml
 5. Quita el permiso de escritura y guarda:
 
 ```bash
-chmod a-w ~/Documents/modelo.yaml   # recuerda devolverlo con chmod u+w
+chmod 555 ~/Documents               # recuerda devolverlo con chmod 755
 ```
+
+   El permiso va en la carpeta y no en el archivo: la escritura es atómica —se
+   escribe un temporal al lado y se renombra encima—, y renombrar sobre un archivo
+   de solo lectura funciona igual mientras la carpeta deje escribir.
 
    **Esperado**: mensaje de que no se pudo guardar, el modelo sigue «Editado» y no se
    pierde el cambio.
@@ -234,11 +266,33 @@ SQL_DESIGNER_MEDIR=1 npm run tauri dev
 - Todo texto visible nuevo está en español y los símbolos de atajo salen de
   `src/lib/platform.ts`.
 
+### Recorrido automatizado · 2026-10-26
+
+`npm run e2e`: 9 archivos, 55 pruebas, todas en verde en 43 s.
+
+| Escenario | Archivo | Pruebas |
+| --------- | ------- | ------- |
+| Arranque (humo) | `e2e/specs/00-arranque.e2e.js` | 1 |
+| 1 · Crear un modelo | `e2e/specs/01-crear-modelo.e2e.js` | 7 |
+| 2 · Elegir la carpeta | `e2e/specs/02-elegir-carpeta.e2e.js` | 8 |
+| 3 · Abrir un modelo | `e2e/specs/03-abrir-modelo.e2e.js` | 7 |
+| 4 · Guardar y estado de cambios | `e2e/specs/04-guardar.e2e.js` | 6 |
+| 5 · Cerrar | `e2e/specs/05-cerrar.e2e.js` | 6 |
+| 6 · Recientes y sus acciones | `e2e/specs/06-recientes.e2e.js` | 11 |
+| 7 · Teclado y temas | `e2e/specs/07-teclado-y-temas.e2e.js` | 6 |
+| 8 · Medidas (T112) | `e2e/specs/08-medidas.e2e.js` | 3 |
+
+Las medidas del escenario 8, con `SQL_DESIGNER_MEDIR=1`: crear un modelo deja el
+Editor pintado por debajo de 1 000 ms (SC-002), y `modelo-50-tablas.yaml` abre por
+debajo de 2 000 ms y guarda por debajo de 1 000 ms (SC-003).
+
 ### Pendiente de una persona delante de la aplicación
 
-- Escenarios 1 a 8 de este documento en macOS, con la aplicación arrancada.
-- Escenario 8 con `SQL_DESIGNER_MEDIR=1` para anotar SC-002 y SC-003 sobre
-  `modelo-50-tablas.yaml`.
+- El tema del sistema y «Reducir movimiento»: son ajustes de macOS y cambiarlos
+  necesita a una persona. El recorrido automatizado sí comprueba los tres temas de
+  Ajustes y que nada desplace la ventana entera.
+- «Mostrar en Finder» del diálogo de archivo con errores: abre el Finder, que ya
+  está fuera de la aplicación.
 - El recorrido completo en Windows: no hubo máquina Windows al cerrar el
   incremento el 2026-10-26, igual que en el Incremento 0.
 

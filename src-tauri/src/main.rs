@@ -51,8 +51,20 @@ fn main() {
     // Primera línea del proceso: es el origen de la medida de SC-001.
     let startup_clock = StartupClock::new();
 
-    tauri::Builder::default()
-        .plugin(logging::plugin())
+    let builder = tauri::Builder::default().plugin(logging::plugin());
+
+    // Servidor de WebDriver para el recorrido automatizado de `quickstart.md`.
+    // Solo existe con `--features webdriver`: abre automatización por HTTP en
+    // 127.0.0.1:4445 y no debe entrar en una compilación de publicación.
+    //
+    // Va después del registro: `tauri-plugin-wdio` instala su propio `log`, y
+    // si se adelanta, el nuestro ya no puede instalarse y el arranque revienta.
+    #[cfg(feature = "webdriver")]
+    let builder = builder
+        .plugin(tauri_plugin_wdio_webdriver::init())
+        .plugin(tauri_plugin_wdio::init());
+
+    builder
         .plugin(
             tauri_plugin_window_state::Builder::default()
                 // Sin la bandera de maximizado: la ventana no recuerda si quedó
