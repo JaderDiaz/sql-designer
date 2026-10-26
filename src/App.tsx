@@ -17,8 +17,8 @@ import { Toast } from '@/components/ui/Toast'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { useAppShortcuts } from '@/hooks/useShortcut'
 import { useTheme } from '@/hooks/useTheme'
-import { measureStartupReady } from '@/lib/tauri/commands'
-import { onPreferencesOpen } from '@/lib/tauri/events'
+import { measureStartupReady, windowSetCloseGuard } from '@/lib/tauri/commands'
+import { onCloseRequested, onPreferencesOpen } from '@/lib/tauri/events'
 import { windowApplySavedGeometry } from '@/lib/tauri/commands'
 import { useAppStore } from '@/store'
 import type { Preferences } from '@/lib/tauri/types'
@@ -62,6 +62,8 @@ export default function App() {
   const openPreferences = useAppStore((state) => state.openPreferences)
   const isLoaded = useAppStore((state) => state.isLoaded)
   const screen = useAppStore((state) => state.screen)
+  const isDirty = useAppStore((state) => state.isDirty)
+  const requestQuit = useAppStore((state) => state.requestQuit)
 
   // El suelo se cuenta desde que la página empezó a cargar, no desde que monta
   // React: las preferencias pueden llegar antes del primer fotograma, y con un
@@ -74,6 +76,14 @@ export default function App() {
   useAppShortcuts()
 
   useEffect(() => onPreferencesOpen(openPreferences), [openPreferences])
+
+  // El guardia del cierre vive en Rust y aquí solo se mantiene al día: con
+  // cambios sin guardar, cerrar la ventana pregunta antes de salir (FR-028).
+  useEffect(() => {
+    void windowSetCloseGuard(isDirty).catch(() => undefined)
+  }, [isDirty])
+
+  useEffect(() => onCloseRequested(requestQuit), [requestQuit])
 
   useEffect(() => {
     void windowApplySavedGeometry().catch(() => undefined)

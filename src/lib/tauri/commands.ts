@@ -287,3 +287,12 @@ export function clipboardWriteText(text: string): Promise<void> {
 export function trashMove(path: string): Promise<void> {
   return call<void>('trash_move', { path })
 }
+
+/**
+ * Dice a Rust si el cierre de la ventana hay que preguntarlo antes (FR-028).
+ *
+ * @param armed `true` mientras el modelo abierto tenga cambios sin guardar.
+ */
+export function windowSetCloseGuard(armed: boolean): Promise<void> {
+  return call<void>('window_set_close_guard', { armed })
+}

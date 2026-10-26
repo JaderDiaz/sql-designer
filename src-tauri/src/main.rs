@@ -14,7 +14,7 @@ mod window_state;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem, Submenu};
 use tauri::{Emitter, Manager, WindowEvent};
 
-use commands::{PreferencesState, RecentsState};
+use commands::{CloseGuard, PreferencesState, RecentsState};
 use logging::SCOPE_STARTUP;
 use measure::StartupClock;
 
@@ -23,6 +23,9 @@ const MENU_PREFERENCES: &str = "preferences";
 
 /// Evento que las tres vías de FR-020 comparten para abrir Ajustes.
 const EVENT_PREFERENCES_OPEN: &str = "preferences://open";
+
+/// Evento con el que la ventana pide permiso para cerrarse (FR-028).
+const EVENT_CLOSE_REQUESTED: &str = "window://close-requested";
 
 /// Arranca la aplicación.
 ///
@@ -75,6 +78,7 @@ fn main() {
                 *current = recent_entries;
             }
             app.manage(recents_state);
+            app.manage(CloseGuard::default());
 
             if let Err(error) = install_menu(app.handle()) {
                 log::warn!(target: SCOPE_STARTUP, "no se pudo construir el menú nativo: {error}");
@@ -93,9 +97,19 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { .. } = event {
+            if let WindowEvent::CloseRequested { api, .. } = event {
                 if let Some(state) = window.try_state::<PreferencesState>() {
                     commands::remember_geometry(window, &state);
+                }
+                // Con cambios sin guardar el cierre se para aquí y se pregunta
+                // en la interfaz; esta vuelve con `window_controls('close')`
+                // cuando hay respuesta (FR-028). Si no hay nada que preguntar,
+                // la propia interfaz contesta cerrando al instante.
+                if let Some(state) = window.try_state::<commands::CloseGuard>() {
+                    if state.is_armed() {
+                        api.prevent_close();
+                        let _ = window.emit(EVENT_CLOSE_REQUESTED, ());
+                    }
                 }
             }
         })
@@ -117,6 +131,7 @@ fn main() {
             commands::reveal_in_file_manager,
             commands::clipboard_write_text,
             commands::trash_move,
+            commands::window_set_close_guard,
             commands::model_read,
             commands::model_write,
             commands::model_stat,

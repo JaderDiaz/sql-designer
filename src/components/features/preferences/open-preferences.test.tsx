@@ -28,6 +28,7 @@ vi.mock('@/lib/tauri/events', () => ({
       menuHandler = null
     }
   },
+  onCloseRequested: () => () => undefined,
 }))
 
 const { preferencesUpdate, windowApplySavedGeometry } = await import('@/lib/tauri/commands')

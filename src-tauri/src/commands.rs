@@ -33,6 +33,32 @@ impl AppError {
     }
 }
 
+/// Si el cierre de la ventana hay que preguntarlo antes de hacerlo (FR-028).
+///
+/// Lo arma y lo desarma la interfaz, que es la que sabe si el modelo abierto
+/// tiene cambios sin guardar. Mientras está armado, el evento de cierre de la
+/// ventana se para y se pregunta; desarmado, la ventana se cierra sin más.
+#[derive(Debug, Default)]
+pub struct CloseGuard {
+    armed: Mutex<bool>,
+}
+
+impl CloseGuard {
+    /// ¿Hay que preguntar antes de cerrar?
+    pub fn is_armed(&self) -> bool {
+        self.armed.lock().map(|armed| *armed).unwrap_or(false)
+    }
+
+    /// Arma o desarma la pregunta.
+    ///
+    /// @param value `true` para preguntar antes de cerrar.
+    pub fn set(&self, value: bool) {
+        if let Ok(mut armed) = self.armed.lock() {
+            *armed = value;
+        }
+    }
+}
+
 /// Preferencias vivas del proceso: la ruta del archivo y la copia en memoria.
 pub struct PreferencesState {
     pub path: PathBuf,
@@ -424,6 +450,18 @@ pub async fn fs_create_directory(
     name: String,
 ) -> Result<CreatedDirectory, AppError> {
     files::create_directory(Path::new(&parent), &name)
+}
+
+/// Dice si el cierre de la ventana hay que preguntarlo antes (FR-028).
+///
+/// @param armed `true` mientras el modelo abierto tenga cambios sin guardar.
+#[tauri::command]
+pub async fn window_set_close_guard(
+    state: State<'_, CloseGuard>,
+    armed: bool,
+) -> Result<(), AppError> {
+    state.set(armed);
+    Ok(())
 }
 
 /// Muestra el archivo en el gestor de archivos del sistema (FR-016).

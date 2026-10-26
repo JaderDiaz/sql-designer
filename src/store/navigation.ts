@@ -1,3 +1,4 @@
+import { windowControls, windowSetCloseGuard } from '@/lib/tauri/commands'
 import type { AppSlice } from '@/store/types'
 
 /**
@@ -33,7 +34,7 @@ export type Dialog =
  * Qué se quería hacer cuando se preguntó por los cambios sin guardar, para
  * retomarlo si el usuario responde «Guardar» o «No guardar» (FR-030).
  */
-export type PendingIntent = 'new-model' | 'open-model' | 'close'
+export type PendingIntent = 'new-model' | 'open-model' | 'close' | 'quit'
 
 /** Respuesta a la pregunta por los cambios sin guardar (FR-028). */
 export type CloseAnswer = 'save' | 'discard' | 'cancel'
@@ -48,6 +49,7 @@ export interface NavigationSlice {
   closeDialog: () => void
   setPendingIntent: (intent: PendingIntent | null) => void
   requestClose: () => void
+  requestQuit: () => void
   requestIntent: (intent: PendingIntent) => void
   resolvePending: (answer: CloseAnswer) => Promise<void>
 }
@@ -102,6 +104,16 @@ export const createNavigationSlice: AppSlice<NavigationSlice> = (set, get) => ({
    */
   requestClose() {
     get().requestIntent('close')
+  },
+
+  /**
+   * Responde al intento de cerrar la ventana (FR-028).
+   *
+   * Sin cambios sin guardar la ventana se cierra enseguida; con ellos se
+   * pregunta y el cierre espera la respuesta.
+   */
+  requestQuit() {
+    get().requestIntent('quit')
   },
 
   /**
@@ -162,7 +174,16 @@ export const createNavigationSlice: AppSlice<NavigationSlice> = (set, get) => ({
 function runIntent(intent: PendingIntent, get: () => AppStateForIntent): void {
   if (intent === 'close') get().closeModel()
   else if (intent === 'new-model') get().openNewModel()
-  else get().openOpenModel()
+  else if (intent === 'open-model') get().openOpenModel()
+  else {
+    // Cerrar la ventana de verdad: el guardia ya no tiene nada que preguntar,
+    // así que el siguiente intento de cierre pasa (FR-028).
+    get().closeModel()
+    void windowSetCloseGuard(false)
+      .catch(() => undefined)
+      .then(() => windowControls('close'))
+      .catch(() => undefined)
+  }
 }
 
 /** Lo que `runIntent` necesita del almacén. */

@@ -246,16 +246,16 @@ diálogo y con el cierre de la ventana.
 
 ### Tests for User Story 5
 
-- [ ] T080 [P] [US5] Escribir `src/store/navigation.test.ts`: cerrar sin cambios vuelve a `'welcome'`; con cambios abre `confirm-close` guardando `pendingIntent`; «Guardar» guarda y continúa con la intención; «No guardar» continúa sin escribir; «Cancelar» deja el Editor y `isDirty`
-- [ ] T081 [P] [US5] Escribir `src/components/features/editor/ConfirmCloseDialog.test.tsx`: el diálogo nombra el modelo y ofrece «Guardar», «No guardar» y «Cancelar», y Esc equivale a «Cancelar»
+- [X] T080 [P] [US5] Escribir `src/store/navigation.test.ts`: cerrar sin cambios vuelve a `'welcome'`; con cambios abre `confirm-close` guardando `pendingIntent`; «Guardar» guarda y continúa con la intención; «No guardar» continúa sin escribir; «Cancelar» deja el Editor y `isDirty`
+- [X] T081 [P] [US5] Escribir `src/components/features/editor/ConfirmCloseDialog.test.tsx`: el diálogo nombra el modelo y ofrece «Guardar», «No guardar» y «Cancelar», y Esc equivale a «Cancelar»
 
 ### Implementation for User Story 5
 
-- [ ] T082 [US5] Añadir al slice `model` la acción `closeModel()` que limpia modelo, ruta, sello y estado, y al slice `navigation` la resolución de `pendingIntent` tras guardar o descartar (FR-027, FR-030)
-- [ ] T083 [US5] Crear `src/components/features/editor/ConfirmCloseDialog.tsx` con el título «¿Guardar los cambios?», el nombre del modelo afectado y las tres respuestas (FR-028)
-- [ ] T084 [US5] Conectar el botón de cerrar de `EditorChrome.tsx` y ⌘W / Ctrl+W en `src/hooks/useShortcut.ts` al flujo de cierre
-- [ ] T085 [US5] Interceptar el cierre de la ventana en `src-tauri/src/main.rs` (evento de cierre solicitado) y en `src/lib/tauri/events.ts` para preguntar antes de salir cuando hay cambios sin guardar, cerrando de verdad solo tras la respuesta (FR-028)
-- [ ] T086 [US5] Hacer que «Nuevo modelo» y «Abrir modelo» desde el Editor pasen por la misma pregunta antes de reemplazar el modelo abierto, con `pendingIntent` (FR-030)
+- [X] T082 [US5] Añadir al slice `model` la acción `closeModel()` que limpia modelo, ruta, sello y estado, y al slice `navigation` la resolución de `pendingIntent` tras guardar o descartar (FR-027, FR-030)
+- [X] T083 [US5] Crear `src/components/features/editor/ConfirmCloseDialog.tsx` con el título «¿Guardar los cambios?», el nombre del modelo afectado y las tres respuestas (FR-028)
+- [X] T084 [US5] Conectar el botón de cerrar de `EditorChrome.tsx` y ⌘W / Ctrl+W en `src/hooks/useShortcut.ts` al flujo de cierre
+- [X] T085 [US5] Interceptar el cierre de la ventana en `src-tauri/src/main.rs` (evento de cierre solicitado) y en `src/lib/tauri/events.ts` para preguntar antes de salir cuando hay cambios sin guardar, cerrando de verdad solo tras la respuesta (FR-028)
+- [X] T086 [US5] Hacer que «Nuevo modelo» y «Abrir modelo» desde el Editor pasen por la misma pregunta antes de reemplazar el modelo abierto, con `pendingIntent` (FR-030)
 
 **Checkpoint**: no se pierde trabajo por ninguna de las tres vías de salida.
 Escenario 5 de `quickstart.md` en verde.

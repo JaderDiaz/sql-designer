@@ -174,7 +174,9 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
   async loadPlaces() {
     if (get().places.length > 0) return
     try {
-      set({ places: await fsUserPlaces() })
+      // Sin listado el campo queda vacío, nunca indefinido: la carpeta inicial
+      // se busca sobre este array sin comprobarlo otra vez.
+      set({ places: (await fsUserPlaces()) ?? [] })
     } catch {
       // Sin ubicaciones el diálogo sigue abriéndose: la carpeta se elige a
       // mano y el aviso de no poder crear llega del propio `model_write`.

@@ -19,6 +19,7 @@ vi.mock('@/lib/tauri/commands', async (importOriginal) => {
 vi.mock('@/lib/tauri/events', () => ({
   PREFERENCES_OPEN_EVENT: 'preferences://open',
   onPreferencesOpen: () => () => undefined,
+  onCloseRequested: () => () => undefined,
 }))
 
 const { windowApplySavedGeometry } = await import('@/lib/tauri/commands')
