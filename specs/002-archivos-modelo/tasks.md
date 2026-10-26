@@ -274,18 +274,18 @@ slice y la interfaz.
 
 ### Tests for User Story 6
 
-- [ ] T087 [P] [US6] Escribir `src/store/recents.test.ts`: orden por último uso, sin duplicados por ruta, tope de 10, estado `missing` desde `exists: false`, estado `invalid` desde el caché y revalidación cuando el sello del disco no coincide
-- [ ] T088 [P] [US6] Escribir `src/components/features/welcome/RecentsList.test.tsx`: cada fila muestra nombre, ruta, fecha y «PostgreSQL · 6 tablas»; «No encontrado» y «Archivo con errores» en su fila; doble clic y Enter abren; el total aparece arriba; sin recientes se ve el mensaje de lista vacía
+- [X] T087 [P] [US6] Escribir `src/store/recents.test.ts`: orden por último uso, sin duplicados por ruta, tope de 10, estado `missing` desde `exists: false`, estado `invalid` desde el caché y revalidación cuando el sello del disco no coincide
+- [X] T088 [P] [US6] Escribir `src/components/features/welcome/RecentsList.test.tsx`: cada fila muestra nombre, ruta, fecha y «PostgreSQL · 6 tablas»; «No encontrado» y «Archivo con errores» en su fila; doble clic y Enter abren; el total aparece arriba; sin recientes se ve el mensaje de lista vacía
 
 ### Implementation for User Story 6
 
-- [ ] T089 [US6] Crear el slice `recents` en `src/store/recents.ts` con `entries`, `isLoading` y las acciones `refresh`, `revalidateStale`, `touch` y `remove`, y componerlo en `src/store/index.ts`
-- [ ] T090 [US6] Implementar la resolución de estado de cada entrada (`ok`, `missing`, `invalid`, `stale`) según la tabla «Estado de una entrada» de data-model.md §2, a partir de `recents_list`
-- [ ] T091 [US6] Implementar la revalidación perezosa: tras el primer fotograma de la Bienvenida, releer y validar solo las entradas cuyo sello del disco no coincide con el cacheado, actualizar su estado y refrescar el caché con `recents_touch`, sin bloquear la interfaz (FR-042, research.md R5)
-- [ ] T092 [US6] Crear `src/components/features/welcome/RecentsList.tsx` según `project/Main.dc.html`: título «Recientes» con el total, filas de 52 px con icono por estado, nombre, ruta, fecha y la línea «<motor> · N tabla(s)», selección única y apertura con doble clic y Enter
-- [ ] T093 [US6] Crear `src/components/features/welcome/RecentNotFoundDialog.tsx`: «No se encontró «<archivo>»», la explicación de que se movió o se eliminó, y las salidas «Quitar de recientes» y «Aceptar» (FR-034)
-- [ ] T094 [US6] Reutilizar `FileErrorDialog.tsx` para el reciente con errores, de modo que la línea del error se vea igual desde la Bienvenida y desde Abrir modelo (FR-034)
-- [ ] T095 [US6] Montar la lista en `src/components/features/welcome/WelcomeScreen.tsx` con su estado vacío, manteniendo las acciones de crear y abrir disponibles
+- [X] T089 [US6] Crear el slice `recents` en `src/store/recents.ts` con `entries`, `isLoading` y las acciones `refresh`, `revalidateStale`, `touch` y `remove`, y componerlo en `src/store/index.ts`
+- [X] T090 [US6] Implementar la resolución de estado de cada entrada (`ok`, `missing`, `invalid`, `stale`) según la tabla «Estado de una entrada» de data-model.md §2, a partir de `recents_list`
+- [X] T091 [US6] Implementar la revalidación perezosa: tras el primer fotograma de la Bienvenida, releer y validar solo las entradas cuyo sello del disco no coincide con el cacheado, actualizar su estado y refrescar el caché con `recents_touch`, sin bloquear la interfaz (FR-042, research.md R5)
+- [X] T092 [US6] Crear `src/components/features/welcome/RecentsList.tsx` según `project/Main.dc.html`: título «Recientes» con el total, filas de 52 px con icono por estado, nombre, ruta, fecha y la línea «<motor> · N tabla(s)», selección única y apertura con doble clic y Enter
+- [X] T093 [US6] Crear `src/components/features/welcome/RecentNotFoundDialog.tsx`: «No se encontró «<archivo>»», la explicación de que se movió o se eliminó, y las salidas «Quitar de recientes» y «Aceptar» (FR-034)
+- [X] T094 [US6] Reutilizar `FileErrorDialog.tsx` para el reciente con errores, de modo que la línea del error se vea igual desde la Bienvenida y desde Abrir modelo (FR-034)
+- [X] T095 [US6] Montar la lista en `src/components/features/welcome/WelcomeScreen.tsx` con su estado vacío, manteniendo las acciones de crear y abrir disponibles
 
 **Checkpoint**: el ciclo completo del incremento (crear, cerrar, reabrir desde
 Recientes, ver los errores de archivo) ya se puede demostrar.

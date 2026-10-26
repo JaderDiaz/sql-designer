@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 
+import { RecentsList, recentsCountLabel } from '@/components/features/welcome/RecentsList'
 import { ShowWelcomeToggle } from '@/components/features/welcome/ShowWelcomeToggle'
 import { WelcomeActions } from '@/components/features/welcome/WelcomeActions'
-import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { AppIcon } from '@/components/ui/AppIcon'
 import { Button } from '@/components/ui/Button'
 import { riseIn, slideInLeft, stagger } from '@/lib/motion'
@@ -18,8 +19,9 @@ import { useAppStore } from '@/store'
  *
  * Las zonas vacías de la barra lateral y de la cabecera arrastran la ventana.
  *
- * La lista de recientes llega con su propia historia; hasta entonces se
- * muestra su hueco con el mensaje de que todavía está vacía.
+ * La lista de recientes se lee al montar y se revalida después del primer
+ * fotograma, para que la ventana aparezca con la lista ya pintada y lo que
+ * haya cambiado en el disco se corrija sin bloquearla (FR-042).
  */
 export function WelcomeScreen() {
   const identity = useAppStore((state) => state.identity)
@@ -27,6 +29,19 @@ export function WelcomeScreen() {
   const loadError = useAppStore((state) => state.loadError)
   const openPreferences = useAppStore((state) => state.openPreferences)
   const requestIntent = useAppStore((state) => state.requestIntent)
+  const recents = useAppStore((state) => state.recents)
+  const recentSelection = useAppStore((state) => state.recentSelection)
+  const refreshRecents = useAppStore((state) => state.refreshRecents)
+  const revalidateStale = useAppStore((state) => state.revalidateStale)
+  const openRecent = useAppStore((state) => state.openRecent)
+
+  useEffect(() => {
+    let frame = 0
+    void refreshRecents().then(() => {
+      frame = requestAnimationFrame(() => void revalidateStale())
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [refreshRecents, revalidateStale])
 
   return (
     <motion.section
@@ -74,7 +89,7 @@ export function WelcomeScreen() {
             Recientes
           </h2>
           <span className="text-[11px] leading-[14px] text-label-secondary [font-variant-numeric:tabular-nums]">
-            0 modelos
+            {recentsCountLabel(recents.length)}
           </span>
         </div>
 
@@ -87,22 +102,17 @@ export function WelcomeScreen() {
           </p>
         ) : null}
 
-        <ScrollRegion
-          label="Modelos recientes"
-          dragRegion
-          className="flex flex-col items-center justify-center gap-1 px-6 text-center"
-        >
-          <p className="text-[13px] leading-[18px] text-label-secondary">
-            Todavía no has abierto ningún modelo.
-          </p>
-          <p className="text-[11px] leading-[14px] text-label-secondary">
-            La lista de recientes llega en el Incremento 1.
-          </p>
-        </ScrollRegion>
+        <RecentsList />
 
         <div className="mx-3 flex h-[52px] flex-none items-center justify-between gap-3 border-t-[0.5px] border-separator px-2.5">
           <ShowWelcomeToggle />
-          <Button variant="primary" disabled>
+          <Button
+            variant="primary"
+            disabled={recentSelection === null}
+            onClick={() => {
+              if (recentSelection !== null) void openRecent(recentSelection)
+            }}
+          >
             Abrir
           </Button>
         </div>

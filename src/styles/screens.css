@@ -66,6 +66,30 @@
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+.sm-row.is-sel,
+.sm-row.is-sel:hover {
+  background: var(--fill-selected);
+}
+
+/* Las filas de Recientes entran escalonadas con su propio retardo. */
+@keyframes sm-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sm-row {
+  animation: sm-in var(--duration-base) var(--easing-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-row {
+    animation-duration: 1ms;
+  }
+}
 
 /* ---------- Ventana de Bienvenida y diálogo de Ajustes ---------- */
 @keyframes sm-start-in {

@@ -7,6 +7,7 @@ import {
   ChevronsUpDown,
   CircleArrowDown,
   CircleMinus,
+  ClipboardCopy,
   Clock,
   Cloud,
   Copy,
@@ -14,6 +15,7 @@ import {
   File,
   FileCode,
   FilePlus2,
+  FileQuestion,
   FileText,
   FileWarning,
   Folder,
@@ -67,10 +69,12 @@ export type IconName =
   | 'circle-minus'
   | 'clock'
   | 'cloud'
+  | 'clipboard-copy'
   | 'copy'
   | 'file'
   | 'file-code'
   | 'file-plus-2'
+  | 'file-question'
   | 'file-text'
   | 'file-warning'
   | 'folder'
@@ -120,10 +124,12 @@ const ICONS: Record<IconName, LucideIcon> = {
   'circle-minus': CircleMinus,
   clock: Clock,
   cloud: Cloud,
+  'clipboard-copy': ClipboardCopy,
   copy: Copy,
   file: File,
   'file-code': FileCode,
   'file-plus-2': FilePlus2,
+  'file-question': FileQuestion,
   'file-text': FileText,
   'file-warning': FileWarning,
   folder: Folder,
