@@ -111,6 +111,13 @@ describe('Abrir modelo (FR-012 a FR-017)', () => {
     expect(preview).toHaveTextContent('Selecciona un modelo para ver sus datos.')
   })
 
+  it('el formato es un dato, no un desplegable con una sola opción', async () => {
+    await renderOpen()
+
+    expect(screen.getByText('Modelo SQL Designer (.yaml)')).toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+  })
+
   it('la vista previa muestra los cinco datos del modelo seleccionado', async () => {
     const user = userEvent.setup()
     await renderOpen()

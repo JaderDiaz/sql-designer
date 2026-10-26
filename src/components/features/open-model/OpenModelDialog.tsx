@@ -2,7 +2,6 @@ import { BrowserDialog } from '@/components/features/browser/BrowserDialog'
 import { FileBrowser } from '@/components/features/browser/FileBrowser'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
-import { Select } from '@/components/ui/Select'
 import { formatModified, formatSize } from '@/lib/format'
 import type { ModelPreview } from '@/lib/model/summary'
 import { ENGINE_LABELS } from '@/lib/model/types'
@@ -16,8 +15,14 @@ import { useAppStore } from '@/store'
  * de vista previa y el pie con el formato.
  */
 
-/** Opciones del selector de formato; en este incremento solo hay una. */
-const FORMATS = [{ value: 'yaml', label: 'Modelo SQL Designer (.yaml)' }]
+/**
+ * Único formato que abre la aplicación.
+ *
+ * El lienzo lo dibuja como un selector, pero mientras no haya más de un
+ * formato se escribe como dato: un desplegable con una sola opción promete
+ * una elección que no existe.
+ */
+const FORMAT_LABEL = 'Modelo SQL Designer (.yaml)'
 
 export function OpenModelDialog() {
   const dialog = useAppStore((state) => state.dialog)
@@ -49,13 +54,7 @@ export function OpenModelDialog() {
       footer={
         <>
           <span className="text-[12px] leading-4 text-label-secondary">Formato</span>
-          <Select
-            label="Formato de archivo"
-            options={FORMATS}
-            value="yaml"
-            onValueChange={() => undefined}
-            className="w-[240px]"
-          />
+          <span className="text-[12px] leading-4 text-label">{FORMAT_LABEL}</span>
           <div className="flex-1" />
           <Button onClick={closeDialog}>Cancelar</Button>
           <Button variant="primary" disabled={!canOpen} onClick={() => open()}>
