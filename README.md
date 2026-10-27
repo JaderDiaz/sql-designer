@@ -64,12 +64,13 @@ npm run e2e          # compila el binario del recorrido y ejecuta los escenarios
 
 Esto compila con la bandera `webdriver`, que mete un servidor de WebDriver
 dentro de la aplicación y abre automatización en `127.0.0.1:4445`. No entra en
-ninguna compilación normal ni en la de publicación. Solo corre en macOS; en
-Windows el montaje está pendiente.
+ninguna compilación normal ni en la de publicación. Corre en macOS y en
+Windows, y en cada sistema comprueba lo que allí cambia: los símbolos de los
+atajos, el nombre del gestor de archivos y las rutas del estado del usuario.
 
 En cada empuje y en cada PR, GitHub repite las cinco puertas en macOS y en
-Windows (`.github/workflows/puertas.yml`), y el recorrido en macOS cuando el PR
-va hacia `main` (`.github/workflows/recorrido.yml`).
+Windows (`.github/workflows/puertas.yml`), y cuando el PR va hacia `main`, el
+recorrido completo en los dos sistemas (`.github/workflows/recorrido.yml`).
 
 Lo que ninguna máquina puede comprobar —el tema del sistema, «Reducir
 movimiento», que el Finder abra con el archivo seleccionado— queda anotado como
