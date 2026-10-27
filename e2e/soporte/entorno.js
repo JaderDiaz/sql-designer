@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -95,7 +95,13 @@ export function prepararEntorno(preferencias = {}) {
     if (existsSync(origen)) cpSync(origen, origen + COPIA)
   }
 
-  carpeta = mkdtempSync(join(tmpdir(), 'sql-designer-recorrido-'))
+  const temporal = mkdtempSync(join(tmpdir(), 'sql-designer-recorrido-'))
+  // En Windows, `tmpdir()` devuelve la ruta corta en formato 8.3
+  // (`C:\Users\RUNNER~1\…`) y la aplicación muestra la larga, así que las
+  // pruebas que comparan la ruta escrita en pantalla no encontraban su texto.
+  // En macOS no se toca: ahí `realpath` resolvería el enlace de `/var` y
+  // cambiaría rutas que ya funcionan.
+  carpeta = WINDOWS ? realpathSync.native(temporal) : temporal
   process.env.SQLD_CARPETA_PRUEBAS = carpeta
   // Las medidas de SC-001, SC-002 y SC-003 solo se anotan con esta bandera
   // puesta; el escenario 8 las lee del registro.
