@@ -107,6 +107,23 @@
     var(--shadow-control),
     inset 0 0 0 100px var(--fill-pressed);
 }
+/*
+ * La variante destructiva es la primaria en rojo: el mismo peso visual, porque
+ * es la acción que el diálogo propone, con el color que avisa de que no se
+ * deshace. El tono de pulsación se oscurece sobre el mismo token, que es lo
+ * que hace que claro y oscuro no necesiten dos recetas.
+ */
+.au-btn-destructive {
+  background: var(--danger-solid);
+  color: var(--on-danger);
+  box-shadow: var(--shadow-accent);
+}
+.au-btn-destructive:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-solid) 88%, #000);
+}
+.au-btn-destructive:active:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-solid) 78%, #000);
+}
 .au-btn-plain {
   background: transparent;
   color: var(--label);

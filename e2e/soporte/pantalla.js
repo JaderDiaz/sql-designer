@@ -620,16 +620,20 @@ export async function tecla(nombre, tipo, init) {
 }
 
 /**
- * La transformación del nodo que contiene el modelo, que es la vista del
- * lienzo hecha texto: `translate3d(…) scale(…)`.
+ * La vista del lienzo hecha texto: lo que desplaza y lo que escala, juntos.
+ *
+ * Son dos nodos y no uno porque la capa que el compositor promueve para
+ * arrastrar no puede contener la escala sin pixelar el texto, así que el
+ * recorrido lee los dos `transform` y los concatena.
  */
 export async function vistaDelLienzo() {
   return esperar(
     `() => {
-      const el = document.querySelector('.sm-stage')
-      return el ? { transform: el.style.transform } : null
+      const frame = document.querySelector('.sm-frame')
+      const stage = document.querySelector('.sm-stage')
+      return frame && stage ? { transform: frame.style.transform + ' ' + stage.style.transform } : null
     }`,
-    'No se encontró el nodo transformado del lienzo.',
+    'No se encontraron los nodos transformados del lienzo.',
   ).then((encontrado) => encontrado.transform)
 }
 

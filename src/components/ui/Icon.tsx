@@ -2,6 +2,7 @@ import {
   Bell,
   CaseSensitive,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
@@ -32,7 +33,11 @@ import {
   Maximize,
   MousePointerClick,
   PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
   PanelRight,
+  PanelRightClose,
+  PanelRightOpen,
   Pencil,
   Redo2,
   Plus,
@@ -69,6 +74,7 @@ export type IconName =
   | 'square'
   | 'x'
   | 'check'
+  | 'chevron-down'
   | 'chevron-left'
   | 'chevron-right'
   | 'chevrons-up-down'
@@ -94,7 +100,11 @@ export type IconName =
   | 'maximize'
   | 'mouse-pointer-click'
   | 'panel-left'
+  | 'panel-left-close'
+  | 'panel-left-open'
   | 'panel-right'
+  | 'panel-right-close'
+  | 'panel-right-open'
   | 'pencil'
   | 'redo-2'
   | 'rotate-ccw'
@@ -131,6 +141,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   square: Square,
   x: X,
   check: Check,
+  'chevron-down': ChevronDown,
   'chevron-left': ChevronLeft,
   'chevron-right': ChevronRight,
   'chevrons-up-down': ChevronsUpDown,
@@ -156,7 +167,11 @@ const ICONS: Record<IconName, LucideIcon> = {
   maximize: Maximize,
   'mouse-pointer-click': MousePointerClick,
   'panel-left': PanelLeft,
+  'panel-left-close': PanelLeftClose,
+  'panel-left-open': PanelLeftOpen,
   'panel-right': PanelRight,
+  'panel-right-close': PanelRightClose,
+  'panel-right-open': PanelRightOpen,
   pencil: Pencil,
   'redo-2': Redo2,
   'rotate-ccw': RotateCcw,

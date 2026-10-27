@@ -30,7 +30,9 @@ const WHEEL_ZOOM = 0.002
 export interface CanvasNodes {
   /** El nodo que recorta y recibe el foco. */
   surface: RefObject<HTMLDivElement | null>
-  /** El nodo transformado que contiene el modelo. */
+  /** El nodo que desplaza la vista; es el que vive en una capa. */
+  frame: RefObject<HTMLDivElement | null>
+  /** El nodo que escala el modelo, dentro del anterior. */
   stage: RefObject<HTMLDivElement | null>
   /** El fondo de rejilla, que acompaña a la vista. */
   grid: RefObject<HTMLDivElement | null>
@@ -45,7 +47,7 @@ export interface CanvasViewGestures {
   onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
 }
 
-export function useCanvasView({ surface, stage, grid }: CanvasNodes): CanvasViewGestures {
+export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): CanvasViewGestures {
   const setView = useAppStore((state) => state.setView)
   const setGesturing = useAppStore((state) => state.setGesturing)
   const zoomTo = useAppStore((state) => state.zoomTo)
@@ -71,9 +73,13 @@ export function useCanvasView({ surface, stage, grid }: CanvasNodes): CanvasView
   const paint = useCallback(
     (view: View) => {
       live.current = view
+      const frameNode = frame.current
+      if (frameNode !== null) {
+        frameNode.style.transform = `translate(${view.pan.x}px, ${view.pan.y}px)`
+      }
       const stageNode = stage.current
       if (stageNode !== null) {
-        stageNode.style.transform = `translate3d(${view.pan.x}px, ${view.pan.y}px, 0) scale(${view.zoom})`
+        stageNode.style.transform = `scale(${view.zoom})`
       }
       const gridNode = grid.current
       if (gridNode !== null) {
@@ -81,7 +87,7 @@ export function useCanvasView({ surface, stage, grid }: CanvasNodes): CanvasView
         gridNode.style.backgroundPosition = `${view.pan.x}px ${view.pan.y}px`
       }
     },
-    [grid, stage],
+    [frame, grid, stage],
   )
 
   /** Escribe la vista viva en el almacén y cierra el gesto. */

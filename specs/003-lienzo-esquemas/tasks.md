@@ -310,6 +310,16 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 - [X] T094 Subir la versión del producto a `1.2.0` en `package.json`, `src-tauri/tauri.conf.json` y `src-tauri/Cargo.toml`, y actualizar `README.md` con lo que el Editor hace ahora
 - [ ] T095 Abrir el PR hacia `main`, esperar `puertas.yml` y `recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.2.0` sobre el commit que cierra el incremento (constitución, Versión del producto y etiquetas)
 
+### Ajuste al diseño actualizado (2026-10-27)
+
+**Purpose**: lo que salió de probar el Editor con la aplicación en marcha y de releer el tablero `Editor` del lienzo. El alcance es estructura y colocación: solo lo que ya tiene función, sin el buscador, el conmutador de vista ni los contadores que llegan con el Incremento 3.
+
+- [X] T096 Quitar toda promoción de capa del compositor en el lienzo: separar el desplazamiento y el zoom en `.sm-frame` y `.sm-stage` con `transform` en dos dimensiones, sin `will-change` ni `translate3d`, en `src/components/features/canvas/CanvasSurface.tsx`, `src/hooks/useCanvasView.ts` y `src/styles/screens.css`, para que el texto no se pixele al acercar ni durante el gesto
+- [X] T097 Añadir la variante destructiva del botón (`.au-btn-destructive`) en `src/styles/aura.css`, que no existía y dejaba el botón de confirmar en texto plano
+- [X] T098 Ajustar la ventana del Editor al tablero del lienzo en estructura y colocación: la barra lateral como tarjeta a la izquierda de todo con los controles de la ventana (`src/components/layout/ModelSidebar.tsx`, `src/components/layout/EditorLayout.tsx`), la barra superior con el botón de cada zona escondible en su propio lado (`src/components/layout/EditorChrome.tsx`), la ficha del modelo en el inspector sin selección (`src/components/layout/Inspector.tsx`), la barra de estado y la barra de zoom con sus medidas (`src/components/layout/StatusBar.tsx`, `src/styles/screens.css`) y los iconos que faltaban (`src/components/ui/Icon.tsx`)
+- [X] T099 Actualizar las pruebas de la estructura nueva en `src/components/layout/EditorLayout.test.tsx` y `src/components/layout/EditorChrome.test.tsx`: los rótulos «Ocultar/Mostrar …», los controles de la ventana que cambian de sitio y la barra superior sin la hora de guardado
+- [X] T100 Adaptar el recorrido a la estructura nueva: `vistaDelLienzo()` lee los dos nodos transformados en `e2e/soporte/pantalla.js`, y `e2e/specs/09-lienzo-y-esquemas.e2e.js` espera los títulos de la barra lateral sin mayúsculas y los rótulos «Ocultar/Mostrar inspector»; `npm run e2e` en verde (10/10)
+
 ---
 
 ## Dependencies & Execution Order

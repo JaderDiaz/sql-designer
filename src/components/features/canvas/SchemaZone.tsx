@@ -71,9 +71,12 @@ export const SchemaZone = forwardRef<HTMLButtonElement, SchemaZoneProps>(functio
       }
     >
       <span className="sm-zone-head">
-        <span className="sm-zone-abbr">{schema.abbreviation}</span>
+        <span className="sm-zone-abbr">
+          <span aria-hidden="true" className="sm-zone-dot" />
+          {schema.abbreviation}
+        </span>
         <span className="min-w-0 truncate">{schema.name}</span>
-        <span className="sm-zone-count">{countText(zone.tableCount)}</span>
+        <span className="sm-zone-count">· {countText(zone.tableCount)}</span>
       </span>
 
       {zone.isEmpty ? <span className="sm-zone-empty">{EMPTY_ZONE_TEXT}</span> : null}

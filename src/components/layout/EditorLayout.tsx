@@ -8,7 +8,7 @@ export const INSPECTOR_WIDTH = 300
 
 /** Props del marco del Editor. */
 export interface EditorLayoutProps {
-  /** Barra superior: controles de ventana, modelo y acciones. */
+  /** Barra superior: modelo, acciones y las dos zonas escondibles. */
   chrome: ReactNode
   /** Barra lateral con esquemas y tablas (FR-002). */
   sidebar: ReactNode
@@ -25,7 +25,13 @@ export interface EditorLayoutProps {
 }
 
 /**
- * Las cinco zonas del Editor (FR-001, P-05 del lienzo).
+ * Las cinco zonas del Editor (FR-001, tablero `Editor` del lienzo).
+ *
+ * La barra lateral va a la izquierda de todo y de arriba abajo, como una
+ * tarjeta con su propio aire: es el navegador del modelo y no cuelga de la
+ * barra superior, que empieza a su derecha. El inspector llega también hasta
+ * abajo, y la barra de estado habla solo del lienzo, así que va debajo de él y
+ * no cruza por debajo del inspector.
  *
  * La barra lateral y el inspector se pueden esconder, y entonces salen del
  * árbol en lugar de quedarse con ancho cero: así el lienzo recibe de verdad
@@ -42,34 +48,37 @@ export function EditorLayout({
   isInspectorHidden,
 }: EditorLayoutProps) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-canvas">
-      {chrome}
+    <div className="flex h-full min-h-0 w-full bg-window">
+      {isSidebarHidden ? null : (
+        <nav
+          aria-label="Esquemas y tablas del modelo"
+          style={{ width: SIDEBAR_WIDTH }}
+          className="m-2 flex min-h-0 flex-none flex-col overflow-hidden rounded-[10px] bg-sidebar shadow-[0_0_0_0.5px_var(--separator)]"
+        >
+          {sidebar}
+        </nav>
+      )}
 
-      <div className="flex min-h-0 flex-1">
-        {isSidebarHidden ? null : (
-          <nav
-            aria-label="Esquemas y tablas del modelo"
-            style={{ width: SIDEBAR_WIDTH }}
-            className="flex min-h-0 flex-none flex-col border-r-[0.5px] border-separator bg-sidebar"
-          >
-            {sidebar}
-          </nav>
-        )}
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        {chrome}
 
-        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">{canvas}</div>
+        <div className="flex min-h-0 flex-1">
+          <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+            {canvas}
+            {statusBar}
+          </div>
 
-        {isInspectorHidden ? null : (
-          <aside
-            aria-label="Inspector"
-            style={{ width: INSPECTOR_WIDTH }}
-            className="flex min-h-0 flex-none flex-col border-l-[0.5px] border-separator bg-sidebar"
-          >
-            {inspector}
-          </aside>
-        )}
+          {isInspectorHidden ? null : (
+            <aside
+              aria-label="Inspector"
+              style={{ width: INSPECTOR_WIDTH }}
+              className="flex min-h-0 flex-none flex-col border-l-[0.5px] border-separator bg-window"
+            >
+              {inspector}
+            </aside>
+          )}
+        </div>
       </div>
-
-      {statusBar}
     </div>
   )
 }

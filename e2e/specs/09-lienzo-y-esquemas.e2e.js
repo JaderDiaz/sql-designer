@@ -56,7 +56,7 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     await seleccionar('modelo-esquemas.yaml')
     await pulsarEn('Abrir modelo', 'Abrir')
     await esperarSinDialogo('Abrir modelo')
-    await esperarTexto('ESQUEMAS')
+    await esperarTexto('Esquemas')
   }
 
   /** Lo que el archivo tiene escrito ahora mismo. */
@@ -68,11 +68,9 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     await abrirModelo()
 
     const visible = await texto()
-    // Barra superior, barra lateral, inspector y barra de estado. Los títulos
-    // de la barra lateral se pintan en mayúsculas, y lo que se lee de la
-    // pantalla es el texto ya transformado.
-    expect(visible).toContain('ESQUEMAS')
-    expect(visible).toContain('TABLAS')
+    // Barra superior, barra lateral, inspector y barra de estado.
+    expect(visible).toContain('Esquemas')
+    expect(visible).toContain('Tablas')
     expect(visible).toContain('PostgreSQL')
     expect(visible).toContain('4 esquemas')
     expect(visible).toContain('4 tablas')
@@ -94,9 +92,9 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     await esperarTexto('Todos los esquemas')
 
     // Y con los botones de la barra superior, que es la otra vía.
-    await pulsar('Inspector')
+    await pulsar('Ocultar inspector')
     await esperarSinTexto('No hay nada seleccionado')
-    await pulsar('Inspector')
+    await pulsar('Mostrar inspector')
     await esperarTexto('No hay nada seleccionado')
   })
 
@@ -250,7 +248,7 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
   it('8 · enfocar un esquema y las dos formas de soltarlo (FR-029 a FR-031)', async () => {
     await seleccionar('ventas')
     await esperarTexto('Enfocado: ventas')
-    await esperarTexto('TABLAS DE VENTAS')
+    await esperarTexto('Tablas de ventas')
 
     // La lista de tablas trae solo las suyas y el resto se atenúa.
     const atenuadas = (await zonas()).filter((zona) => zona.atenuada)

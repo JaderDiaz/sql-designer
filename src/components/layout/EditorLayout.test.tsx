@@ -54,17 +54,17 @@ describe('las cinco zonas del Editor', () => {
     const user = userEvent.setup()
     render(<EditorScreen />)
 
-    await user.click(screen.getByRole('button', { name: 'Barra lateral' }))
+    await user.click(screen.getByRole('button', { name: 'Ocultar barra lateral' }))
 
     expect(
       screen.queryByRole('navigation', { name: 'Esquemas y tablas del modelo' }),
     ).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Barra lateral' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Mostrar barra lateral' })).toHaveAttribute(
       'aria-pressed',
       'false',
     )
 
-    await user.click(screen.getByRole('button', { name: 'Barra lateral' }))
+    await user.click(screen.getByRole('button', { name: 'Mostrar barra lateral' }))
 
     expect(
       screen.getByRole('navigation', { name: 'Esquemas y tablas del modelo' }),
@@ -75,11 +75,11 @@ describe('las cinco zonas del Editor', () => {
     const user = userEvent.setup()
     render(<EditorScreen />)
 
-    await user.click(screen.getByRole('button', { name: 'Inspector' }))
+    await user.click(screen.getByRole('button', { name: 'Ocultar inspector' }))
 
     expect(screen.queryByRole('complementary', { name: 'Inspector' })).not.toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Inspector' }))
+    await user.click(screen.getByRole('button', { name: 'Mostrar inspector' }))
 
     expect(screen.getByRole('complementary', { name: 'Inspector' })).toBeInTheDocument()
   })

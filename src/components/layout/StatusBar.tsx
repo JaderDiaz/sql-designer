@@ -28,8 +28,8 @@ export function StatusBar() {
 
   return (
     <footer
-      style={{ height: STATUS_BAR_HEIGHT }}
-      className="flex flex-none items-center gap-3 border-t-[0.5px] border-separator bg-window px-3 text-[11px] leading-4 text-label-secondary [font-variant-numeric:tabular-nums]"
+      style={{ minHeight: STATUS_BAR_HEIGHT }}
+      className="flex flex-none flex-wrap items-center gap-3 border-t-[0.5px] border-separator bg-window px-4 py-1 text-[11px] leading-[14px] text-label-secondary [font-variant-numeric:tabular-nums]"
     >
       <span>{ENGINE_LABELS[model.engine]}</span>
       <span aria-hidden="true" className="h-[12px] w-[0.5px] bg-separator" />

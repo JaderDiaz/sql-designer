@@ -11,14 +11,18 @@ import { useCanvasView } from '@/hooks/useCanvasView'
 import { useAppStore } from '@/store'
 
 /**
- * Superficie del lienzo: el nodo que recorta y el nodo que se transforma
+ * Superficie del lienzo: el nodo que recorta y los dos que se transforman
  * (research R1).
  *
- * Todo el modelo se dibuja una sola vez en coordenadas del modelo y el
- * desplazamiento y el zoom se aplican con un único `transform` en el nodo
- * interior, de modo que mover la vista no vuelve a medir nada: el navegador
- * compone la capa que ya tiene. Ni las zonas ni las tarjetas leen `pan` ni
- * `zoom`: no saben a qué escala se están dibujando.
+ * Todo el modelo se dibuja una sola vez en coordenadas del modelo y la vista
+ * se aplica con dos `transform` encadenados: `.sm-frame` desplaza y
+ * `.sm-stage`, dentro, escala. Son dos y no uno porque la capa que el
+ * compositor promueve para que arrastrar vaya fluido guarda su contenido
+ * rasterizado a una sola escala: con el zoom dentro de ella, el texto se veía
+ * pixelado al acercar. Dejando la escala fuera, la capa guarda el modelo ya
+ * dibujado a su tamaño y mover la vista no vuelve a medir nada. Ni las zonas
+ * ni las tarjetas leen `pan` ni `zoom`: no saben a qué escala se están
+ * dibujando.
  *
  * Arrastrar una zona tampoco pasa por el almacén mientras el dedo está abajo:
  * el grupo que se mueve lleva `data-drag` y se desplaza con dos variables CSS
@@ -66,6 +70,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   const moveSchema = useAppStore((state) => state.moveSchema)
 
   const surface = useRef<HTMLDivElement>(null)
+  const frame = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const grid = useRef<HTMLDivElement>(null)
   const drag = useRef<DragState | null>(null)
@@ -75,7 +80,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
 
   // Mover la vista y hacer zoom son del gesto, no de este componente: el
   // lienzo solo le presta sus tres nodos.
-  const view = useCanvasView({ surface, stage, grid })
+  const view = useCanvasView({ surface, frame, stage, grid })
 
   // La caja del lienzo se mide al montar y en cada cambio de tamaño: esconder
   // la barra lateral o el inspector la cambia sin que la ventana se mueva.
@@ -198,50 +203,57 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
       />
 
       <div
-        ref={stage}
-        className="sm-stage absolute left-0 top-0 origin-top-left"
-        style={{
-          transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
-          willChange: 'transform',
-        }}
+        ref={frame}
+        className="sm-frame absolute left-0 top-0"
+        // Sin la tercera dimensión: `translate3d` deja el nodo en una capa
+        // del compositor, y una capa guarda lo suyo rasterizado a una escala
+        // y lo estira, que es lo que pixelaba el texto al acercar y al
+        // arrastrar.
+        style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
       >
-        {zones.map((zone) => {
-          const schema = model?.schemas.find((candidate) => candidate.name === zone.schema)
-          if (schema === undefined) return null
-          return (
-            <SchemaContextMenu key={zone.schema} schema={schema} tableCount={zone.tableCount}>
-              <SchemaZone
-                zone={zone}
-                schema={schema}
-                isSelected={selectedSchema === zone.schema}
-                isDim={focusedSchema !== null && focusedSchema !== zone.schema}
-                isDragging={dragging === zone.schema}
-                onPointerDown={(event) => startDrag(event, zone.schema)}
-                onPointerMove={continueDrag}
-                onPointerUp={endDrag}
-                onPointerCancel={endDrag}
-                onClick={() => selectSchema(zone.schema)}
-              />
-            </SchemaContextMenu>
-          )
-        })}
+        <div
+          ref={stage}
+          className="sm-stage absolute left-0 top-0 origin-top-left"
+          style={{ transform: `scale(${zoom})` }}
+        >
+          {zones.map((zone) => {
+            const schema = model?.schemas.find((candidate) => candidate.name === zone.schema)
+            if (schema === undefined) return null
+            return (
+              <SchemaContextMenu key={zone.schema} schema={schema} tableCount={zone.tableCount}>
+                <SchemaZone
+                  zone={zone}
+                  schema={schema}
+                  isSelected={selectedSchema === zone.schema}
+                  isDim={focusedSchema !== null && focusedSchema !== zone.schema}
+                  isDragging={dragging === zone.schema}
+                  onPointerDown={(event) => startDrag(event, zone.schema)}
+                  onPointerMove={continueDrag}
+                  onPointerUp={endDrag}
+                  onPointerCancel={endDrag}
+                  onClick={() => selectSchema(zone.schema)}
+                />
+              </SchemaContextMenu>
+            )
+          })}
 
-        {tables.map((table) => {
-          const position = layout.get(table.name)
-          if (position === undefined) return null
-          const schema = model?.schemas.find((candidate) => candidate.name === table.schema)
-          return (
-            <TableCard
-              key={table.name}
-              table={table}
-              position={position}
-              schema={table.schema}
-              abbreviation={schema?.abbreviation ?? ''}
-              isDim={focusedSchema !== null && focusedSchema !== table.schema}
-              isDragging={dragging === table.schema}
-            />
-          )
-        })}
+          {tables.map((table) => {
+            const position = layout.get(table.name)
+            if (position === undefined) return null
+            const schema = model?.schemas.find((candidate) => candidate.name === table.schema)
+            return (
+              <TableCard
+                key={table.name}
+                table={table}
+                position={position}
+                schema={table.schema}
+                abbreviation={schema?.abbreviation ?? ''}
+                isDim={focusedSchema !== null && focusedSchema !== table.schema}
+                isDragging={dragging === table.schema}
+              />
+            )
+          })}
+        </div>
       </div>
 
       {overlay}
