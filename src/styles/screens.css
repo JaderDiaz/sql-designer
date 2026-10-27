@@ -523,6 +523,20 @@
   font: 400 11px/16px var(--font-sans);
   color: var(--label-tertiary);
 }
+/*
+ * El nodo que contiene el modelo anima su llegada, que es lo que hace legible
+ * enfocar un esquema o pulsar «Ajustar». Durante un gesto no: ahí la vista
+ * tiene que ir pegada al dedo. Con «Reducir movimiento» del sistema las
+ * duraciones ya valen 0 ms, así que el resultado llega sin animación
+ * (FR-042, research R12).
+ */
+.sm-stage {
+  transition: transform var(--duration-base) var(--easing-standard);
+}
+.sm-canvas[data-gesturing] .sm-stage {
+  transition: none;
+}
+
 /* Con la barra espaciadora mantenida, todo el lienzo se arrastra (FR-007). */
 .sm-canvas[data-space] {
   cursor: grab;

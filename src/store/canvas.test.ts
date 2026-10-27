@@ -97,6 +97,50 @@ describe('foco y selección', () => {
     expect(useAppStore.getState().focusedSchema).toBeNull()
   })
 
+  it('enfocar centra la vista en la zona del esquema, no en el modelo (FR-029)', () => {
+    useAppStore.setState({
+      model: threeSchemas(),
+      viewport: { x: 0, y: 0, width: 800, height: 600 },
+    })
+
+    useAppStore.getState().focusSchema('personas')
+
+    const model = useAppStore.getState().model
+    if (model === null) throw new Error('el modelo debería estar abierto')
+    const zone = schemaZones(model, resolveLayout(model)).find(
+      (candidate) => candidate.schema === 'personas',
+    )
+    if (zone === undefined) throw new Error('la zona debería existir')
+
+    const { pan, zoom } = useAppStore.getState()
+    const center = { x: zone.rect.x + zone.rect.width / 2, y: zone.rect.y + zone.rect.height / 2 }
+    expect(center.x * zoom + pan.x).toBeCloseTo(400, 6)
+    expect(center.y * zoom + pan.y).toBeCloseTo(300, 6)
+  })
+
+  it('quitar el foco deja la vista donde está (FR-031)', () => {
+    useAppStore.setState({ model: threeSchemas() })
+    useAppStore.getState().focusSchema('ventas')
+    const view = { pan: useAppStore.getState().pan, zoom: useAppStore.getState().zoom }
+
+    useAppStore.getState().focusSchema(null)
+
+    expect(useAppStore.getState().focusedSchema).toBeNull()
+    expect(useAppStore.getState().pan).toEqual(view.pan)
+    expect(useAppStore.getState().zoom).toBe(view.zoom)
+  })
+
+  it('eliminar el esquema enfocado quita el foco solo (FR-032)', () => {
+    const model = threeSchemas()
+    useAppStore.setState({ model, savedModel: model })
+    useAppStore.getState().focusSchema('ventas')
+
+    useAppStore.getState().deleteSchema('ventas', { withTables: true, target: null })
+
+    expect(useAppStore.getState().focusedSchema).toBeNull()
+    expect(useAppStore.getState().selectedSchema).toBeNull()
+  })
+
   it('cerrar el modelo quita el foco y la selección (FR-032)', () => {
     useAppStore.setState({ model: threeSchemas() })
     useAppStore.getState().focusSchema('ventas')

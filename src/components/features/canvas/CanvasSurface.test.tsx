@@ -234,3 +234,38 @@ describe('CanvasSurface: mover la vista y hacer zoom (FR-007 a FR-011, FR-039)',
     expect(useAppStore.getState().zoom).toBeCloseTo(1, 6)
   })
 })
+
+describe('CanvasSurface: foco de un esquema (FR-030, FR-031)', () => {
+  beforeEach(() => renderCanvas())
+
+  it('con un esquema enfocado, las demás zonas y sus tablas se atenúan (FR-030)', () => {
+    act(() => {
+      useAppStore.getState().focusSchema('ventas')
+    })
+
+    const ventas = screen.getByRole('button', { name: /^Esquema VEN · ventas,/ })
+    const inventario = screen.getByRole('button', { name: /^Esquema INV · inventario,/ })
+    const facturas = screen.getByRole('button', { name: /^Tabla facturas,/ })
+    const productos = screen.getByRole('button', { name: /^Tabla productos,/ })
+
+    expect(ventas.className).not.toContain('is-dim')
+    expect(facturas.className).not.toContain('is-dim')
+    expect(inventario.className).toContain('is-dim')
+    expect(productos.className).toContain('is-dim')
+  })
+
+  it('Esc en el lienzo suelta el foco y deja la vista donde está (FR-031)', () => {
+    act(() => {
+      useAppStore.getState().focusSchema('ventas')
+    })
+    const view = { pan: useAppStore.getState().pan, zoom: useAppStore.getState().zoom }
+
+    fireEvent.keyDown(screen.getByRole('application', { name: 'Lienzo del modelo' }), {
+      key: 'Escape',
+    })
+
+    expect(useAppStore.getState().focusedSchema).toBeNull()
+    expect(useAppStore.getState().pan).toEqual(view.pan)
+    expect(useAppStore.getState().zoom).toBe(view.zoom)
+  })
+})

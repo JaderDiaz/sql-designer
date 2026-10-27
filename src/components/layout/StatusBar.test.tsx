@@ -10,8 +10,8 @@ import { resetStore } from '@/test/helpers'
 /**
  * Pruebas de la barra de estado (FR-004).
  *
- * Dice cuatro cosas, y las cuatro se comprueban aquí: motor, estado del
- * archivo, contadores y zoom.
+ * Dice cinco cosas, y las cinco se comprueban aquí: motor, estado del
+ * archivo, esquema enfocado, contadores y zoom.
  */
 describe('barra de estado', () => {
   beforeEach(() => {
@@ -63,5 +63,15 @@ describe('barra de estado', () => {
     expect(screen.getByText('1 esquema')).toBeInTheDocument()
     expect(screen.getByText('1 tabla')).toBeInTheDocument()
     expect(screen.getByText('SQLite')).toBeInTheDocument()
+  })
+
+  it('dice qué esquema está enfocado, y solo cuando hay uno (FR-030)', () => {
+    const { rerender } = render(<StatusBar />)
+    expect(screen.queryByText(/Enfocado:/)).not.toBeInTheDocument()
+
+    useAppStore.setState({ focusedSchema: 'ventas' })
+    rerender(<StatusBar />)
+
+    expect(screen.getByText('Enfocado: ventas')).toBeInTheDocument()
   })
 })

@@ -10,8 +10,12 @@ import { useAppStore } from '@/store'
  *
  * Dos secciones. «Esquemas» lista los del modelo con su color, su abreviatura
  * y su número de tablas, con «Todos los esquemas» arriba; «Tablas» lista las
- * del modelo. Pulsar la fila de un esquema lo selecciona, que es lo que mira
- * el inspector (FR-003).
+ * del modelo, o solo las del esquema enfocado.
+ *
+ * Pulsar la fila de un esquema lo enfoca: el lienzo se centra en su zona, el
+ * resto se atenúa y esta lista se filtra (FR-029, FR-030). Enfocar también
+ * selecciona, que es lo que mira el inspector (FR-003), así que la fila es un
+ * único botón y no dos gestos distintos sobre la misma línea.
  */
 
 /** Cuántas tablas tiene cada esquema del modelo. */
@@ -32,13 +36,18 @@ export function tableCountLabel(count: number): string {
 export function ModelSidebar() {
   const model = useAppStore((state) => state.model)
   const selectedSchema = useAppStore((state) => state.selectedSchema)
-  const selectSchema = useAppStore((state) => state.selectSchema)
+  const focusedSchema = useAppStore((state) => state.focusedSchema)
+  const focusSchema = useAppStore((state) => state.focusSchema)
   const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
 
   if (model === null) return null
 
   const tables = model.tables ?? []
   const counts = countBySchema(tables)
+  // Con un esquema enfocado, la lista de tablas es la de ese esquema (FR-030).
+  const listed = focusedSchema === null
+    ? tables
+    : tables.filter((table) => table.schema === focusedSchema)
 
   return (
     <ScrollRegion label="Contenido del modelo" className="flex flex-col gap-4 px-2 py-3">
@@ -66,9 +75,9 @@ export function ModelSidebar() {
               type="button"
               role="option"
               aria-selected={selectedSchema === null}
-              aria-current={selectedSchema === null}
+              aria-current={focusedSchema === null}
               className="au-side-item w-full"
-              onClick={() => selectSchema(null)}
+              onClick={() => focusSchema(null)}
             >
               <Icon name="layers" size={14} />
               <span className="flex-1 text-left">Todos los esquemas</span>
@@ -85,10 +94,10 @@ export function ModelSidebar() {
                     type="button"
                     role="option"
                     aria-selected={selectedSchema === schema.name}
-                    aria-current={selectedSchema === schema.name}
+                    aria-current={focusedSchema === schema.name}
                     aria-label={`${schema.name}, ${tableCountLabel(count)}`}
                     className="au-side-item w-full"
-                    onClick={() => selectSchema(schema.name)}
+                    onClick={() => focusSchema(schema.name)}
                   >
                     <span
                       aria-hidden="true"
@@ -113,16 +122,18 @@ export function ModelSidebar() {
           id="sm-side-tables"
           className="m-0 px-2 text-[11px] font-semibold uppercase leading-4 tracking-[0.06em] text-label-tertiary"
         >
-          Tablas
+          {focusedSchema === null ? 'Tablas' : `Tablas de ${focusedSchema}`}
         </h2>
 
-        {tables.length === 0 ? (
+        {listed.length === 0 ? (
           <p className="m-0 px-2 text-[12px] leading-4 text-label-tertiary">
-            Este modelo aún no tiene tablas.
+            {focusedSchema === null
+              ? 'Este modelo aún no tiene tablas.'
+              : 'Este esquema aún no tiene tablas.'}
           </p>
         ) : (
           <ul className="m-0 list-none p-0">
-            {tables.map((table) => (
+            {listed.map((table) => (
               <li key={table.name} className="au-side-item cursor-default">
                 <Icon name="table-2" size={14} />
                 <span className="min-w-0 flex-1 truncate text-left">{table.name}</span>

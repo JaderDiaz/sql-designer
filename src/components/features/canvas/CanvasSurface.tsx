@@ -198,7 +198,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
 
       <div
         ref={stage}
-        className="absolute left-0 top-0 origin-top-left"
+        className="sm-stage absolute left-0 top-0 origin-top-left"
         style={{
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
           willChange: 'transform',

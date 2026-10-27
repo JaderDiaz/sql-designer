@@ -6,8 +6,8 @@ import { useAppStore } from '@/store'
 import { ZOOM_STEP } from '@/store/canvas'
 
 /**
- * Mover la vista del lienzo y hacer zoom, con las tres formas de mover y las
- * cuatro de acercar (FR-007 a FR-011, FR-039).
+ * Mover la vista del lienzo, hacer zoom y soltar el foco, con las tres formas
+ * de mover y las cuatro de acercar (FR-007 a FR-011, FR-031, FR-039).
  *
  * El gesto no pasa por el almacén mientras dura: la vista viva se escribe
  * directamente en el `transform` del nodo del modelo y en el fondo de rejilla,
@@ -49,6 +49,7 @@ export function useCanvasView({ surface, stage, grid }: CanvasNodes): CanvasView
   const setGesturing = useAppStore((state) => state.setGesturing)
   const zoomTo = useAppStore((state) => state.zoomTo)
   const fitToModel = useAppStore((state) => state.fitToModel)
+  const focusSchema = useAppStore((state) => state.focusSchema)
 
   /** Vista viva del gesto, o `null` si la del almacén es la verdadera. */
   const live = useRef<View | null>(null)
@@ -148,6 +149,15 @@ export function useCanvasView({ surface, stage, grid }: CanvasNodes): CanvasView
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
+      // Esc suelta el foco del esquema y deja la vista donde está (FR-031).
+      if (event.key === 'Escape') {
+        if (useAppStore.getState().focusedSchema !== null) {
+          event.preventDefault()
+          focusSchema(null)
+        }
+        return
+      }
+
       if (event.code === 'Space' && !event.repeat) {
         space.current = true
         node.dataset.space = ''
@@ -231,7 +241,18 @@ export function useCanvasView({ surface, stage, grid }: CanvasNodes): CanvasView
       window.removeEventListener('blur', onBlur)
       if (timer.current !== null) clearTimeout(timer.current)
     }
-  }, [commit, currentView, fitToModel, paint, pointerOf, schedule, setGesturing, surface, zoomTo])
+  }, [
+    commit,
+    currentView,
+    fitToModel,
+    focusSchema,
+    paint,
+    pointerOf,
+    schedule,
+    setGesturing,
+    surface,
+    zoomTo,
+  ])
 
   return {
     isPanning: () => space.current,

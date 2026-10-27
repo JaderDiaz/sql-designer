@@ -251,16 +251,16 @@ lista y la vuelta con «Todos los esquemas» y con Esc.
 
 ### Tests for User Story 5
 
-- [ ] T072 [P] [US5] Ampliar `src/store/canvas.test.ts` con el foco: `focusSchema` centra en la zona del esquema, `null` lo quita, y el foco se quita solo al eliminar el esquema enfocado y al cerrar el modelo (FR-029, FR-031, FR-032)
-- [ ] T073 [P] [US5] Ampliar `src/components/layout/ModelSidebar.test.tsx`: con un esquema enfocado la lista de tablas trae solo las suyas, el título dice de cuál y `aria-current` marca la fila; un esquema vacío enfocado dice que no tiene tablas (FR-030, US5 esc. 7)
+- [X] T072 [P] [US5] Ampliar `src/store/canvas.test.ts` con el foco: `focusSchema` centra en la zona del esquema, `null` lo quita, y el foco se quita solo al eliminar el esquema enfocado y al cerrar el modelo (FR-029, FR-031, FR-032)
+- [X] T073 [P] [US5] Ampliar `src/components/layout/ModelSidebar.test.tsx`: con un esquema enfocado la lista de tablas trae solo las suyas, el título dice de cuál y `aria-current` marca la fila; un esquema vacío enfocado dice que no tiene tablas (FR-030, US5 esc. 7)
 
 ### Implementation for User Story 5
 
-- [ ] T074 [US5] Enfocar desde el nombre del esquema en `ModelSidebar` y quitar el foco con «Todos los esquemas», centrando el lienzo con `centerOnZone` —`fitToContent` sobre el envolvente de esa zona— (FR-029, FR-031)
-- [ ] T075 [US5] Atenuar las demás zonas y sus tablas con la clase `is-dim` de `src/styles/screens.css`, y filtrar la lista de tablas de la barra lateral a las del esquema enfocado (FR-030)
-- [ ] T076 [US5] Decir cuál está enfocado en la barra lateral y en la barra de estado (FR-030)
-- [ ] T077 [US5] Quitar el foco con Esc en el lienzo (FR-031)
-- [ ] T078 [US5] Llegar al resultado sin animación con «Reducir movimiento» del sistema: la transición del nodo transformado sale del `MotionConfig` del proyecto y se anula con `prefers-reduced-motion` (FR-042, research.md R12)
+- [X] T074 [US5] Enfocar desde el nombre del esquema en `ModelSidebar` y quitar el foco con «Todos los esquemas», centrando el lienzo con `centerOnZone` —`fitToContent` sobre el envolvente de esa zona— (FR-029, FR-031)
+- [X] T075 [US5] Atenuar las demás zonas y sus tablas con la clase `is-dim` de `src/styles/screens.css`, y filtrar la lista de tablas de la barra lateral a las del esquema enfocado (FR-030)
+- [X] T076 [US5] Decir cuál está enfocado en la barra lateral y en la barra de estado (FR-030)
+- [X] T077 [US5] Quitar el foco con Esc en el lienzo (FR-031)
+- [X] T078 [US5] Llegar al resultado sin animación con «Reducir movimiento» del sistema: la transición del nodo transformado sale del `MotionConfig` del proyecto y se anula con `prefers-reduced-motion` (FR-042, research.md R12)
 
 **Checkpoint**: enfocar y desenfocar los tres esquemas funciona desde la barra
 lateral, con el teclado y con movimiento reducido.
