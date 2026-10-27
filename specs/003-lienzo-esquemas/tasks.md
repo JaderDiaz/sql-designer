@@ -348,7 +348,7 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 - **T059 (arrastre de zona) antes que T065 (mover la vista)**: los dos escuchan
   `pointerdown` en el mismo nodo y el orden de prioridad —zona primero, fondo
   después— se decide una vez
-- **T052a antes que T060 y T082**: el menú contextual del esquema se crea una
+- **T052a antes que T060, T081 y T082**: el menú contextual del esquema se crea una
   vez, en US2, con «Editar esquema…»; T060 lo engancha a la zona del lienzo y
   T081 le añade «Eliminar esquema…». Si naciera en US6, US2 no tendría vía para
   editar un esquema y dejaría de ser independiente
