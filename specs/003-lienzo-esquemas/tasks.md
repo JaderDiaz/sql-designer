@@ -77,7 +77,7 @@ necesitan.
 
 - [ ] T011 [P] Crear `src/lib/model/colors.ts` con `SchemaColor`, los once colores en orden (`gray` Grafito, `blue` Azul, `indigo` Índigo, `purple` Morado, `pink` Rosa, `red` Rojo, `orange` Naranja, `yellow` Amarillo, `brown` Marrón, `green` Verde, `teal` Teal), `DEFAULT_SCHEMA_COLOR = 'indigo'` y `resolveSchemaColor(color)` que cae al color por defecto con un identificador desconocido (FR-021)
 - [ ] T012 [P] Crear `src/lib/model/colors.test.ts`: los once identificadores están, el orden es el declarado, y un identificador que no existe cae a `indigo` sin lanzar
-- [ ] T013 [P] Crear `src/lib/model/propose.ts` con `toTechnicalName(name)` —sin acentos, minúsculas, lo que no es letra ni número pasa a guion bajo, no empieza por número, tope de `TECHNICAL_NAME_MAX_LENGTH` (63)— y `toAbbreviation(name)` —iniciales de las tres primeras palabras, o las tres primeras letras si hay una sola, en mayúsculas, rellenando con `X` si no llegan a tres— (FR-016)
+- [ ] T013 [P] Crear `src/lib/model/propose.ts` con `toTechnicalName(name)` —sin acentos, minúsculas, lo que no es letra ni número pasa a guion bajo, no empieza por número, tope de `TECHNICAL_NAME_MAX_LENGTH` (63)— y `toAbbreviation(name)` —iniciales de las tres primeras palabras, o las tres primeras letras si hay una sola, en mayúsculas, rellenando con `X` si no llegan a tres— (FR-016, FR-043)
 - [ ] T014 [P] Crear `src/lib/model/propose.test.ts` con la tabla de `contracts/canvas.md` §1: «Ventas y cobros» → `ventas_y_cobros` / `VEN`, «Unidad residencial» → `unidad_residencial` / `URE`, «Área 51» → `area_51` / `A51`, «3 puertas» → `_3_puertas` / `3PU`, y el vacío devuelve cadena vacía
 
 ### Geometría pura del lienzo (research.md R4, R5, R10)
@@ -88,12 +88,12 @@ necesitan.
 - [ ] T018 Crear `src/lib/canvas/zoom.ts` con `clampZoom(zoom)`, `zoomAt(view, zoom, pointer)` —el punto del modelo bajo el puntero sigue bajo el puntero— y `fitToContent(bounds, viewport)` —deja todo dentro con `FIT_MARGIN`, recorta a los topes y, con `bounds` nulo, devuelve `{ pan: {x: 0, y: 0}, zoom: 1 }`— (FR-008 a FR-011)
 - [ ] T019 [P] Crear `src/lib/canvas/layout.test.ts`: el mismo modelo da el mismo mapa, la posición del archivo se respeta sin tocar, las zonas resultantes no se solapan y el modelo no se muta (FR-013, FR-028)
 - [ ] T020 [P] Crear `src/lib/canvas/geometry.test.ts`: la zona envuelve sus tablas con el margen exacto, el alto mínimo con una sola tabla deja sitio al rótulo, la zona vacía mide 240 × 180, y las zonas salen en el orden del modelo (FR-023 a FR-025)
-- [ ] T021 [P] Crear `src/lib/canvas/zoom.test.ts`: los topes 40 % y 200 %, el punto bajo el puntero no se mueve, «Ajustar» con posiciones negativas y enormes las trae a la vista, y el modelo vacío da 100 % centrado (FR-008 a FR-011)
+- [ ] T021 [P] Crear `src/lib/canvas/zoom.test.ts`: los topes 40 % y 200 %, el punto bajo el puntero no se mueve, «Ajustar» con posiciones negativas y enormes las trae a la vista, y el modelo vacío da 100 % centrado (FR-008 a FR-011, SC-004)
 
 ### Estado (data-model.md §3, research.md R2)
 
 - [ ] T022 Crear `src/store/canvas.ts` con `createCanvasSlice`: `pan`, `zoom`, `focusedSchema`, `selectedSchema`, `isGesturing`, `isSidebarHidden`, `isInspectorHidden` y las acciones de `contracts/canvas.md` §2.1 (`setView`, `zoomBy`, `zoomTo`, `fitToModel`, `focusSchema`, `selectSchema`, `setGesturing`, `toggleSidebar`, `toggleInspector`)
-- [ ] T023 Crear `src/store/schemas.ts` con `createSchemasSlice`: `createSchema`, `updateSchema`, `deleteSchema` y `moveSchema`, cada una con su paso de historial etiquetado («crear el esquema», «editar el esquema», «eliminar el esquema», «mover el esquema» / «mover las tablas del esquema») y midiendo `isDirty` contra el modelo del archivo, como hace `renameModel` (contracts/canvas.md §2.2, research.md R16)
+- [ ] T023 Crear `src/store/schemas.ts` con `createSchemasSlice`: `createSchema`, `updateSchema`, `deleteSchema` y `moveSchema`, cada una con su paso de historial etiquetado («crear el esquema», «editar el esquema», «eliminar el esquema», «mover el esquema» / «mover las tablas del esquema») y midiendo `isDirty` contra el modelo del archivo, como hace `renameModel` (contracts/canvas.md §2.2, research.md R16). Las cuatro se prueban en la fase de su historia —T046, T055 y T079—, porque cada prueba necesita el escenario completo de esa historia; aquí solo entran su firma, su efecto en el modelo y su paso de historial
 - [ ] T024 Componer las dos partes nuevas en `src/store/index.ts` y `src/store/types.ts`, en el orden del almacén existente
 - [ ] T025 Quitar el foco solo cuando desaparece su esquema o se cierra el modelo: en `src/store/schemas.ts` (`deleteSchema`) y en `src/store/model.ts` (`closeModel`, `openModel`, `createModel`), que además dejan la vista ajustada al modelo nuevo (FR-014, FR-032)
 
@@ -108,6 +108,7 @@ necesitan.
 - [ ] T029 [P] Crear `src/components/ui/Switch.tsx` sobre `@radix-ui/react-switch`: puro, con etiqueta y pista opcionales, `role="switch"` del propio primitivo y estilos de token. No importa del almacén ni de `features` (puerta 7)
 - [ ] T030 [P] Crear `src/components/ui/ColorSwatches.tsx` sobre `@radix-ui/react-radio-group`: recibe la lista de colores con su nombre y el seleccionado, cada muestra con su nombre accesible («Índigo») y el grupo con `aria-label`. Puro, sin conocer la paleta del modelo
 - [ ] T031 [P] Declarar en `src/styles/screens.css` las clases de la zona del esquema, la tarjeta de tabla, el minimapa y la barra de zoom, con el color resuelto por `color-mix` sobre la variable del esquema: relleno al 4 %, borde al 18 % con tablas y al 40 % punteado sin tablas, radio 14 px, y la variante `is-dim` para la atenuación del foco. Ningún valor de color literal
+- [ ] T031a [P] Añadir a `scripts/check-layers.mjs` la tercera regla de la puerta 7: ningún archivo de `src/lib/` importa de `src/components/`. Hoy el script solo comprueba que `ui/` no importe del almacén ni de `features` y que `invoke` viva en `src/lib/tauri/`, así que la geometría pura no la vigilaba nadie (puerta 7)
 
 **Checkpoint**: el formato lee y escribe el campo nuevo, la geometría está
 probada, el almacén tiene vista y esquemas, y los dos primitivos existen. Las
@@ -130,16 +131,16 @@ espacio al lienzo y lo recupera, también tras cerrar y abrir otro modelo.
 - [ ] T032 [P] [US1] Crear `src/store/canvas.test.ts`: la vista arranca ajustada al modelo, esconder la barra lateral y el inspector escribe la preferencia con `preferencesUpdate`, y el foco se quita al cerrar el modelo (FR-006, FR-014)
 - [ ] T033 [P] [US1] Crear `src/components/layout/EditorLayout.test.tsx`: las cinco zonas están con su nombre accesible, esconder una la saca del árbol y el botón de la barra superior la devuelve (FR-001, FR-006)
 - [ ] T034 [P] [US1] Crear `src/components/layout/StatusBar.test.tsx`: dice el motor, el estado del archivo del Incremento 1, el porcentaje de zoom y el número de esquemas y de tablas (FR-004)
-- [ ] T035 [P] [US1] Crear `src/components/layout/Inspector.test.tsx`: sin selección dice que no hay nada seleccionado; con un esquema seleccionado muestra nombre, nombre técnico, abreviatura, color, descripción y número de tablas (FR-003)
+- [ ] T035 [P] [US1] Crear `src/components/layout/Inspector.test.tsx`: sin selección dice que no hay nada seleccionado; al pulsar la fila de un esquema en la barra lateral muestra su nombre, nombre técnico, abreviatura, color, descripción y número de tablas (FR-003)
 
 ### Implementation for User Story 1
 
 - [ ] T036 [US1] Crear `src/components/layout/EditorLayout.tsx`: las cinco zonas de P-05 —barra lateral de 248 px, barra superior, lienzo, inspector de 300 px y barra de estado de 28 px—, con la barra lateral y el inspector escondibles y el lienzo ocupando el espacio liberado (FR-001, FR-006)
-- [ ] T037 [US1] Crear `src/components/layout/ModelSidebar.tsx`: sección «Esquemas» con «Todos los esquemas», la fila de cada esquema con su punto de color, su nombre y su número de tablas, y el botón «+» de Nuevo esquema; sección «Tablas» con las del modelo (FR-002)
+- [ ] T037 [US1] Crear `src/components/layout/ModelSidebar.tsx`: sección «Esquemas» con «Todos los esquemas», la fila de cada esquema con su punto de color, su nombre y su número de tablas, y el botón «+» de Nuevo esquema; sección «Tablas» con las del modelo. Pulsar la fila de un esquema lo selecciona, de modo que el inspector muestre sus datos (FR-002, FR-003)
 - [ ] T038 [P] [US1] Crear `src/components/layout/Inspector.tsx`: datos del esquema seleccionado y, sin selección, el mensaje de que no hay nada seleccionado (FR-003)
 - [ ] T039 [P] [US1] Crear `src/components/layout/StatusBar.tsx` con el motor, el estado del archivo, el porcentaje de zoom y los contadores de esquemas y tablas, con `aria-live="polite"` en el estado del archivo (FR-004)
 - [ ] T040 [US1] Ampliar `src/components/layout/EditorChrome.tsx` con los dos botones de disposición (`panel-left`, `panel-right`), su `aria-pressed` y sus atajos ⌥⌘S / ⌥⌘I, además de lo que ya trae del Incremento 1 (FR-006, FR-038)
-- [ ] T041 [US1] Extraer la tarjeta del modelo vacío a `src/components/features/canvas/EmptyModelCard.tsx` desde `src/components/features/editor/EditorScreen.tsx`, cambiando la nota «El lienzo de tablas llega en el Incremento 2» y dejando «Agregar un esquema» como la única fila que actúa: abre el diálogo Nuevo esquema (FR-005)
+- [ ] T041 [US1] Extraer la tarjeta del modelo vacío a `src/components/features/canvas/EmptyModelCard.tsx` desde `src/components/features/editor/EditorScreen.tsx`, cambiando la nota «El lienzo de tablas llega en el Incremento 2» y dejando «Agregar un esquema» como la única fila que actúa: abre el diálogo Nuevo esquema (FR-005, SC-009)
 - [ ] T042 [US1] Crear `src/components/features/canvas/CanvasSurface.tsx` con el nodo que recorta y el nodo interior transformado por `pan` y `zoom` del almacén, con `will-change: transform` y la rejilla de fondo. Sin gestos todavía: los trae la US4 (research.md R1)
 - [ ] T043 [US1] Reescribir `src/components/features/editor/EditorScreen.tsx` para que orqueste `EditorLayout` con la barra lateral, el chrome, el lienzo, el inspector y la barra de estado, conservando la medida de SC-002 y la espera de `isWindowSettling` que ya tenía
 - [ ] T044 [US1] Cargar la disposición al arrancar y escribirla al cambiarla: `src/store/preferences.ts` lleva `sidebarHidden` e `inspectorHidden` al almacén del lienzo al cargar, y `toggleSidebar`/`toggleInspector` llaman a `preferencesUpdate` (FR-006)
@@ -162,16 +163,17 @@ el color elegido y la zona vacía resultante en la barra lateral y en el lienzo.
 
 ### Tests for User Story 2
 
-- [ ] T046 [P] [US2] Crear `src/store/schemas.test.ts` con la parte de crear y editar: el esquema entra al final de `schemas`, el modelo queda «Editado», deshacer lo quita en un paso, y editar el nombre técnico lo propaga a las tablas, enums y vistas de ese esquema (FR-015, FR-020, FR-022)
+- [ ] T046 [P] [US2] Crear `src/store/schemas.test.ts` con la parte de crear y editar: el esquema entra al final de `schemas`, el modelo queda «Editado», deshacer lo quita en un paso, y editar el nombre técnico lo propaga a las tablas, enums y vistas de ese esquema (FR-015, FR-020, FR-022, SC-006)
 - [ ] T047 [P] [US2] Crear `src/components/features/schema/SchemaDialog.test.tsx`: propone nombre técnico y abreviatura al escribir el nombre, deja de proponer cuando el usuario escribe a mano, muestra los seis errores de FR-018 sin dejar guardar, y la vista previa cambia con el color elegido (FR-016 a FR-019)
 
 ### Implementation for User Story 2
 
 - [ ] T048 [US2] Crear `src/components/features/schema/SchemaDialog.tsx` sobre `Dialog`: campos Nombre, Nombre técnico (mono) y Abreviatura (tres letras, 128 px), la paleta con `ColorSwatches`, la vista previa de la zona con el color elegido, y los botones Cancelar y «Crear esquema» / «Guardar cambios» (FR-015 a FR-020)
-- [ ] T049 [US2] Validar en el diálogo los seis casos de FR-018 con los mensajes de `data-model.md` §6: nombre legible vacío, nombre técnico vacío, con forma inválida o repetido, abreviatura que no son tres letras o repetida. El botón de guardar queda deshabilitado mientras haya error
+- [ ] T049 [US2] Validar en el diálogo los seis casos de FR-018 con los mensajes de `data-model.md` §6: nombre legible vacío, nombre técnico vacío, con forma inválida o repetido, abreviatura que no son tres letras o repetida. El botón de guardar queda deshabilitado mientras haya error (FR-018, SC-009)
 - [ ] T050 [US2] Abrir el diálogo desde las tres vías de FR-015: el botón «+» de la sección Esquemas de `ModelSidebar`, un botón de `EditorChrome` y la fila «Agregar un esquema» de `EmptyModelCard`; el diálogo se declara en `src/store/navigation.ts` como un `dialog` más
-- [ ] T051 [US2] Mostrar el esquema nuevo en la barra lateral y en el lienzo como zona vacía con el texto «Aún no hay tablas en este esquema», y dejar el modelo «Editado» con su paso de deshacer (FR-025, FR-022)
-- [ ] T052 [US2] Permitir editar un esquema existente desde su fila de la barra lateral y desde el inspector, reusando el mismo diálogo en modo «editar» y reflejando el cambio en lienzo, barra lateral e inspector al confirmar (FR-020)
+- [ ] T051 [US2] Mostrar el esquema nuevo en la barra lateral y en el lienzo como zona vacía con el texto «Aún no hay tablas en este esquema», y dejar el modelo «Editado» con su paso de deshacer (FR-025, FR-022, SC-009)
+- [ ] T052 [US2] Permitir editar un esquema existente desde su menú contextual en la barra lateral y desde el inspector, reusando el mismo diálogo en modo «editar» y reflejando el cambio en lienzo, barra lateral e inspector al confirmar (FR-020)
+- [ ] T052a [US2] Crear `src/components/features/schema/SchemaContextMenu.tsx` sobre `ContextMenu` con una sola entrada, «Editar esquema…», y engancharlo a la fila del esquema en `ModelSidebar`, también con ⇧F10. La entrada de eliminar la añade US6 (FR-020, FR-038)
 - [ ] T053 [US2] Dar al aviso breve de deshacer y rehacer las etiquetas nuevas, reutilizando el `showNotice` del Incremento 1 (FR-022, RS-06)
 
 **Checkpoint**: crear tres esquemas con color funciona de principio a fin, con
@@ -192,7 +194,7 @@ zona para ver que sus tablas la acompañan, que el modelo queda «Editado» y qu
 ### Tests for User Story 3
 
 - [ ] T054 [P] [US3] Crear `src/components/features/canvas/SchemaZone.test.tsx`: el rótulo trae abreviatura, nombre y número de tablas, una zona vacía muestra «Aún no hay tablas en este esquema», y el nombre accesible es el de `contracts/canvas.md` §5 (FR-024, FR-025, FR-040)
-- [ ] T055 [P] [US3] Ampliar `src/store/schemas.test.ts` con `moveSchema`: con tablas suma el desplazamiento a la `position` de cada una —resolviendo primero las que no la traían— y borra `schemas[].position`; sin tablas escribe `schemas[].position`; en los dos casos es un solo paso de deshacer (FR-026, FR-026a, FR-027)
+- [ ] T055 [P] [US3] Ampliar `src/store/schemas.test.ts` con `moveSchema`: con tablas suma el desplazamiento a la `position` de cada una —resolviendo primero las que no la traían— y borra `schemas[].position`; sin tablas escribe `schemas[].position`; en los dos casos es un solo paso de deshacer (FR-026, FR-026a, FR-027, SC-006)
 
 ### Implementation for User Story 3
 
@@ -225,7 +227,7 @@ el porcentaje mostrado y los topes.
 
 ### Implementation for User Story 4
 
-- [ ] T065 [US4] Mover la vista en `CanvasSurface` de las tres formas de FR-007: arrastrar desde un espacio vacío, arrastrar con la rueda presionada (`button === 1`, cancelando el autoscroll de Windows con `preventDefault` en `mousedown` y `auxclick`) y Espacio mantenido —que cambia el cursor a `grab` y se suelta también en `blur`— (research.md R9)
+- [ ] T065 [US4] Mover la vista en `CanvasSurface` de las tres formas de FR-007: arrastrar desde un espacio vacío, arrastrar con la rueda presionada (`button === 1`, cancelando el autoscroll de Windows con `preventDefault` en `mousedown` y `auxclick`) y Espacio mantenido —que cambia el cursor a `grab` y se suelta también en `blur`—. Las dos últimas MUST funcionar también encima de una tabla o de una zona, no solo sobre el fondo (FR-007, research.md R9)
 - [ ] T066 [US4] Escuchar la rueda con `addEventListener('wheel', …, { passive: false })`: con ⌘/Ctrl o con el pellizco del panel táctil hace zoom en el puntero, sin modificador mueve la vista; comitear al almacén tras 120 ms sin ruedas (FR-007 a FR-009, research.md R3, R9)
 - [ ] T067 [P] [US4] Crear `src/components/features/canvas/ZoomBar.tsx` abajo a la izquierda: «−», el porcentaje con `aria-live="polite"`, «+», separador y «Ajustar», con el botón del tope alcanzado deshabilitado (FR-008, FR-010)
 - [ ] T068 [P] [US4] Crear `src/components/features/canvas/Minimap.tsx` de 168 × 108 abajo a la derecha, con la escala derivada del envolvente, una marca por tabla con el color de su esquema, el contorno de cada zona y el recuadro del área visible; pulsar o arrastrar dentro mueve la vista (FR-012, research.md R11)
@@ -277,12 +279,12 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 
 ### Tests for User Story 6
 
-- [ ] T079 [P] [US6] Ampliar `src/store/schemas.test.ts` con `deleteSchema`: con el interruptor apagado las tablas, enums y vistas pasan al destino elegido; con él encendido se van con el esquema junto a las relaciones que los tocaban; el único esquema del modelo no se elimina; todo en un solo paso de deshacer (FR-035 a FR-037)
+- [ ] T079 [P] [US6] Ampliar `src/store/schemas.test.ts` con `deleteSchema`: con el interruptor apagado las tablas, enums y vistas pasan al destino elegido; con él encendido se van con el esquema junto a las relaciones que los tocaban; el único esquema del modelo no se elimina; todo en un solo paso de deshacer (FR-035 a FR-037, SC-006)
 - [ ] T080 [P] [US6] Crear `src/components/features/schema/DeleteSchemaDialog.test.tsx`: el interruptor arranca apagado, con tres esquemas hay selector de destino que propone el primero del modelo distinto del que se elimina, con dos el destino se nombra sin selector, y el texto dice cuántas tablas quedan afectadas (FR-034, FR-036)
 
 ### Implementation for User Story 6
 
-- [ ] T081 [US6] Crear `src/components/features/schema/SchemaContextMenu.tsx` sobre `ContextMenu`: «Editar esquema…» y «Eliminar esquema…», esta última deshabilitada con un solo esquema y diciendo por qué (FR-033, FR-035)
+- [ ] T081 [US6] Añadir a `src/components/features/schema/SchemaContextMenu.tsx` la entrada «Eliminar esquema…», deshabilitada con un solo esquema en el modelo y diciendo por qué (FR-033, FR-035, SC-009)
 - [ ] T082 [US6] Ofrecer el menú contextual en los dos sitios de FR-033: la fila del esquema en `ModelSidebar` y su zona en el lienzo, las dos también con ⇧F10 (FR-033, FR-038)
 - [ ] T083 [US6] Crear `src/components/features/schema/DeleteSchemaDialog.tsx`: título «¿Eliminar «<nombre>»?», el recuento de tablas, el `Switch` «Eliminar también sus N tablas» apagado por defecto, el selector de destino cuando quedan dos o más esquemas —proponiendo el primero del modelo distinto del que se elimina— y los botones Cancelar y «Eliminar esquema» / «Eliminar esquema y tablas» en variante destructiva (FR-034, FR-036)
 - [ ] T084 [US6] Mover también los enums y las vistas del esquema al destino, y decirlo en el diálogo (US6 esc. 8, FR-036)
@@ -298,9 +300,10 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 
 - [ ] T086 Crear `e2e/specs/09-lienzo-y-esquemas.e2e.js` con los nueve escenarios de `quickstart.md`: las cinco zonas, esconder y recuperar, mover la vista de las tres formas, el zoom con sus topes, crear tres esquemas, arrastrar una zona con tablas y guardar, arrastrar una zona vacía y guardar, enfocar, y eliminar con y sin tablas
 - [ ] T087 Ejecutar el recorrido completo en macOS (`npm run e2e`) y arreglar lo que saque, con atención al botón central y al autoscroll en Windows
-- [ ] T088 [P] Revisar el Editor, el diálogo de esquema y la confirmación de eliminar en tema claro, tema oscuro y con «Reducir movimiento», sin texto por debajo de 4,5:1 de contraste (SC-010, puerta 5)
+- [ ] T088 [P] Revisar el Editor, el diálogo de esquema y la confirmación de eliminar en tema claro, tema oscuro y con «Reducir movimiento», sin texto por debajo de 4,5:1 de contraste (SC-010, FR-041, puerta 5)
 - [ ] T089 [P] Recorrer el incremento entero solo con el teclado, con foco visible en cada paso, y arreglar lo que falte (SC-008, puerta 4)
-- [ ] T090 Medir SC-003 con `modelo-50-tablas.yaml` y el panel de rendimiento: 60 cuadros por segundo durante los gestos y respuesta al primer gesto por debajo de 100 ms
+- [ ] T090 Medir SC-003 con `modelo-50-tablas.yaml` y el panel de rendimiento: 60 cuadros por segundo durante los gestos y respuesta al primer gesto por debajo de 100 ms, con la ventana respondiendo en todo momento (SC-003, FR-045)
+- [ ] T090a Cronometrar los tiempos de `quickstart.md`: crear un esquema en tres pasos y menos de 30 s (SC-001), crear tres esquemas, moverlos y enfocarlos en menos de 3 min (SC-002), y enfocar un esquema en menos de 1 s (SC-005)
 - [ ] T091 [P] Repasar la puerta 8 en todo lo nuevo: JSDoc en español en cada función, componente, acción del almacén y campo, y `///` en los dos campos de Rust
 - [ ] T092 [P] Repasar la puerta 6: ningún archivo del lienzo copiado al repositorio, y los tres desvíos deliberados de `research.md` R20 siguen siendo los únicos
 - [ ] T093 Pasar las cinco puertas en limpio: `npx tsc --noEmit`, `npm run lint`, `npx vitest run`, `cargo check` y `cargo test`
@@ -325,8 +328,8 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
   la necesita
 - **US5 (fase 7)**: depende de US3 (necesita zonas que centrar y atenuar) y de
   `fitToContent`
-- **US6 (fase 8)**: depende de US2 (hay que poder crear para poder eliminar) y
-  del menú contextual que T060 deja enganchado
+- **US6 (fase 8)**: depende de US2 (hay que poder crear para poder eliminar, y
+  de ahí sale el menú contextual que T052a crea)
 - **Polish (fase 9)**: depende de las seis historias
 
 ### Dependencias no obvias
@@ -345,18 +348,25 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 - **T059 (arrastre de zona) antes que T065 (mover la vista)**: los dos escuchan
   `pointerdown` en el mismo nodo y el orden de prioridad —zona primero, fondo
   después— se decide una vez
-- **T060 antes que T082**: el enganche del menú contextual en la zona se hace una
-  vez y US6 solo le cuelga sus entradas
+- **T052a antes que T060 y T082**: el menú contextual del esquema se crea una
+  vez, en US2, con «Editar esquema…»; T060 lo engancha a la zona del lienzo y
+  T081 le añade «Eliminar esquema…». Si naciera en US6, US2 no tendría vía para
+  editar un esquema y dejaría de ser independiente
 - **T001 antes que T029 y T083**: sin la dependencia instalada no hay `Switch`
 - **T003 y T004 antes que casi toda prueba**: los modelos de ejemplo son la
   entrada de las pruebas de geometría, de almacén y del recorrido
+- **T023 se implementa en la fase 2 pero se prueba en las fases 4, 5 y 8**: es la
+  única excepción a la regla de escribir la prueba antes, y es deliberada —las
+  cuatro acciones bloquean a todas las historias, y cada prueba necesita el
+  escenario completo de la suya—. Quien tome T023 deja sus firmas y su paso de
+  historial; quien tome T046, T055 y T079 las prueba
 
 ### Parallel Opportunities
 
 - Fase 1: T002, T003 y T004 en paralelo, tras T001
 - Fase 2: tres grupos independientes a la vez — paleta y propuesta (T011 a T014),
   geometría (T015 a T021) y preferencias (T026, T027); los primitivos (T029 a
-  T031) también, en cuanto T001 esté
+  T031) y la regla de capas (T031a) también, en cuanto T001 esté
 - Las pruebas de cada historia marcadas [P] son archivos distintos y van juntas
 - US2 y US3 pueden repartirse entre dos personas en cuanto US1 cierre: tocan
   archivos distintos (`features/schema/` y `features/canvas/`)
@@ -424,7 +434,8 @@ lienzo y enfocarlos— está completa salvo el enfoque; tras US5 lo está del to
 - `[P]` = archivos distintos y sin dependencias pendientes
 - `[Story]` liga la tarea a su historia para poder rastrearla
 - Las pruebas se escriben antes de la implementación de su tarea y han de fallar
-  primero
+  primero. La única excepción declarada es T023, que la fase 2 implementa y las
+  fases 4, 5 y 8 prueban: ver Dependencias no obvias
 - Un commit por tarea o por grupo lógico, con las cinco puertas en verde antes de
   darla por hecha
 - La versión y la etiqueta son lo último (T094, T095), nunca a mitad de la

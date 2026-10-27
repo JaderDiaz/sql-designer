@@ -57,6 +57,8 @@ y el inspector devuelve ese espacio al lienzo y lo recupera.
    porcentaje de zoom y cuántos esquemas y tablas tiene el modelo.
 7. **Dado** el Editor sin nada seleccionado, **entonces** el inspector dice que
    no hay selección en lugar de quedarse vacío.
+8. **Dado** la lista de esquemas de la barra lateral, **cuando** pulso la fila de
+   un esquema, **entonces** el inspector muestra sus datos.
 
 ---
 
@@ -132,8 +134,8 @@ modelo queda «Editado».
    nombre y el número de tablas que contiene.
 3. **Dado** un esquema sin tablas, **entonces** su zona se dibuja igual, con un
    tamaño mínimo propio y el texto «Aún no hay tablas en este esquema».
-4. **Dado** dos esquemas, **entonces** sus zonas no se superponen al abrir el
-   modelo.
+4. **Dado** dos esquemas y un archivo sin posiciones, **entonces** sus zonas no
+   se superponen al abrir el modelo.
 5. **Dado** una zona, **cuando** la arrastro, **entonces** la zona y todas sus
    tablas se mueven juntas y conservan sus posiciones relativas.
 6. **Dado** que solté una zona en otro sitio, **entonces** el modelo queda
@@ -299,6 +301,10 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **Esquema vacío sin posición guardada**: un esquema sin tablas que nunca se
   movió se coloca de forma determinista a partir de su orden en el modelo, sin
   marcar «Editado» (FR-025).
+- **Zonas solapadas guardadas**: un archivo cuyas posiciones dejan dos zonas
+  encima la una de la otra se dibuja tal como está, sin recolocar nada: lo que el
+  usuario guardó manda, y «Ajustar» sigue trayéndolo todo a la vista (FR-028,
+  FR-011).
 - **Destino único al eliminar**: al eliminar uno de dos esquemas con el
   interruptor apagado no hay nada que elegir: el diálogo nombra el esquema que
   recibirá las tablas y no muestra el selector (FR-036).
@@ -330,7 +336,9 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **FR-003**: El inspector MUST mostrar los datos del objeto seleccionado y, sin
   selección, MUST decir que no hay nada seleccionado. En este incremento el
   objeto seleccionable es el esquema: nombre, nombre técnico, abreviatura, color,
-  descripción y número de tablas.
+  descripción y número de tablas. Un esquema MUST poder seleccionarse pulsando su
+  fila en la barra lateral o su zona en el lienzo, y enfocarlo MUST seleccionarlo
+  también (FR-029).
 - **FR-004**: La barra de estado MUST mostrar el motor del modelo, el estado del
   archivo definido en el Incremento 1, el porcentaje de zoom y el número de
   esquemas y de tablas.
@@ -415,13 +423,17 @@ un modelo de un solo esquema la opción está deshabilitada.
   ellas.
 - **FR-027**: Mover una zona MUST poder deshacerse y rehacerse como un solo paso,
   devolviendo todas sus tablas a donde estaban (RS-06).
-- **FR-028**: Al abrir un modelo, las zonas MUST NOT superponerse entre sí.
+- **FR-028**: Al abrir un modelo cuyo archivo no trae posiciones, las zonas MUST
+  NOT superponerse entre sí: la colocación determinista MUST dar a cada esquema su
+  sitio. Las posiciones que el archivo sí trae MUST respetarse tal cual, también
+  cuando dejan dos zonas solapadas, porque son las que el usuario guardó.
 
 **Enfocar un esquema**
 
 - **FR-029**: El sistema MUST permitir enfocar un esquema desde su nombre en la
   barra lateral, centrando el lienzo en su zona con el zoom necesario para que
-  quepa.
+  quepa, y MUST dejarlo seleccionado para que el inspector muestre sus datos
+  (FR-003).
 - **FR-030**: Con un esquema enfocado, el sistema MUST atenuar las demás zonas y
   sus tablas, MUST filtrar la lista de tablas de la barra lateral a las de ese
   esquema y MUST decir en la interfaz cuál está enfocado.

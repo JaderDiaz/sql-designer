@@ -45,4 +45,10 @@
   3. Al eliminar un esquema con el interruptor apagado, el diálogo deja elegir el
      destino y propone el primero del modelo; con un solo destino posible lo
      nombra sin selector.
+- `/speckit-analyze` del 2026-10-27 encontró nueve inconsistencias entre `spec.md`,
+  `plan.md` y `tasks.md`, ninguna crítica, y las siete altas y medias quedaron
+  aplicadas. Del spec cambiaron cuatro cosas: FR-003 y FR-029 dicen ahora qué
+  gesto selecciona un esquema, FR-028 acota su garantía a los archivos sin
+  posiciones, la historia 1 ganó el escenario de la selección y los casos borde
+  ganaron «Zonas solapadas guardadas».
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
