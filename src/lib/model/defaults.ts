@@ -5,8 +5,8 @@ import { toFileStem } from '@/lib/model/slug'
 /**
  * Modelo vacío de un modelo recién creado.
  *
- * Un modelo necesita al menos un esquema (RS-02), así que crear no deja nunca
- * la lista vacía: cada motor trae el esquema que le es natural (FR-005).
+ * Un modelo puede no tener ningún esquema, y así es como nace: el primero lo
+ * crea quien modela, con el nombre y el color que quiera (FR-005, FR-005a).
  */
 
 /** Carácter con el que se rellena una abreviatura de menos de tres letras. */

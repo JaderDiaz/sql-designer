@@ -31,7 +31,7 @@ export type ReferentialAction = 'cascade' | 'restrict' | 'set_null' | 'no_action
 /** Acción referencial por defecto cuando el archivo no la declara. */
 export const DEFAULT_REFERENTIAL_ACTION: ReferentialAction = 'no_action'
 
-/** Esquema del modelo; siempre hay al menos uno (RS-02). */
+/** Esquema del modelo; un modelo puede no tener ninguno (FR-005a). */
 export interface Schema {
   /** Nombre técnico, único en el modelo (RS-03). */
   name: string
@@ -155,7 +155,7 @@ export interface Model {
   name: string
   /** Motor del modelo (RS-10). */
   engine: Engine
-  /** Esquemas; al menos uno (RS-02). */
+  /** Esquemas; puede estar vacía en un modelo recién creado (FR-005a). */
   schemas: Schema[]
   /** Enumerados; se omite del archivo cuando está vacío. */
   enums?: Enum[]

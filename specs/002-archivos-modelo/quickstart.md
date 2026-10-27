@@ -36,7 +36,7 @@ Las cuatro tienen que pasar sin avisos nuevos (puerta 1 de la constitución).
 | `src/lib/model/slug.test.ts` | «Livy · Reservas» → `livy-reservas`; vacío; solo signos; nombre reservado de Windows; recorte a 80 | FR-002, FR-003 |
 | `src/lib/model/parse.test.ts` | Error de YAML y error de validación con línea y columna exactas; versión futura | FR-016, FR-025 |
 | `src/lib/model/roundtrip.test.ts` | Parsear → serializar → parsear da el mismo modelo y el mismo texto, con un ejemplo por motor | FR-023, SC-004, puerta 3 |
-| `src/lib/model/defaults.test.ts` | Esquema por defecto: `public`/`PUB`, nombre del modelo en MySQL, `main`/`MAI` | FR-005 |
+| `src/lib/model/defaults.test.ts` | Modelo nuevo sin esquemas y qué cuenta como modelo en blanco | FR-005 |
 | `src/store/model.test.ts` | Transiciones guardado → editado → guardado, `model_stale`, fallo de guardado que no descarta cambios | FR-018 a FR-025 |
 | `src/store/recents.test.ts` | Orden por último uso, sin duplicados, tope de 10, estados `missing` e `invalid` | FR-029 a FR-032 |
 | `src-tauri/src/files.rs` | Escritura atómica, sello obsoleto, listado con filtro, carpeta nueva numerada | FR-010, FR-021, FR-022, FR-025 |
@@ -94,9 +94,7 @@ cat ~/Documents/livy-reservas.yaml   # o la carpeta que hayas elegido
 # formatVersion: 1
 # name: Livy · Reservas
 # engine: postgres
-# schemas:
-#   - name: public
-#     abbreviation: PUB
+# schemas: []
 ```
 
 6. Repite el paso 1 con el mismo nombre y la misma carpeta. **Esperado**: «Ya existe

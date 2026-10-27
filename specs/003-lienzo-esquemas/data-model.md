@@ -20,7 +20,7 @@ con funciones puras (§4).
 ### 1.1 `Schema` gana `position`
 
 ```ts
-/** Esquema del modelo; siempre hay al menos uno (RS-02). */
+/** Esquema del modelo; un modelo puede no tener ninguno (FR-005a). */
 export interface Schema {
   name: string            // nombre técnico, único (RS-03)
   abbreviation: string    // tres letras mayúsculas, única (RS-04)

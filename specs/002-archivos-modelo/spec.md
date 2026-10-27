@@ -52,9 +52,8 @@ nombre y el Editor resultante con su esquema por defecto.
    veo una frase que describe ese motor, y el motor preseleccionado al abrir el
    diálogo es el de Ajustes (RS-10).
 6. **Dado** un nombre válido, **cuando** pulso «Crear modelo», **entonces** se
-   escribe el archivo, se abre el Editor con el modelo vacío y el modelo tiene
-   un esquema por defecto: «public» en PostgreSQL, el nombre técnico del modelo
-   en MySQL y «main» en SQLite (RS-02).
+   escribe el archivo y se abre el Editor con el modelo vacío, sin ningún
+   esquema: el primero lo crea quien modela.
 7. **Dado** el diálogo Nuevo modelo, **cuando** pulso «Cancelar» o Esc,
    **entonces** vuelvo a la Bienvenida y no se ha escrito ningún archivo.
 
@@ -298,8 +297,8 @@ válido, uno no encontrado y uno con errores, ejecutando cada acción del menú.
   como archivo con errores, con la línea donde se detectó el problema.
 - **`.yaml` de una versión de formato posterior a la de la aplicación**: no se
   abre y el mensaje dice que el archivo es de una versión más nueva.
-- **Modelo sin esquemas en el archivo**: no se abre; el formato exige al menos un
-  esquema (RS-02).
+- **Modelo sin esquemas en el archivo**: se abre con normalidad; el formato
+  admite cero esquemas, que es como nace un modelo.
 - **Ruta con caracteres que el sistema no admite** (`/`, `:`, `\`): el nombre
   derivado los sustituye y la ruta mostrada es la real.
 - **Recientes con más de 10 entradas**: la lista conserva las 10 más recientes y
@@ -328,9 +327,9 @@ válido, uno no encontrado y uno con errores, ejecutando cada acción del menú.
   MUST preseleccionar el de Ajustes y MUST describir en una frase el motor
   seleccionado (RS-10).
 - **FR-005**: Al crear, el sistema MUST escribir el archivo del modelo vacío y
-  MUST abrir el Editor con ese modelo, que MUST tener exactamente un esquema por
-  defecto: «public» en PostgreSQL, el nombre técnico del modelo en MySQL y «main»
-  en SQLite, cada uno con su abreviatura de 3 letras (RS-02, RS-04).
+  MUST abrir el Editor con ese modelo, que MUST NOT traer ningún esquema: ni el
+  del motor ni ninguno propuesto. El primer esquema lo crea quien modela, con el
+  nombre y el color que quiera (FR-005a del Incremento 2).
 - **FR-006**: El sistema MUST conservar el motor dentro del archivo del modelo;
   el motor de Ajustes solo determina el valor inicial de los modelos nuevos
   (RS-10).

@@ -19,7 +19,7 @@ serializador y almacén.
 | `formatVersion` | entero | sí | Debe ser `1`. Un valor mayor se rechaza con «archivo de una versión más nueva» (FR-025); otro valor es archivo con errores |
 | `name` | texto | sí | Nombre legible del modelo, 1–120 caracteres, sin saltos de línea. No tiene por qué coincidir con el nombre del archivo |
 | `engine` | `postgres` \| `mysql` \| `sqlite` | sí | Viaja con el modelo; el motor de Ajustes solo fija el inicial (FR-006, RS-10) |
-| `schemas` | lista de `Schema` | sí | Al menos uno (RS-02). Nombres técnicos únicos dentro del modelo |
+| `schemas` | lista de `Schema` | sí | Puede estar vacía: así nace un modelo nuevo. Nombres técnicos únicos dentro del modelo |
 | `enums` | lista de `Enum` | no | Por defecto lista vacía |
 | `tables` | lista de `Table` | no | Por defecto lista vacía. Nombres técnicos únicos dentro del modelo (RS-03) |
 | `relations` | lista de `Relation` | no | Por defecto lista vacía |
@@ -93,7 +93,7 @@ Las comprueba `src/lib/model/validate.ts` y cada fallo trae `path`, `message`,
 2. La raíz es un mapa y `formatVersion` es `1`. Mayor → «versión más nueva».
 3. Los campos obligatorios están y tienen el tipo esperado.
 4. **No hay claves desconocidas** en ningún nivel (decisión R3 de `research.md`).
-5. `schemas` tiene al menos un elemento (RS-02).
+5. `schemas` está presente y es una lista, que puede estar vacía.
 6. Nombres técnicos conformes a RS-03 y únicos donde la tabla de arriba lo exige.
 7. Referencias resueltas: el `schema` de cada tabla, enum y vista existe; las tablas
    y campos de cada relación existen; los campos de `primaryKey`, `uniques` e
