@@ -136,18 +136,21 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
       timeoutMsg: 'La rueda con el modificador no acercó.',
     })
 
-    // Se acerca hasta el tope y no más: el botón se apaga al llegar, y pulsar
+    // Se aleja hasta el tope y no más: el botón se apaga al llegar, y pulsar
     // de más fallaría porque `pulsar` solo mira controles habilitados.
-    while (!(await estado('Acercar')).deshabilitado) await pulsar('Acercar')
-    await esperarTexto('200 %')
-
     while (!(await estado('Alejar')).deshabilitado) await pulsar('Alejar')
     await esperarTexto('40 %')
 
+    while (!(await estado('Acercar')).deshabilitado) await pulsar('Acercar')
+    await esperarTexto('200 %')
+
+    // «Ajustar» se prueba desde el tope de acercamiento, no desde el de
+    // alejamiento: con el lienzo estrecho el encuadre de este modelo cae en el
+    // 40 %, que es el suelo, y entonces «Ajustar» no tendría nada que cambiar.
     await pulsar('Ajustar')
-    await browser.waitUntil(async () => escalaDe(await vistaDelLienzo()) > 0.4, {
+    await browser.waitUntil(async () => escalaDe(await vistaDelLienzo()) < 2, {
       timeout: 5000,
-      timeoutMsg: '«Ajustar» no cambió la escala.',
+      timeoutMsg: '«Ajustar» no encuadró el modelo.',
     })
 
     // Y las cuatro zonas caben en el lienzo.
