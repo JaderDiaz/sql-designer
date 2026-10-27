@@ -1,14 +1,15 @@
 import { join } from 'node:path'
 
-import { carpetaDePruebas } from '../soporte/entorno.js'
+import { WINDOWS, carpetaDePruebas } from '../soporte/entorno.js'
 import {
+  abrirFila,
   alerta,
+  atajo,
   esperarDialogo,
   esperarSinDialogo,
   esperarTexto,
   estadoEn,
   filaDeshabilitada,
-  abrirFila,
   pulsar,
   pulsarEn,
   seleccionar,
@@ -63,7 +64,7 @@ describe('Escenario 3 · Abrir un modelo', () => {
   })
 
   it('un archivo con errores se marca en la vista previa', async () => {
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
 
     await pulsar('Abrir modelo')
@@ -82,7 +83,9 @@ describe('Escenario 3 · Abrir un modelo', () => {
 
     await esperarDialogo('No se pudo abrir «roto.yaml»')
     await esperarTexto('Línea 8')
-    await esperarTexto('Mostrar en Finder')
+    // El botón nombra el gestor de archivos de cada sistema
+    // (`src/components/features/open-model/FileErrorDialog.tsx`).
+    await esperarTexto(WINDOWS ? 'Mostrar en el Explorador' : 'Mostrar en Finder')
 
     await pulsarEn('No se pudo abrir', 'Aceptar')
     await esperarSinDialogo('No se pudo abrir')

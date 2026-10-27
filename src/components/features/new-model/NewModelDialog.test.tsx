@@ -4,9 +4,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { NewModelDialog } from '@/components/features/new-model/NewModelDialog'
 import type { Engine } from '@/lib/model/types'
+import type { PlatformInfo } from '@/lib/tauri/types'
 import { useAppStore } from '@/store'
 import { DEFAULT_PREFERENCES } from '@/store/preferences'
-import { resetStore } from '@/test/helpers'
+import { MACOS, WINDOWS, resetStore } from '@/test/helpers'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/lib/tauri/commands')>()
@@ -26,12 +27,19 @@ const { fsUserPlaces, modelWrite, pathBuildModel, preferencesUpdate, recentsTouc
 /** Carpeta del escenario, la misma que el lienzo. */
 const FOLDER = '/Users/ada/Proyectos/livy'
 
+/** Carpeta del escenario tal como se ve en Windows. */
+const CARPETA_WINDOWS = 'C:\\Users\\ada\\Proyectos\\livy'
+
 /** Opciones del escenario. */
 interface Scenario {
   /** Nombres de archivo que ya existen en la carpeta. */
   taken?: string[]
   /** Motor de Ajustes, que es el que debe preseleccionarse (RS-10). */
   engine?: Engine
+  /** Sistema en ejecución, que decide el separador de la ruta (RS-12). */
+  platform?: PlatformInfo
+  /** Carpeta de partida; por defecto, la del lienzo. */
+  folder?: string
 }
 
 /**
@@ -40,15 +48,21 @@ interface Scenario {
  *
  * @param scenario Archivos ya existentes y motor de Ajustes.
  */
-function renderOpen({ taken = [], engine = 'postgres' }: Scenario = {}) {
-  resetStore({ preferences: { engine, lastFolder: FOLDER } })
+function renderOpen({
+  taken = [],
+  engine = 'postgres',
+  platform = MACOS,
+  folder = FOLDER,
+}: Scenario = {}) {
+  resetStore({ preferences: { engine, lastFolder: folder }, platform })
   vi.mocked(fsUserPlaces).mockResolvedValue([])
   vi.mocked(modelWrite).mockResolvedValue({ stamp: { modifiedMs: 1, sizeBytes: 10 } })
   vi.mocked(recentsTouch).mockResolvedValue([])
   vi.mocked(preferencesUpdate).mockResolvedValue(DEFAULT_PREFERENCES)
-  vi.mocked(pathBuildModel).mockImplementation((folder: string, stem: string) =>
+  const separador = platform.os === 'windows' ? '\\' : '/'
+  vi.mocked(pathBuildModel).mockImplementation((carpeta: string, stem: string) =>
     Promise.resolve({
-      path: `${folder}/${stem}.yaml`,
+      path: `${carpeta}${separador}${stem}.yaml`,
       fileName: `${stem}.yaml`,
       exists: taken.includes(`${stem}.yaml`),
     }),
@@ -79,6 +93,17 @@ describe('Nuevo modelo (FR-002 a FR-006)', () => {
     await user.type(screen.getByRole('textbox', { name: 'Nombre del modelo' }), 'Livy · Reservas')
 
     expect(screen.getByText(`Se creará ${FOLDER}/livy-reservas.yaml`)).toBeInTheDocument()
+  })
+
+  it('en Windows la ruta final se compone con la contrabarra (RS-12)', async () => {
+    const user = userEvent.setup()
+    renderOpen({ platform: WINDOWS, folder: CARPETA_WINDOWS })
+
+    await user.type(nameField(), 'Livy · Reservas')
+
+    expect(
+      screen.getByText(`Se creará ${CARPETA_WINDOWS}\\livy-reservas.yaml`),
+    ).toBeInTheDocument()
   })
 
   it('con el nombre vacío dice el motivo y no deja crear', () => {

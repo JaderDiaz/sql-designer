@@ -64,9 +64,14 @@ Qué hace por dentro (`e2e/wdio.conf.js`, `e2e/soporte/`):
 - Comprueba en el disco lo que la aplicación escribe: los `.yaml`, la lista de
   recientes y las preferencias.
 
+Corre en macOS y en Windows, y en cada sistema comprueba lo que allí cambia:
+los símbolos de los atajos («⌘N» o «Ctrl+N»), el nombre del gestor de archivos
+(«Mostrar en Finder» o «Mostrar en el Explorador») y las rutas del estado del
+usuario. En GitHub lo corren las dos plataformas en cada PR hacia `main`.
+
 Lo que el recorrido no puede hacer, y por eso sigue necesitando a una persona:
-cambiar el tema o «Reducir movimiento» del sistema, comprobar «Mostrar en Finder»
-y recorrer todo en Windows.
+cambiar el tema o «Reducir movimiento» del sistema, y comprobar que el gestor
+de archivos abre de verdad con el archivo seleccionado.
 
 ## Escenario 1 · Crear un modelo (FR-001 a FR-006)
 
@@ -268,7 +273,9 @@ SQL_DESIGNER_MEDIR=1 npm run tauri dev
 
 ### Recorrido automatizado · 2026-10-26
 
-`npm run e2e`: 9 archivos, 55 pruebas, todas en verde en 43 s.
+`npm run e2e`: 9 archivos, 55 pruebas, todas en verde en los dos sistemas —43 s
+en macOS en local; en GitHub, 1 m 50 s en macOS y 4 m 51 s en Windows, con la
+compilación del binario incluida—.
 
 | Escenario | Archivo | Pruebas |
 | --------- | ------- | ------- |
@@ -288,18 +295,22 @@ debajo de 2 000 ms y guarda por debajo de 1 000 ms (SC-003).
 
 ### Pendiente de una persona delante de la aplicación
 
-- El tema del sistema y «Reducir movimiento»: son ajustes de macOS y cambiarlos
-  necesita a una persona. El recorrido automatizado sí comprueba los tres temas de
-  Ajustes y que nada desplace la ventana entera.
-- «Mostrar en Finder» del diálogo de archivo con errores: abre el Finder, que ya
-  está fuera de la aplicación.
-- El recorrido completo en Windows: no hubo máquina Windows al cerrar el
-  incremento el 2026-10-26, igual que en el Incremento 0.
+- El tema del sistema y «Reducir movimiento»: son ajustes del sistema y
+  cambiarlos necesita a una persona. El recorrido automatizado sí comprueba los
+  tres temas de Ajustes y que nada desplace la ventana entera.
+- «Mostrar en Finder» y «Mostrar en el Explorador»: el recorrido comprueba que
+  el botón está y se llama como toca en cada sistema, pero no que el gestor de
+  archivos abra de verdad con el archivo seleccionado.
+- Los ocho escenarios en Windows ya no necesitan a nadie: los corre
+  `.github/workflows/recorrido.yml` en `windows-latest`.
 
 ## Validación en las dos plataformas
 
-Los escenarios 1 a 8 se ejecutan en macOS y en Windows. Lo que cambia por sistema y
-hay que mirar expresamente: símbolos de atajo, «Mostrar en Finder» frente a «Mostrar
-en el Explorador», el nombre de la papelera, la ubicación raíz («Macintosh HD»
-frente a la unidad del sistema), la ausencia de iCloud Drive en Windows y el formato
-de las rutas que se muestran.
+Los escenarios 1 a 8 se ejecutan en macOS y en Windows, y el recorrido
+automatizado los corre en los dos. Lo que cambia por sistema: símbolos de
+atajo, «Mostrar en Finder» frente a «Mostrar en el Explorador», el nombre de la
+papelera, la ubicación raíz («Macintosh HD» frente a la unidad del sistema), la
+ausencia de iCloud Drive en Windows y el formato de las rutas que se muestran.
+Los dos primeros los comprueban los escenarios 3 y 7; el formato de las rutas
+lo encontró el recorrido en Windows el 2026-10-26, cuando «Se creará …» mezclaba
+los dos separadores en la misma línea.

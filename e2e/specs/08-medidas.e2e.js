@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 import { REGISTRO, carpetaDePruebas } from '../soporte/entorno.js'
 import {
+  atajo,
   escribir,
   esperarDialogo,
   esperarSinDialogo,
@@ -60,7 +61,7 @@ describe('Escenario 8 · Medidas de SC-002 y SC-003', () => {
 
     expect(await milisegundos('SC-002 modelo abierto')).toBeLessThan(1000)
 
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
   })
 
@@ -86,7 +87,7 @@ describe('Escenario 8 · Medidas de SC-002 y SC-003', () => {
     await pulsarEn('Renombrar modelo', 'Renombrar')
     await esperarSinDialogo('Renombrar modelo')
 
-    await browser.keys(['Meta', 's'])
+    await atajo('s')
     await esperarTexto('Guardado')
 
     expect(await milisegundos('SC-003 modelo guardado')).toBeLessThan(1000)
@@ -96,7 +97,7 @@ describe('Escenario 8 · Medidas de SC-002 y SC-003', () => {
   })
 
   after(async () => {
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
   })
 })

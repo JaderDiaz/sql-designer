@@ -24,6 +24,16 @@ export function shortcutLabel(platform: PlatformInfo, key: string): string {
   return platform.os === 'macos' ? `${meta}${key}` : `${meta}+${key}`
 }
 
+/**
+ * Separador de rutas del sistema, para componer una ruta que se muestra.
+ *
+ * @param platform Plataforma resuelta por el backend.
+ * @returns `\` en Windows, `/` en macOS.
+ */
+export function pathSeparator(platform: PlatformInfo): string {
+  return platform.os === 'windows' ? '\\' : '/'
+}
+
 /** ¿El sistema es macOS? Decide qué variante de barra de título se dibuja. */
 export function isMacOS(platform: PlatformInfo): boolean {
   return platform.os === 'macos'

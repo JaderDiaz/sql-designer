@@ -146,7 +146,10 @@ casilla entre reinicios, el arranque sin red (SC-009) y SC-002 con una persona a
 
 ### Windows
 
-Sin medir. No hubo máquina Windows disponible al cerrar el incremento.
+Sin medir sobre un binario empaquetado. Desde el 2026-10-26 hay máquina: el
+recorrido automatizado del Incremento 1 corre en `windows-latest`
+(`.github/workflows/recorrido.yml`) y allí SC-002 y SC-003 quedan por debajo de
+su tope, pero sobre la compilación de depuración y no sobre el paquete.
 
 ## Criterio de entrega
 

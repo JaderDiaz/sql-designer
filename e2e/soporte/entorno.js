@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { cpSync, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -18,16 +18,26 @@ import { fileURLToPath } from 'node:url'
 /** Raíz del repositorio, calculada desde este archivo. */
 export const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 
-/** Binario que conduce WebdriverIO; se compila con `--features webdriver`. */
-export const BINARIO = join(RAIZ, 'src-tauri', 'target', 'debug', 'sql-designer')
+/** ¿El recorrido corre en Windows? Decide rutas, binario y permisos. */
+export const WINDOWS = process.platform === 'win32'
 
-/** Directorio de configuración de la aplicación en macOS. */
-export const CONFIG = join(
-  homedir(),
-  'Library',
-  'Application Support',
-  'com.jaderdiaz.sql-designer',
+/** Binario que conduce WebdriverIO; se compila con `--features webdriver`. */
+export const BINARIO = join(
+  RAIZ,
+  'src-tauri',
+  'target',
+  'debug',
+  WINDOWS ? 'sql-designer.exe' : 'sql-designer',
 )
+
+/**
+ * Directorio de configuración de la aplicación, el mismo que usa la
+ * instalación de verdad: `~/Library/Application Support` en macOS y `%APPDATA%`
+ * en Windows.
+ */
+export const CONFIG = WINDOWS
+  ? join(process.env.APPDATA ?? join(homedir(), 'AppData', 'Roaming'), 'com.jaderdiaz.sql-designer')
+  : join(homedir(), 'Library', 'Application Support', 'com.jaderdiaz.sql-designer')
 
 /** Sufijo de la copia que guarda el estado del usuario mientras se prueba. */
 const COPIA = '.antes-del-recorrido'
@@ -35,14 +45,18 @@ const COPIA = '.antes-del-recorrido'
 /** Archivos de estado que el recorrido pisa. */
 const ESTADO = ['preferences.json', 'recents.json', '.window-state.json']
 
-/** Registro local donde la aplicación anota los errores y las medidas. */
-export const REGISTRO = join(
-  homedir(),
-  'Library',
-  'Logs',
-  'com.jaderdiaz.sql-designer',
-  'sql-designer.log',
-)
+/**
+ * Registro local donde la aplicación anota los errores y las medidas. En
+ * Windows vive bajo `%LOCALAPPDATA%` y en una carpeta `logs` propia.
+ */
+export const REGISTRO = WINDOWS
+  ? join(
+      process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'),
+      'com.jaderdiaz.sql-designer',
+      'logs',
+      'sql-designer.log',
+    )
+  : join(homedir(), 'Library', 'Logs', 'com.jaderdiaz.sql-designer', 'sql-designer.log')
 
 /** Dirección del servidor del frontend, la misma que `devUrl`. */
 const SERVIDOR = 'http://localhost:5173'
@@ -81,7 +95,13 @@ export function prepararEntorno(preferencias = {}) {
     if (existsSync(origen)) cpSync(origen, origen + COPIA)
   }
 
-  carpeta = mkdtempSync(join(tmpdir(), 'sql-designer-recorrido-'))
+  const temporal = mkdtempSync(join(tmpdir(), 'sql-designer-recorrido-'))
+  // En Windows, `tmpdir()` devuelve la ruta corta en formato 8.3
+  // (`C:\Users\RUNNER~1\…`) y la aplicación muestra la larga, así que las
+  // pruebas que comparan la ruta escrita en pantalla no encontraban su texto.
+  // En macOS no se toca: ahí `realpath` resolvería el enlace de `/var` y
+  // cambiaría rutas que ya funcionan.
+  carpeta = WINDOWS ? realpathSync.native(temporal) : temporal
   process.env.SQLD_CARPETA_PRUEBAS = carpeta
   // Las medidas de SC-001, SC-002 y SC-003 solo se anotan con esta bandera
   // puesta; el escenario 8 las lee del registro.
@@ -125,12 +145,15 @@ export function prepararEntorno(preferencias = {}) {
  * encuentra nada.
  */
 export async function arrancarServidor() {
-  // Se llama al binario de Vite y no a `npx`, para que `pararServidor` mate
-  // al servidor y no a un envoltorio que lo deja vivo en el puerto.
-  servidor = spawn(join(RAIZ, 'node_modules', '.bin', 'vite'), ['--port', '5173', '--strictPort'], {
-    cwd: RAIZ,
-    stdio: 'ignore',
-  })
+  // Se llama al script de Vite con este mismo Node y no a `npx` ni al
+  // envoltorio de `node_modules/.bin`: así `pararServidor` mata al servidor y
+  // no a un intermediario que lo deja vivo en el puerto, y funciona igual en
+  // Windows, donde `.bin/vite` es un `.cmd`.
+  servidor = spawn(
+    process.execPath,
+    [join(RAIZ, 'node_modules', 'vite', 'bin', 'vite.js'), '--port', '5173', '--strictPort'],
+    { cwd: RAIZ, stdio: 'ignore' },
+  )
 
   const limite = Date.now() + 30000
   for (;;) {

@@ -4,12 +4,13 @@ import { join } from 'node:path'
 import { carpetaDePruebas } from '../soporte/entorno.js'
 import {
   abrirFila,
+  atajo,
   escribir,
   esperarDialogo,
   esperarSinDialogo,
+  esperarSinMenu,
   esperarTexto,
   filas,
-  esperarSinMenu,
   menuDeFila,
   pulsar,
   pulsarEn,
@@ -39,7 +40,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
     await escribir('Nombre del modelo', nombre)
     await pulsarEn('Nuevo modelo', 'Crear modelo')
     await esperarTexto('Empieza a diseñar tu modelo')
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
   }
 
@@ -47,7 +48,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
   async function refrescarLista() {
     await abrirFila('modelo.yaml')
     await esperarTexto('Empieza a diseñar tu modelo')
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
   }
 
@@ -60,7 +61,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
     await pulsarEn('Abrir modelo', 'Abrir')
     await esperarSinDialogo('Abrir modelo')
     await esperarTexto('Empieza a diseñar tu modelo')
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
   })
 
@@ -77,7 +78,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
   it('el doble clic abre el modelo y lo sube al primer lugar', async () => {
     await abrirFila('modelo.yaml')
     await esperarTexto('Empieza a diseñar tu modelo')
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
 
     const lista = await filas('Modelos recientes')
@@ -90,7 +91,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
 
     await esperarTexto('Empieza a diseñar tu modelo')
     await esperarTexto('Inventario bodega')
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarTexto('Nuevo modelo…')
   })
 

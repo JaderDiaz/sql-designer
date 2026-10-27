@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 import { carpetaDePruebas } from '../soporte/entorno.js'
 import {
+  atajo,
   escribir,
   esperarDialogo,
   esperarSinDialogo,
@@ -50,7 +51,7 @@ describe('Escenario 5 · Cerrar', () => {
 
   it('sin cambios, cerrar vuelve a la Bienvenida y deja el modelo en Recientes', async () => {
     await abrirModelo()
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
 
     await esperarTexto('Nuevo modelo…')
     const recientes = await filas('Modelos recientes')
@@ -61,7 +62,7 @@ describe('Escenario 5 · Cerrar', () => {
   it('con cambios, cerrar pregunta nombrando el modelo', async () => {
     await abrirModelo()
     await renombrar('Livy · Reservas A')
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
 
     await esperarDialogo('¿Guardar los cambios de «Livy · Reservas A»?')
     await esperarTexto('Si no guardas, se perderán los cambios hechos desde la última vez')
@@ -81,7 +82,7 @@ describe('Escenario 5 · Cerrar', () => {
   it('«No guardar» vuelve y deja el archivo como el último guardado', async () => {
     const antes = readFileSync(ruta, 'utf8')
 
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarDialogo('¿Guardar los cambios')
     await pulsarEn('¿Guardar los cambios', 'No guardar')
 
@@ -93,7 +94,7 @@ describe('Escenario 5 · Cerrar', () => {
     await abrirModelo()
     await renombrar('Livy · Reservas B')
 
-    await browser.keys(['Meta', 'w'])
+    await atajo('w')
     await esperarDialogo('¿Guardar los cambios')
     await pulsarEn('¿Guardar los cambios', 'Guardar')
 
@@ -105,7 +106,7 @@ describe('Escenario 5 · Cerrar', () => {
     await abrirModelo()
     await renombrar('Livy · Reservas C')
 
-    await browser.keys(['Meta', 'n'])
+    await atajo('n')
     await esperarDialogo('¿Guardar los cambios de «Livy · Reservas C»?')
 
     await pulsarEn('¿Guardar los cambios', 'No guardar')

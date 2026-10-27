@@ -29,7 +29,10 @@ export const config = {
   capabilities: [
     {
       browserName: 'tauri',
-      'tauri:options': { application: BINARIO },
+      // `driverProvider` explícito: el servicio lo autodetecta en macOS, pero
+      // en Windows elegiría el `tauri-driver` externo, y el servidor que las
+      // pruebas usan es el que el propio binario monta.
+      'tauri:options': { application: BINARIO, driverProvider: 'embedded' },
     },
   ],
   services: ['@wdio/tauri-service'],
