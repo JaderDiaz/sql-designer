@@ -1,42 +1,47 @@
 import { describe, expect, it } from 'vitest'
 
-import { emptyModel, toAbbreviation, toTechnicalName } from '@/lib/model/defaults'
-import { ABBREVIATION_PATTERN, TECHNICAL_NAME_PATTERN } from '@/lib/model/types'
+import { emptyModel, isBlankModel, toAbbreviation, toTechnicalName } from '@/lib/model/defaults'
 
 describe('emptyModel', () => {
-  it('en PostgreSQL trae el esquema «public» (FR-005)', () => {
+  it('un modelo nuevo llega sin esquemas (FR-005)', () => {
     const model = emptyModel('Livy · Reservas', 'postgres')
 
-    expect(model.schemas).toEqual([{ name: 'public', abbreviation: 'PUB' }])
+    expect(model.schemas).toEqual([])
     expect(model.formatVersion).toBe(1)
     expect(model.name).toBe('Livy · Reservas')
     expect(model.tables).toBeUndefined()
   })
 
-  it('en SQLite trae el esquema «main»', () => {
-    expect(emptyModel('Notas de campo', 'sqlite').schemas).toEqual([
-      { name: 'main', abbreviation: 'MAI' },
-    ])
-  })
-
-  it('en MySQL el esquema se llama como el modelo, en nombre técnico', () => {
-    expect(emptyModel('Livy · Reservas', 'mysql').schemas).toEqual([
-      { name: 'livy_reservas', abbreviation: 'LIV' },
-    ])
-  })
-
-  it('siempre trae exactamente un esquema (RS-02)', () => {
+  it('ningún motor propone un esquema propio', () => {
     for (const engine of ['postgres', 'mysql', 'sqlite'] as const) {
-      expect(emptyModel('Tienda Nube', engine).schemas).toHaveLength(1)
+      expect(emptyModel('Tienda Nube', engine).schemas).toEqual([])
     }
   })
+})
 
-  it('el esquema de MySQL cumple RS-03 y RS-04 con nombres difíciles', () => {
-    for (const name of ['2026 Ventas', 'Ñ', 'a'.repeat(120), 'Ñandú · 2026']) {
-      const schema = emptyModel(name, 'mysql').schemas[0]
-      expect(schema?.name).toMatch(TECHNICAL_NAME_PATTERN)
-      expect(schema?.abbreviation).toMatch(ABBREVIATION_PATTERN)
-    }
+describe('isBlankModel', () => {
+  it('un modelo recién creado está en blanco (FR-005a)', () => {
+    expect(isBlankModel(emptyModel('Livy · Reservas', 'postgres'))).toBe(true)
+  })
+
+  it('con un esquema ya no está en blanco (FR-005a)', () => {
+    const model = emptyModel('Livy · Reservas', 'postgres')
+
+    expect(isBlankModel({ ...model, schemas: [{ name: 'ventas', abbreviation: 'VEN' }] })).toBe(
+      false,
+    )
+  })
+
+  it('con una tabla tampoco, aunque no haya esquemas', () => {
+    const model = emptyModel('Livy · Reservas', 'postgres')
+
+    expect(
+      isBlankModel({ ...model, tables: [{ name: 'pagos', schema: 'ventas', fields: [] }] }),
+    ).toBe(false)
+  })
+
+  it('sin modelo abierto no hay nada en blanco', () => {
+    expect(isBlankModel(null)).toBe(false)
   })
 })
 

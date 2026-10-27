@@ -7,6 +7,7 @@ import {
   atajo,
   escribir,
   esperarDialogo,
+  esperarEditor,
   esperarSinDialogo,
   esperarSinMenu,
   esperarTexto,
@@ -47,7 +48,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
   /** Vuelve a la Bienvenida pasando por el Editor, para que la lista se relea. */
   async function refrescarLista() {
     await abrirFila('modelo.yaml')
-    await esperarTexto('Empieza a diseñar tu modelo')
+    await esperarEditor()
     await atajo('w')
     await esperarTexto('Nuevo modelo…')
   }
@@ -60,7 +61,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
     await seleccionar('modelo.yaml')
     await pulsarEn('Abrir modelo', 'Abrir')
     await esperarSinDialogo('Abrir modelo')
-    await esperarTexto('Empieza a diseñar tu modelo')
+    await esperarEditor()
     await atajo('w')
     await esperarTexto('Nuevo modelo…')
   })
@@ -77,7 +78,7 @@ describe('Escenario 6 · Recientes y sus acciones', () => {
 
   it('el doble clic abre el modelo y lo sube al primer lugar', async () => {
     await abrirFila('modelo.yaml')
-    await esperarTexto('Empieza a diseñar tu modelo')
+    await esperarEditor()
     await atajo('w')
     await esperarTexto('Nuevo modelo…')
 

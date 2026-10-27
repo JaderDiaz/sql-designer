@@ -55,6 +55,16 @@ pub struct Preferences {
     pub last_model_path: Option<String>,
     pub engine: Engine,
     pub last_folder: Option<String>,
+    /// La barra lateral del Editor quedó escondida (FR-006).
+    ///
+    /// `serde(default)` para que un `preferences.json` de una versión
+    /// anterior, que no trae el campo, se lea sin recuperarse: la barra sale
+    /// visible, que es como estaba.
+    #[serde(default)]
+    pub sidebar_hidden: bool,
+    /// El inspector del Editor quedó escondido (FR-006).
+    #[serde(default)]
+    pub inspector_hidden: bool,
 }
 
 impl Default for Preferences {
@@ -67,6 +77,8 @@ impl Default for Preferences {
             last_model_path: None,
             engine: Engine::Postgres,
             last_folder: None,
+            sidebar_hidden: false,
+            inspector_hidden: false,
         }
     }
 }
@@ -84,6 +96,10 @@ pub struct PreferencesPatch {
     /// Último modelo usado; se escribe al abrir y al guardar. `null` lo olvida.
     #[serde(default, deserialize_with = "double_option")]
     pub last_model_path: Option<Option<String>>,
+    /// Esconder o mostrar la barra lateral del Editor (FR-006).
+    pub sidebar_hidden: Option<bool>,
+    /// Esconder o mostrar el inspector del Editor (FR-006).
+    pub inspector_hidden: Option<bool>,
 }
 
 /// Distingue «campo ausente» de «campo a `null`» en un parche.
@@ -234,6 +250,18 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
 
     let last_folder = optional_path(value, "lastFolder");
 
+    // Igual que `engine`: los dos campos de la disposición llegan con el
+    // Incremento 2 y un archivo anterior no los trae, así que caen a `false`
+    // —barra lateral e inspector a la vista— sin recuperación (FR-006).
+    let sidebar_hidden = value
+        .get("sidebarHidden")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(defaults.sidebar_hidden);
+    let inspector_hidden = value
+        .get("inspectorHidden")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(defaults.inspector_hidden);
+
     Preferences {
         format_version: FORMAT_VERSION,
         theme,
@@ -242,6 +270,8 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         last_model_path,
         engine,
         last_folder,
+        sidebar_hidden,
+        inspector_hidden,
     }
 }
 
@@ -308,6 +338,12 @@ pub fn apply_patch(current: &Preferences, patch: &PreferencesPatch) -> Preferenc
     }
     if let Some(last_model_path) = patch.last_model_path.clone() {
         next.last_model_path = last_model_path;
+    }
+    if let Some(sidebar_hidden) = patch.sidebar_hidden {
+        next.sidebar_hidden = sidebar_hidden;
+    }
+    if let Some(inspector_hidden) = patch.inspector_hidden {
+        next.inspector_hidden = inspector_hidden;
     }
     next.format_version = FORMAT_VERSION;
     next
@@ -399,6 +435,8 @@ mod tests {
             last_model_path: None,
             engine: Engine::Mysql,
             last_folder: Some("/Users/x/Proyectos".to_string()),
+            sidebar_hidden: true,
+            inspector_hidden: false,
         };
 
         save_to(&path, &preferences).expect("guardar");
@@ -431,6 +469,39 @@ mod tests {
         assert_eq!(next.theme, Theme::Light);
         assert!(next.show_welcome_on_start);
         assert_eq!(next.engine, Engine::Postgres);
+    }
+
+    #[test]
+    fn un_archivo_sin_la_disposicion_la_lee_como_visible_y_no_deja_copia() {
+        // Un `preferences.json` del Incremento 1 no trae los dos campos de la
+        // disposición: no es una recuperación, el Editor abre con la barra
+        // lateral y el inspector a la vista (FR-006).
+        let dir = temp_dir("sin-disposicion");
+        let path = file_path(&dir);
+        fs::write(
+            &path,
+            r#"{ "formatVersion": 1, "theme": "dark", "showWelcomeOnStart": false, "window": null,
+                 "lastModelPath": null, "engine": "mysql", "lastFolder": null }"#,
+        )
+        .expect("escritura");
+
+        let result = load_from(&path);
+
+        assert!(!result.recovered);
+        assert!(!result.preferences.sidebar_hidden);
+        assert!(!result.preferences.inspector_hidden);
+        assert!(!dir.join("preferences.json.bak").exists());
+    }
+
+    #[test]
+    fn el_parche_de_la_disposicion_cambia_una_zona_sin_tocar_la_otra() {
+        let current = Preferences { sidebar_hidden: true, ..Default::default() };
+        let patch = PreferencesPatch { inspector_hidden: Some(true), ..Default::default() };
+
+        let next = apply_patch(&current, &patch);
+
+        assert!(next.sidebar_hidden, "la barra lateral sigue escondida");
+        assert!(next.inspector_hidden);
     }
 
     #[test]

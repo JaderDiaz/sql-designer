@@ -33,7 +33,9 @@ function ordered<TSource extends object>(
 
 /** Pone un esquema en el orden del formato. */
 function fromSchema(schema: Schema): Record<string, unknown> {
-  return ordered(schema, ['name', 'abbreviation', 'color', 'comment'])
+  const out = ordered(schema, ['name', 'abbreviation', 'color', 'position', 'comment'])
+  if (schema.position) out['position'] = ordered(schema.position, ['x', 'y'])
+  return out
 }
 
 /** Pone un índice o un único en el orden del formato. */
@@ -89,7 +91,8 @@ function fromView(view: View): Record<string, unknown> {
  * Convierte el modelo en el documento plano que se escribe al archivo.
  *
  * Las colecciones opcionales vacías no se escriben; `schemas` siempre está,
- * porque un modelo necesita al menos un esquema (RS-02).
+ * aunque sea una lista vacía, porque es lo que separa un modelo en blanco de
+ * un archivo al que le falta un campo (FR-005a).
  *
  * @param model Modelo en memoria.
  */

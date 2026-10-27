@@ -17,6 +17,8 @@ const FIXTURES: FixtureName[] = [
   'modelo-mysql',
   'modelo-sqlite',
   'modelo-50-tablas',
+  'modelo-posiciones',
+  'modelo-posiciones-extremas',
 ]
 
 describe('ida y vuelta del modelo', () => {
@@ -40,6 +42,25 @@ describe('ida y vuelta del modelo', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
 
+    expect(serializeModel(result.model)).toBe(file)
+  })
+
+  it('conserva la posición del esquema vacío y la de cada tabla', () => {
+    // La puerta 3 con el campo que estrena el Incremento 2: el esquema sin
+    // tablas lleva su `position` y las tablas la suya, y ninguna de las dos se
+    // pierde ni se mueve al escribir.
+    const file = readFixture('modelo-posiciones')
+    const result = parseModel(file)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const empty = result.model.schemas.find((schema) => schema.name === 'reportes')
+    expect(empty?.position).toEqual({ x: 900, y: 120 })
+    expect(result.model.tables?.map((table) => table.position)).toEqual([
+      { x: 120, y: 160 },
+      { x: 120, y: 320 },
+      { x: 520, y: 160 },
+    ])
     expect(serializeModel(result.model)).toBe(file)
   })
 

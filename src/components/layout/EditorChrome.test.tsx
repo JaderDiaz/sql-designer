@@ -43,23 +43,48 @@ describe('cabecera del Editor (FR-018, FR-019, RS-07)', () => {
 
     expect(screen.getByText('Livy · Reservas')).toBeInTheDocument()
     expect(screen.getByText('Guardado · PostgreSQL')).toBeInTheDocument()
-    expect(screen.getByText(/Guardado a las 9:12/)).toBeInTheDocument()
   })
 
-  it('tras renombrar dice «Editado» y el botón de cerrar lleva el indicador', () => {
+  it('tras renombrar dice «Editado»', () => {
     renderChrome()
-
-    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument()
 
     act(() => {
       useAppStore.getState().renameModel('Livy · Reservas 2026')
     })
 
     expect(screen.getByText('Editado · PostgreSQL')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Cerrar (cambios sin guardar)' })).toHaveClass(
-      'is-dirty',
+  })
+
+  it('con la barra lateral a la vista no lleva los controles de la ventana', () => {
+    renderChrome()
+
+    // Viven en la barra lateral mientras se ve, que es la primera fila de la
+    // ventana por la izquierda.
+    expect(screen.queryByRole('button', { name: 'Cerrar' })).not.toBeInTheDocument()
+  })
+
+  it('con la barra lateral escondida, los controles de la ventana vuelven aquí (RS-01)', () => {
+    renderChrome()
+
+    act(() => {
+      useAppStore.setState({ isSidebarHidden: true })
+    })
+
+    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Minimizar' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ampliar' })).toBeInTheDocument()
+  })
+
+  it('cada zona escondible se recoge por su lado (FR-006)', () => {
+    renderChrome()
+
+    const header = screen.getByRole('banner')
+    const buttons = [...header.querySelectorAll('button')].map((button) =>
+      button.getAttribute('aria-label'),
     )
-    expect(screen.getByText('Cambios sin guardar · ⌘S')).toBeInTheDocument()
+
+    expect(buttons[0]).toBe('Ocultar barra lateral')
+    expect(buttons[buttons.length - 1]).toBe('Ocultar inspector')
   })
 
   it('el motor del modelo es el que se muestra', () => {
@@ -88,19 +113,13 @@ describe('cabecera del Editor (FR-018, FR-019, RS-07)', () => {
     const user = userEvent.setup()
     renderChrome()
 
+    act(() => {
+      useAppStore.setState({ isSidebarHidden: true })
+    })
+
     await user.click(screen.getByRole('button', { name: 'Cerrar' }))
 
     expect(useAppStore.getState().screen).toBe('welcome')
-  })
-
-  it('la ventana del Editor se cierra, se minimiza y se amplía (RS-01)', () => {
-    renderChrome()
-
-    // El Editor es la zona de trabajo: a diferencia de la Bienvenida, que es
-    // un diálogo de tamaño fijo, aquí sí se puede agrandar la ventana.
-    expect(screen.getByRole('button', { name: 'Cerrar' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Minimizar' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Ampliar' })).toBeInTheDocument()
   })
 
   it('el texto del estado dice la hora solo cuando está guardado', () => {

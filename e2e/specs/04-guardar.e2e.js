@@ -6,6 +6,7 @@ import {
   atajo,
   escribir,
   esperarDialogo,
+  esperarEditor,
   esperarSinDialogo,
   esperarTexto,
   pulsar,
@@ -45,7 +46,7 @@ describe('Escenario 4 · Guardar y estado de cambios', () => {
     await seleccionar('modelo.yaml')
     await pulsarEn('Abrir modelo', 'Abrir')
     await esperarSinDialogo('Abrir modelo')
-    await esperarTexto('Empieza a diseñar tu modelo')
+    await esperarEditor()
   })
 
   it('un cambio deja el modelo en «Editado» y no toca el nombre del archivo', async () => {

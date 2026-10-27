@@ -93,7 +93,9 @@ describe('Escenario 1 · Crear un modelo', () => {
     expect(escrito).toContain('formatVersion: 1')
     expect(escrito).toContain('name: Livy · Reservas')
     expect(escrito).toContain('engine: postgres')
-    expect(escrito).toContain('name: public')
+    // Un modelo nuevo llega en blanco: ningún esquema, tampoco el del motor.
+    expect(escrito).toContain('schemas:')
+    expect(escrito).not.toContain('name: public')
   })
 
   it('el mismo nombre en la misma carpeta dice que ya existe y no deja crear', async () => {

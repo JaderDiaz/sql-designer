@@ -98,6 +98,8 @@ describe('Abrir modelo (FR-012 a FR-017)', () => {
       lastModelPath: null,
       engine: 'postgres',
       lastFolder: null,
+      sidebarHidden: false,
+      inspectorHidden: false,
     })
   })
 

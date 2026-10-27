@@ -1,0 +1,37 @@
+formatVersion: 1
+name: Comercio · Posiciones imposibles
+engine: postgres
+schemas:
+  - name: ventas
+    abbreviation: VEN
+    color: blue
+  - name: inventario
+    abbreviation: INV
+    color: teal
+  - name: reportes
+    abbreviation: REP
+    color: brown
+    position:
+      x: -4800
+      y: -3600
+tables:
+  - name: facturas
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+    primaryKey:
+      - id
+    position:
+      x: -2400
+      y: -1800
+  - name: productos
+    schema: inventario
+    fields:
+      - name: id
+        type: integer
+    primaryKey:
+      - id
+    position:
+      x: 18000
+      y: 12000

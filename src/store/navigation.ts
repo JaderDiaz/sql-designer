@@ -18,6 +18,10 @@ export type Screen = 'welcome' | 'editor'
  *
  * `choose-folder` se abre encima de `new-model` sin cerrarlo, de modo que el
  * borrador del modelo nuevo sobrevive a elegir la carpeta.
+ *
+ * `schema` es el diálogo de Nuevo esquema y de Editar esquema, que son el
+ * mismo con otro título (FR-015, FR-020); `delete-schema` es la confirmación
+ * de eliminar (FR-034).
  */
 export type Dialog =
   | 'new-model'
@@ -29,6 +33,8 @@ export type Dialog =
   | 'not-found'
   | 'trash'
   | 'stale'
+  | 'schema'
+  | 'delete-schema'
 
 /**
  * Qué se quería hacer cuando se preguntó por los cambios sin guardar, para

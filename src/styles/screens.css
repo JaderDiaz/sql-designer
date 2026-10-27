@@ -12,7 +12,7 @@
   padding: 0;
   border: 0;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 var(--hairline) rgba(0, 0, 0, 0.12);
   cursor: default;
 }
 .sm-traffic:focus-visible {
@@ -316,7 +316,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-5);
-  border-bottom: 0.5px solid var(--separator);
+  border-bottom: var(--hairline) solid var(--separator);
   font-size: 11px;
   line-height: 14px;
   font-weight: 600;
@@ -388,6 +388,25 @@
   padding: 8px 10px;
   border-radius: 10px;
 }
+/* La fila que sí actúa en este incremento se nota al pasar por encima; las
+ * otras dos anuncian lo que viene y no son botones (FR-005). */
+.sm-start-row-action {
+  border: 0;
+  background: transparent;
+  cursor: default;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+.sm-start-row-action:hover {
+  background: var(--fill-hover);
+}
+.sm-start-row-action:active {
+  background: var(--fill-pressed);
+}
+.sm-start-row-action:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  animation: au-ring-in var(--duration-fast) var(--easing-out);
+}
 
 .sm-tint-indigo {
   background: color-mix(in srgb, var(--indigo) 14%, transparent);
@@ -397,4 +416,309 @@
 }
 .sm-tint-purple {
   background: color-mix(in srgb, var(--purple) 14%, transparent);
+}
+
+/* ---------- Lienzo: zonas, tarjetas, minimapa y barra de zoom ---------- */
+
+/*
+ * El color de cada zona entra por `--zone`, que el componente fija al token
+ * del esquema (`var(--indigo)`, nunca un valor literal). De ese único token
+ * salen el relleno, el borde y el rótulo con `color-mix`, de modo que claro y
+ * oscuro se resuelven solos (principio V, FR-021).
+ */
+.sm-zone {
+  position: absolute;
+  border-radius: 14px;
+  /* La zona se arrastra, y eso se dice con el cursor (FR-026). */
+  cursor: grab;
+  background: color-mix(in srgb, var(--zone) 4%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--zone) 18%, transparent);
+  transition:
+    opacity var(--duration-base) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
+}
+/*
+ * Al pasar por encima, la zona sube su propio color. El diseño lo hace con
+ * `filter: saturate()`, que aquí no vale: un filtro promueve la capa del
+ * compositor, y una capa guarda su contenido rasterizado a una escala, así
+ * que el texto se pixelaba y daba un salto al entrar y salir el puntero. Subir
+ * los porcentajes del `color-mix` se ve igual y no promueve nada.
+ */
+.sm-zone:hover {
+  background: color-mix(in srgb, var(--zone) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--zone) 28%, transparent);
+}
+.sm-zone.is-empty:hover {
+  background: color-mix(in srgb, var(--zone) 7%, transparent);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--zone) 55%, transparent);
+}
+.sm-zone.is-empty {
+  background: color-mix(in srgb, var(--zone) 4%, transparent);
+  box-shadow: none;
+  border: 1px dashed color-mix(in srgb, var(--zone) 40%, transparent);
+}
+/* Atenuar es solo opacidad, por lo mismo: un filtro promovería la capa. */
+.sm-zone.is-dim {
+  opacity: 0.3;
+}
+/*
+ * La zona seleccionada solo aprieta su propio borde. El diseño no le pone
+ * ningún halo: un anillo por fuera se lee como foco del teclado, que es otra
+ * cosa y tiene su propia regla.
+ */
+.sm-zone.is-sel {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--zone) 45%, transparent);
+}
+.sm-zone.is-empty.is-sel {
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--zone) 70%, transparent);
+}
+.sm-zone:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+/*
+ * El rótulo se ancla a la esquina, no al flujo: un `button` centra su
+ * contenido en vertical, y en una zona vacía eso dejaba el nombre flotando a
+ * media altura en vez de pegado al borde de arriba.
+ */
+.sm-zone-head {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 600 11px/14px var(--font-sans);
+  color: var(--label-secondary);
+  white-space: nowrap;
+  cursor: inherit;
+  user-select: none;
+}
+.sm-zone-abbr {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  height: 18px;
+  padding: 0 6px 0 5px;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--zone) 14%, var(--bg-raised));
+  box-shadow: inset 0 0 0 var(--hairline) color-mix(in srgb, var(--zone) 35%, transparent);
+  color: var(--label);
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.05em;
+}
+/* El punto de color de la pastilla, del color sólido del esquema. */
+.sm-zone-dot {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--zone);
+}
+.sm-zone-count {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.sm-zone-empty {
+  position: absolute;
+  inset: 40px 12px 12px;
+  display: grid;
+  place-items: center;
+  color: var(--label-secondary);
+  font: 400 12px/16px var(--font-sans);
+  text-align: center;
+}
+
+.sm-table {
+  position: absolute;
+  pointer-events: none;
+  width: 200px;
+  height: 64px;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  cursor: default;
+  contain: layout paint;
+  transition: box-shadow var(--duration-fast) var(--easing-standard);
+}
+.sm-table.is-dim {
+  opacity: 0.25;
+}
+.sm-table:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.sm-table-name {
+  display: block;
+  font: 500 13px/18px var(--font-sans);
+  color: var(--label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sm-table-meta {
+  display: block;
+  margin-top: 2px;
+  font: 400 11px/16px var(--font-sans);
+  color: var(--label-tertiary);
+}
+/*
+ * El modelo llega a su sitio sin animación.
+ *
+ * Animar la transformación con `transition` sería más suave, pero el navegador
+ * la anima en el compositor: promueve el nodo a su propia capa, la rasteriza a
+ * la escala de partida y la estira hasta el final, así que el texto se ve
+ * borroso mientras dura y se restaura al terminar. Es lo mismo que pasaba con
+ * `will-change`, con `translate3d` y con `filter` (research R19).
+ */
+/*
+ * El lienzo no promueve ninguna capa del compositor, ni siquiera durante el
+ * gesto.
+ *
+ * Una capa guarda su contenido rasterizado a una escala y lo estira después,
+ * así que con el modelo escalado dentro el texto se ve como una imagen
+ * ampliada, tanto al acercar como mientras se arrastra. Por eso aquí no hay
+ * `will-change` ni transformaciones en tres dimensiones: cada cuadro se vuelve
+ * a dibujar, que es más trabajo para el navegador pero es lo que mantiene el
+ * texto nítido. El coste se compensa quitando sombras y transiciones mientras
+ * el gesto dura, y se mide con `modelo-50-tablas.yaml` (SC-003, research R19).
+ */
+
+/* Con la barra espaciadora mantenida, todo el lienzo se arrastra (FR-007). */
+.sm-canvas[data-space] {
+  cursor: grab;
+}
+.sm-canvas[data-space] .sm-zone {
+  cursor: inherit;
+}
+
+/* El grupo que se arrastra se desplaza con dos variables que el lienzo escribe
+ * por referencia, sin volver a dibujar el árbol (FR-026, research R3). */
+.sm-zone[data-drag],
+.sm-table[data-drag] {
+  transform: translate(var(--drag-x, 0px), var(--drag-y, 0px));
+  transition: none;
+}
+.sm-zone[data-drag] {
+  cursor: grabbing;
+}
+
+/* Mientras un gesto está en curso no se pintan sombras ni transiciones
+ * (SC-003, research R19). */
+.sm-canvas[data-gesturing] .sm-table,
+.sm-canvas[data-gesturing] .sm-zone {
+  box-shadow: none;
+  transition: none;
+}
+
+.sm-minimap {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  width: 168px;
+  height: 108px;
+  border-radius: var(--radius-md);
+  background: var(--glass);
+  backdrop-filter: var(--backdrop-regular);
+  -webkit-backdrop-filter: var(--backdrop-regular);
+  box-shadow:
+    var(--shadow-popover),
+    inset 0 0 0 1px var(--border-subtle);
+  overflow: hidden;
+  cursor: default;
+}
+.sm-minimap:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.sm-minimap-zone {
+  position: absolute;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--zone) 35%, transparent);
+}
+.sm-minimap-mark {
+  position: absolute;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--zone) 75%, transparent);
+}
+.sm-minimap-view {
+  position: absolute;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.sm-zoombar {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-lg);
+  background: var(--glass);
+  backdrop-filter: var(--backdrop-regular);
+  -webkit-backdrop-filter: var(--backdrop-regular);
+  box-shadow: var(--shadow-popover);
+}
+.sm-zoom-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--label-secondary);
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+.sm-zoom-button:hover:not(:disabled) {
+  background: var(--fill-hover);
+  color: var(--label);
+}
+.sm-zoom-button:disabled {
+  color: var(--label-tertiary);
+}
+.sm-zoom-button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.sm-zoom-rule {
+  width: var(--hairline);
+  height: 16px;
+  margin: 0 var(--space-1);
+  background: var(--separator);
+}
+.sm-zoom-value {
+  min-width: 44px;
+  height: 24px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  font: 400 12px/16px var(--font-sans);
+  color: var(--label);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+button.sm-zoom-value:hover {
+  background: var(--fill-hover);
+}
+.sm-zoom-value:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+/* Con el porcentaje escribiéndose, el campo ocupa el mismo sitio que el texto. */
+.sm-zoom-field {
+  width: 56px;
+  background: var(--bg-inset);
+  box-shadow: inset 0 0 0 var(--hairline) var(--separator);
 }

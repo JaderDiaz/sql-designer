@@ -6,6 +6,7 @@ import {
   atajo,
   escribir,
   esperarDialogo,
+  esperarEditor,
   esperarSinDialogo,
   esperarTexto,
   filas,
@@ -32,7 +33,7 @@ describe('Escenario 5 · Cerrar', () => {
     await seleccionar('modelo.yaml')
     await pulsarEn('Abrir modelo', 'Abrir')
     await esperarSinDialogo('Abrir modelo')
-    await esperarTexto('Empieza a diseñar tu modelo')
+    await esperarEditor()
   }
 
   /**

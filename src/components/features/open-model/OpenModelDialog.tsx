@@ -85,7 +85,7 @@ function EmptyPreview() {
   return (
     <aside
       aria-label="Vista previa"
-      className="flex w-[220px] flex-none flex-col items-center justify-center gap-2 border-l-[0.5px] border-separator px-5 py-6 text-center"
+      className="flex w-[220px] flex-none flex-col items-center justify-center gap-2 border-l-[length:var(--hairline)] border-separator px-5 py-6 text-center"
     >
       <span className="flex h-14 w-14 items-center justify-center rounded-lg bg-fill-hover">
         <Icon name="file-code" size={26} className="text-label-tertiary" />
@@ -121,7 +121,7 @@ function PreviewPanel({ preview, onOpen }: PreviewPanelProps) {
   return (
     <aside
       aria-label="Vista previa"
-      className="flex w-[220px] flex-none flex-col items-center gap-4 border-l-[0.5px] border-separator px-5 py-6"
+      className="flex w-[220px] flex-none flex-col items-center gap-4 border-l-[length:var(--hairline)] border-separator px-5 py-6"
       onDoubleClick={onOpen}
     >
       <span

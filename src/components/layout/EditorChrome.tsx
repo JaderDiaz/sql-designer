@@ -2,19 +2,38 @@ import { Titlebar } from '@/components/layout/Titlebar'
 import { Button } from '@/components/ui/Button'
 import { formatTime } from '@/lib/format'
 import { ENGINE_LABELS } from '@/lib/model/types'
+import type { PlatformInfo } from '@/lib/tauri/types'
 import { shortcutLabel } from '@/lib/platform'
 import { useAppStore } from '@/store'
 
 /**
- * Cabecera del Editor, según `project/Editor.dc.html` del lienzo (FR-018 a
- * FR-021, RS-07).
+ * Barra superior del Editor, según `project/Editor.dc.html` del lienzo
+ * (FR-001, FR-006, RS-07).
  *
- * Trae lo que este incremento necesita: los controles de ventana, con el
- * círculo rojo cerrando el modelo y su punto de cambios sin guardar; el
- * nombre del modelo con «Guardado · <motor>» o «Editado · <motor>»; la hora
- * del último guardado; deshacer y rehacer; y renombrar. El lienzo de tablas y
- * el resto de la barra llegan en el Incremento 2.
+ * Empieza a la derecha de la barra lateral y la recorre de un extremo a otro:
+ * a la izquierda el botón que esconde la barra lateral, luego el nombre del
+ * modelo con «Guardado · <motor>» o «Editado · <motor>»; en el centro queda el
+ * hueco del conmutador de vista; y a la derecha las acciones, terminando en el
+ * botón que esconde el inspector. Cada zona escondible se recoge por su propio
+ * lado, que es lo que hace que el gesto se entienda sin leer el rótulo.
+ *
+ * Los controles de la ventana viven en la barra lateral mientras se ve; aquí
+ * solo salen cuando está escondida, porque entonces esta es la primera fila de
+ * la ventana (FR-012).
  */
+
+/**
+ * Atajo de las dos zonas escondibles, con ⌥ delante de ⌘ (FR-006).
+ *
+ * @param platform Sistema en ejecución.
+ * @param key Tecla del atajo, en mayúscula.
+ */
+export function layoutShortcut(platform: PlatformInfo, key: string): string {
+  const { alt } = platform.modifierSymbols
+  return platform.os === 'macos'
+    ? `${alt}${shortcutLabel(platform, key)}`
+    : `${alt}+${shortcutLabel(platform, key)}`
+}
 
 /** Texto del estado de guardado, con la hora del último guardado (FR-018). */
 export function saveStatusText(isDirty: boolean, savedAtMs: number | null): string {
@@ -26,7 +45,6 @@ export function saveStatusText(isDirty: boolean, savedAtMs: number | null): stri
 export function EditorChrome() {
   const model = useAppStore((state) => state.model)
   const isDirty = useAppStore((state) => state.isDirty)
-  const savedAtMs = useAppStore((state) => state.savedAtMs)
   const past = useAppStore((state) => state.past)
   const future = useAppStore((state) => state.future)
   const platform = useAppStore((state) => state.platform)
@@ -34,23 +52,41 @@ export function EditorChrome() {
   const redo = useAppStore((state) => state.redo)
   const requestClose = useAppStore((state) => state.requestClose)
   const openDialog = useAppStore((state) => state.openDialog)
+  const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
+  const isSidebarHidden = useAppStore((state) => state.isSidebarHidden)
+  const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
+  const toggleSidebar = useAppStore((state) => state.toggleSidebar)
+  const toggleInspector = useAppStore((state) => state.toggleInspector)
 
   if (model === null) return null
 
   const engine = ENGINE_LABELS[model.engine]
-  const closeLabel = isDirty ? 'Cerrar (cambios sin guardar)' : 'Cerrar'
+  const sidebarLabel = isSidebarHidden ? 'Mostrar barra lateral' : 'Ocultar barra lateral'
+  const inspectorLabel = isInspectorHidden ? 'Mostrar inspector' : 'Ocultar inspector'
 
   return (
     <header
       data-tauri-drag-region
-      className="flex min-h-[52px] flex-none flex-wrap items-center gap-2 border-b-[0.5px] border-separator px-3 py-2"
+      style={{ paddingLeft: isSidebarHidden ? 16 : 8 }}
+      className="flex min-h-[52px] flex-none items-center gap-2 border-b-[length:var(--hairline)] border-separator py-2 pr-3"
     >
-      <Titlebar
-        onClose={requestClose}
-        closeLabel={closeLabel}
-        isDirty={isDirty}
-        canZoom
-        className="relative left-0 top-0 mr-2 z-auto"
+      {isSidebarHidden ? (
+        <Titlebar
+          onClose={requestClose}
+          closeLabel={isDirty ? 'Cerrar (cambios sin guardar)' : 'Cerrar'}
+          isDirty={isDirty}
+          canZoom
+          className="relative left-0 top-0 mr-2 z-auto"
+        />
+      ) : null}
+
+      <Button
+        variant="plain"
+        icon={isSidebarHidden ? 'panel-left-open' : 'panel-left-close'}
+        aria-label={sidebarLabel}
+        aria-pressed={!isSidebarHidden}
+        title={`${sidebarLabel} (${layoutShortcut(platform, 'S')})`}
+        onClick={() => void toggleSidebar()}
       />
 
       <div className="mr-2 flex min-w-0 flex-col">
@@ -60,46 +96,53 @@ export function EditorChrome() {
         </span>
       </div>
 
-      <Button
-        variant="plain"
-        icon="pencil"
-        aria-label="Renombrar modelo"
-        title="Renombrar modelo"
-        onClick={() => openDialog('rename')}
-      />
+      {/* El hueco del conmutador de vista, que llega con el Incremento 3. */}
+      <div className="min-w-[200px] flex-1" />
 
-      <div className="flex-1" />
-
-      <span
-        aria-live="polite"
-        className="flex items-center gap-1.5 text-[11px] leading-[14px] text-label-secondary [font-variant-numeric:tabular-nums]"
-      >
-        <span
-          aria-hidden="true"
-          className={`h-1.5 w-1.5 rounded-full ${isDirty ? 'bg-orange' : 'bg-green'}`}
+      <div className="flex items-center gap-1">
+        <Button
+          variant="plain"
+          icon="undo-2"
+          aria-label="Deshacer"
+          title={`Deshacer (${shortcutLabel(platform, 'Z')})`}
+          disabled={past.length === 0}
+          onClick={undo}
         />
-        {saveStatusText(isDirty, savedAtMs)}
-        {isDirty ? ` · ${shortcutLabel(platform, 'S')}` : ''}
-      </span>
+        <Button
+          variant="plain"
+          icon="redo-2"
+          aria-label="Rehacer"
+          title="Rehacer"
+          disabled={future.length === 0}
+          onClick={redo}
+        />
 
-      <span aria-hidden="true" className="mx-1 h-[18px] w-[0.5px] bg-separator" />
+        <span aria-hidden="true" className="mx-1 h-[18px] w-[var(--hairline)] bg-separator" />
 
-      <Button
-        variant="plain"
-        icon="undo-2"
-        aria-label="Deshacer"
-        title={`Deshacer (${shortcutLabel(platform, 'Z')})`}
-        disabled={past.length === 0}
-        onClick={undo}
-      />
-      <Button
-        variant="plain"
-        icon="redo-2"
-        aria-label="Rehacer"
-        title="Rehacer"
-        disabled={future.length === 0}
-        onClick={redo}
-      />
+        <Button
+          variant="plain"
+          icon="plus"
+          aria-label="Nuevo esquema"
+          title="Nuevo esquema"
+          onClick={() => openSchemaDialog(null)}
+        />
+        <Button
+          variant="plain"
+          icon="pencil"
+          aria-label="Renombrar modelo"
+          title="Renombrar modelo"
+          onClick={() => openDialog('rename')}
+        />
+
+        <Button
+          variant="plain"
+          icon={isInspectorHidden ? 'panel-right-open' : 'panel-right-close'}
+          aria-label={inspectorLabel}
+          aria-pressed={!isInspectorHidden}
+          title={`${inspectorLabel} (${layoutShortcut(platform, 'I')})`}
+          onClick={() => void toggleInspector()}
+        />
+      </div>
     </header>
   )
 }

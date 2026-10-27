@@ -455,3 +455,8 @@ cabecera del Editor y el aviso de archivo cambiado los reutilizan la US5 y la US
   medidas, copia y jerarquía; no se importa su HTML ni su `support.js` (puerta 6).
 - Cada hallazgo real de la implementación (bug con su causa, desvío del plan) se
   guarda en Engram en el momento, no al final (CLAUDE.md).
+- **RS-02 quedó derogada el 2026-10-27, durante el Incremento 2**: un modelo
+  nuevo ya no trae un esquema por defecto y el formato admite cero esquemas
+  (FR-005 de este incremento y FR-005a del Incremento 2). Las tareas T009, T012
+  y T033 describen la regla tal como se implementó entonces y se dejan como
+  están, porque son el registro de lo que se hizo.

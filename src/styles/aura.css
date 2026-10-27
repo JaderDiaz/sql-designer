@@ -107,6 +107,23 @@
     var(--shadow-control),
     inset 0 0 0 100px var(--fill-pressed);
 }
+/*
+ * La variante destructiva es la primaria en rojo: el mismo peso visual, porque
+ * es la acción que el diálogo propone, con el color que avisa de que no se
+ * deshace. El tono de pulsación se oscurece sobre el mismo token, que es lo
+ * que hace que claro y oscuro no necesiten dos recetas.
+ */
+.au-btn-destructive {
+  background: var(--danger-solid);
+  color: var(--on-danger);
+  box-shadow: var(--shadow-accent);
+}
+.au-btn-destructive:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-solid) 88%, #000);
+}
+.au-btn-destructive:active:not(:disabled) {
+  background: color-mix(in srgb, var(--danger-solid) 78%, #000);
+}
 .au-btn-plain {
   background: transparent;
   color: var(--label);
@@ -649,4 +666,103 @@
 }
 .au-side-item[aria-current='true'] .au-icon {
   transform: scale(1.06);
+}
+
+/* ---------- Switch (FR-034) ---------- */
+.au-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  user-select: none;
+}
+.au-switch-track {
+  flex: none;
+  width: 38px;
+  height: 22px;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--bg-control);
+  box-shadow: inset 0 0 0 1px var(--border-control);
+  cursor: default;
+  transition:
+    background-color var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast);
+}
+.au-switch-track[data-state='checked'] {
+  background: var(--accent);
+  box-shadow: var(--shadow-accent);
+}
+.au-switch-track:disabled {
+  opacity: 0.45;
+}
+.au-switch-track:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  animation: au-ring-in var(--duration-fast) var(--easing-out);
+}
+.au-switch-thumb {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  background: var(--bg-window);
+  box-shadow: var(--shadow-control);
+  transition: transform var(--duration-base) var(--easing-spring);
+  will-change: transform;
+}
+.au-switch-thumb[data-state='checked'] {
+  transform: translateX(16px);
+}
+.au-switch-label {
+  display: flex;
+  flex-direction: column;
+}
+.au-switch-hint {
+  color: var(--label-secondary);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* ---------- Paleta de colores (FR-019) ---------- */
+.au-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.au-swatch {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--label) 12%, transparent);
+  cursor: default;
+  display: grid;
+  place-items: center;
+  transition: transform var(--duration-base) var(--easing-spring);
+}
+.au-swatch:hover {
+  transform: scale(1.08);
+}
+.au-swatch[data-state='checked'] {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--label) 12%, transparent),
+    0 0 0 2px var(--bg-window),
+    0 0 0 4px var(--swatch);
+}
+.au-swatch:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  animation: au-ring-in var(--duration-fast) var(--easing-out);
+}
+.au-swatch-mark {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-window);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--label) 18%, transparent);
 }

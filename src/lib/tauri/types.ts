@@ -35,6 +35,10 @@ export interface Preferences {
   engine: Engine
   /** Carpeta inicial del diálogo Nuevo modelo. */
   lastFolder: string | null
+  /** La barra lateral del Editor quedó escondida (FR-006). */
+  sidebarHidden: boolean
+  /** El inspector del Editor quedó escondido (FR-006). */
+  inspectorHidden: boolean
 }
 
 /**
@@ -49,6 +53,8 @@ export interface PreferencesPatch {
   engine?: Engine
   lastFolder?: string | null
   lastModelPath?: string | null
+  sidebarHidden?: boolean
+  inspectorHidden?: boolean
 }
 
 /**

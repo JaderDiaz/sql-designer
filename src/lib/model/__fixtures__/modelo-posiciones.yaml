@@ -1,0 +1,47 @@
+formatVersion: 1
+name: Comercio · Con posiciones
+engine: postgres
+schemas:
+  - name: ventas
+    abbreviation: VEN
+    color: blue
+  - name: inventario
+    abbreviation: INV
+    color: green
+  - name: reportes
+    abbreviation: REP
+    color: orange
+    position:
+      x: 900
+      y: 120
+tables:
+  - name: facturas
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+    primaryKey:
+      - id
+    position:
+      x: 120
+      y: 160
+  - name: pagos
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+    primaryKey:
+      - id
+    position:
+      x: 120
+      y: 320
+  - name: productos
+    schema: inventario
+    fields:
+      - name: id
+        type: integer
+    primaryKey:
+      - id
+    position:
+      x: 520
+      y: 160

@@ -108,12 +108,25 @@ function withText<TKey extends string>(
   return typeof value === 'string' ? ({ [key]: value } as Record<TKey, string>) : {}
 }
 
-/** Rearma un esquema validado. */
-function toSchema(source: Record<string, unknown>): Schema {
+/**
+ * Rearma un esquema validado.
+ *
+ * `position` solo sobrevive cuando el esquema no tiene ninguna tabla: con
+ * tablas, la zona se deduce de ellas y la posición guardada dejó de aplicar.
+ * Se descarta aquí, al leer, y no al escribir, para que el modelo en memoria
+ * nunca lleve un dato que el archivo no deba tener y la ida y vuelta de la
+ * puerta 3 siga comparando textos iguales (FR-026a).
+ *
+ * @param source Esquema del documento, ya validado.
+ * @param hasTables Si el modelo trae al menos una tabla de este esquema.
+ */
+function toSchema(source: Record<string, unknown>, hasTables: boolean): Schema {
+  const position = source['position'] as Position | undefined
   return {
     name: source['name'] as string,
     abbreviation: source['abbreviation'] as string,
     ...withText(source, 'color'),
+    ...(position && !hasTables ? { position: { x: position.x, y: position.y } } : {}),
     ...withText(source, 'comment'),
   }
 }
@@ -202,11 +215,16 @@ function toModel(source: Record<string, unknown>): Model {
   const tables = source['tables'] as Array<Record<string, unknown>> | undefined
   const relations = source['relations'] as Array<Record<string, unknown>> | undefined
   const views = source['views'] as Array<Record<string, unknown>> | undefined
+  const schemasWithTables = new Set(
+    (tables ?? []).map((table) => table['schema'] as string),
+  )
   return {
     formatVersion: source['formatVersion'] as number,
     name: source['name'] as string,
     engine: source['engine'] as Model['engine'],
-    schemas: (source['schemas'] as Array<Record<string, unknown>>).map(toSchema),
+    schemas: (source['schemas'] as Array<Record<string, unknown>>).map((schema) =>
+      toSchema(schema, schemasWithTables.has(schema['name'] as string)),
+    ),
     ...(enums ? { enums: enums.map(toEnum) } : {}),
     ...(tables ? { tables: tables.map(toTable) } : {}),
     ...(relations ? { relations: relations.map(toRelation) } : {}),

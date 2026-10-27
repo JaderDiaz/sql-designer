@@ -48,7 +48,7 @@ export interface ValidationIssue {
 /** Claves permitidas en cada nivel; cualquier otra es clave desconocida. */
 const ALLOWED_KEYS = {
   model: ['formatVersion', 'name', 'engine', 'schemas', 'enums', 'tables', 'relations', 'views'],
-  schema: ['name', 'abbreviation', 'color', 'comment'],
+  schema: ['name', 'abbreviation', 'color', 'position', 'comment'],
   table: ['name', 'schema', 'comment', 'fields', 'primaryKey', 'uniques', 'indexes', 'position'],
   field: ['name', 'type', 'nullable', 'default', 'comment'],
   namedFields: ['name', 'fields'],
@@ -224,6 +224,31 @@ function validateNamedFields(
   })
 }
 
+/**
+ * Comprueba una posición del lienzo, la de una tabla o la de un esquema.
+ *
+ * Las dos tienen la misma forma y los mismos mensajes: solo «x» e «y», y las
+ * dos tienen que ser números finitos.
+ *
+ * @param report Dónde se anotan los fallos.
+ * @param value Valor de la clave `position`, ya presente.
+ * @param path Ruta de la posición dentro del documento.
+ */
+function validatePosition(report: Report, value: unknown, path: ValuePath): void {
+  const position = requireRecord(report, value, path, 'La posición')
+  if (position === null) return
+  for (const key of Object.keys(position)) {
+    if (!ALLOWED_KEYS.position.includes(key as (typeof ALLOWED_KEYS.position)[number])) {
+      report.add([...path, key], 'La posición solo admite «x» e «y».')
+    }
+  }
+  for (const axis of ['x', 'y'] as const) {
+    if (typeof position[axis] !== 'number' || !Number.isFinite(position[axis])) {
+      report.add([...path, axis], `«${axis}» de la posición tiene que ser un número.`)
+    }
+  }
+}
+
 /** Comprueba un esquema. */
 function validateSchema(report: Report, value: unknown, path: ValuePath): string | null {
   const record = requireRecord(report, value, path, 'Cada esquema')
@@ -239,6 +264,9 @@ function validateSchema(report: Report, value: unknown, path: ValuePath): string
   }
   if (record['color'] !== undefined) {
     requireText(report, record['color'], [...path, 'color'], 'El color del esquema')
+  }
+  if (record['position'] !== undefined) {
+    validatePosition(report, record['position'], [...path, 'position'])
   }
   if (record['comment'] !== undefined) {
     requireText(report, record['comment'], [...path, 'comment'], 'El comentario del esquema')
@@ -331,15 +359,7 @@ function validateTable(
   }
 
   if (record['position'] !== undefined) {
-    const position = requireRecord(report, record['position'], [...path, 'position'], 'La posición')
-    if (position !== null) {
-      rejectUnknownKeys(report, position, [...path, 'position'], ALLOWED_KEYS.position)
-      for (const axis of ['x', 'y'] as const) {
-        if (typeof position[axis] !== 'number' || !Number.isFinite(position[axis])) {
-          report.add([...path, 'position', axis], `«${axis}» de la posición tiene que ser un número.`)
-        }
-      }
-    }
+    validatePosition(report, record['position'], [...path, 'position'])
   }
 
   return { name, fields: fieldNames }
@@ -534,7 +554,8 @@ export function validateModel(value: unknown, locate: Locate): ValidationIssue[]
   }
 
   const schemaNames = new Set<string>()
-  const schemas = requireList(report, root['schemas'], ['schemas'], 'Un modelo necesita un esquema')
+  // Un modelo puede no tener ningún esquema: así nace uno nuevo, en blanco.
+  const schemas = requireList(report, root['schemas'], ['schemas'], 'Los esquemas', 0)
   if (schemas !== null) {
     const names = schemas.map((schema, index) => validateSchema(report, schema, ['schemas', index]))
     rejectDuplicates(report, names, ['schemas'], 'un esquema', schemaNames)

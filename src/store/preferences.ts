@@ -33,6 +33,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   lastModelPath: null,
   engine: 'postgres',
   lastFolder: null,
+  sidebarHidden: false,
+  inspectorHidden: false,
 }
 
 /**
@@ -129,6 +131,12 @@ export const createPreferencesSlice: AppSlice<PreferencesSlice> = (set, get) => 
         loadError: loaded.recovered ? loadErrorMessage(loaded.recoveredReason) : null,
         effectiveTheme: resolveEffectiveTheme(loaded.preferences.theme, get().systemPrefersDark),
         isLoaded: true,
+      })
+      // La disposición del Editor es preferencia de la aplicación, así que se
+      // aplica al arrancar, antes de que el Editor monte (FR-006).
+      get().applyLayoutPreferences({
+        sidebar: loaded.preferences.sidebarHidden,
+        inspector: loaded.preferences.inspectorHidden,
       })
     } catch (error) {
       set({

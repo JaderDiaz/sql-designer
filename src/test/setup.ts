@@ -5,9 +5,18 @@ import { cleanup } from '@testing-library/react'
 /**
  * Arranque de las pruebas: limpia el DOM entre casos e instala lo que jsdom no
  * trae y los componentes sí necesitan: un `matchMedia` simulable, que usa
- * `useTheme`, y las piezas de la API de puntero y de desplazamiento que usan
- * los primitivos de Radix al abrir una lista.
+ * `useTheme`, las piezas de la API de puntero y de desplazamiento que usan los
+ * primitivos de Radix al abrir una lista, y un `ResizeObserver` que no mide
+ * nada, porque jsdom no reparte tamaños.
  */
+
+if (!('ResizeObserver' in globalThis)) {
+  globalThis.ResizeObserver = class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  }
+}
 
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = (): void => undefined

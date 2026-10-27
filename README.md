@@ -9,7 +9,7 @@ diagrama. No se conecta a ninguna base de datos ni la administra.
 
 ## Estado
 
-Versión 1.1.0, Incremento 1 «Archivos de modelo» cerrado. Lo que ya hace:
+Versión 1.2.0, Incremento 2 «Lienzo y esquemas» cerrado. Lo que ya hace:
 
 - Arranca con la Bienvenida y su identidad, sigue el tema del sistema o el
   elegido en Ajustes y recuerda el tamaño y la posición de la ventana
@@ -22,9 +22,22 @@ Versión 1.1.0, Incremento 1 «Archivos de modelo» cerrado. Lo que ya hace:
 - Cierra el modelo preguntando por los cambios sin guardar.
 - Lista los diez modelos recientes con su estado, y sobre cada uno: abrir,
   renombrar, copiar la ruta, quitar de la lista y mover a la papelera.
+- Abre el Editor con sus cinco zonas —barra lateral, barra superior, lienzo,
+  inspector y barra de estado— y esconde la barra lateral y el inspector con
+  ⌥⌘S y ⌥⌘I, recordando la elección entre sesiones (Incremento 2).
+- Recorre el lienzo arrastrando el fondo, con la rueda pulsada o con Espacio
+  mantenido, y se acerca entre el 40 % y el 200 % con ⌘ y la rueda, el
+  pellizco, los botones −/+ o ⌘+ y ⌘−, con «Ajustar», ⌘0, ⇧1 y un minimapa
+  que dice dónde está la vista.
+- Agrupa el modelo en esquemas de color: crea uno escribiendo su nombre —el
+  nombre técnico y la abreviatura de tres letras se proponen—, lo edita, lo
+  arrastra por el lienzo con sus tablas y lo elimina diciendo antes qué queda
+  afectado.
+- Enfoca un esquema para trabajar solo con sus tablas: el lienzo se centra en
+  su zona, el resto se atenúa y la lista de tablas se filtra.
 
-Diseñar tablas, columnas y relaciones llega en el Incremento 2, que todavía no
-ha empezado.
+Crear y editar tablas, columnas y relaciones llega en el Incremento 3, que
+todavía no ha empezado.
 
 ## Requisitos
 
@@ -55,8 +68,7 @@ cargo check --manifest-path src-tauri/Cargo.toml
 cargo test --manifest-path src-tauri/Cargo.toml # preferencias, archivos, recientes e identidad
 ```
 
-Y el recorrido de los ocho escenarios del Incremento 1, que conduce la
-aplicación de verdad con WebdriverIO:
+Y el recorrido completo, que conduce la aplicación de verdad con WebdriverIO:
 
 ```bash
 npm run e2e          # compila el binario del recorrido y ejecuta los escenarios
@@ -77,7 +89,9 @@ movimiento», que el Finder abra con el archivo seleccionado— queda anotado co
 recorrido manual en
 [`specs/001-base-aplicacion/quickstart.md`](specs/001-base-aplicacion/quickstart.md)
 y
-[`specs/002-archivos-modelo/quickstart.md`](specs/002-archivos-modelo/quickstart.md).
+[`specs/002-archivos-modelo/quickstart.md`](specs/002-archivos-modelo/quickstart.md)
+y
+[`specs/003-lienzo-esquemas/quickstart.md`](specs/003-lienzo-esquemas/quickstart.md).
 
 ## Empaquetar
 

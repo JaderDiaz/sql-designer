@@ -102,10 +102,11 @@ export async function texto() {
  * @param esperado Texto que debe verse.
  */
 export async function esperarTexto(esperado) {
-  await browser.waitUntil(async () => (await texto()).includes(esperado), {
-    timeout: ESPERA_MS,
-    timeoutMsg: `No apareció «${esperado}» en la pantalla.`,
-  })
+  try {
+    await browser.waitUntil(async () => (await texto()).includes(esperado), { timeout: ESPERA_MS })
+  } catch {
+    throw new Error(`No apareció «${esperado}» en la pantalla. Lo que se veía:\n${await resumen()}`)
+  }
 }
 
 /**
@@ -114,10 +115,23 @@ export async function esperarTexto(esperado) {
  * @param esperado Texto que no debe verse.
  */
 export async function esperarSinTexto(esperado) {
-  await browser.waitUntil(async () => !(await texto()).includes(esperado), {
-    timeout: ESPERA_MS,
-    timeoutMsg: `Seguía viéndose «${esperado}» en la pantalla.`,
-  })
+  try {
+    await browser.waitUntil(async () => !(await texto()).includes(esperado), { timeout: ESPERA_MS })
+  } catch {
+    throw new Error(`Seguía viéndose «${esperado}» en la pantalla. Lo que se veía:\n${await resumen()}`)
+  }
+}
+
+/**
+ * Lo que se ve en la pantalla, recortado para que quepa en el mensaje de un
+ * fallo.
+ *
+ * Una espera que no se cumple sin decir qué había en la pantalla obliga a
+ * reproducir la ejecución para saberlo, y en el recorrido eso cuesta minutos.
+ */
+async function resumen() {
+  const visible = (await texto()).replace(/\n{2,}/g, '\n').trim()
+  return visible.length > 800 ? `${visible.slice(0, 800)}…` : visible
 }
 
 /**
@@ -141,6 +155,30 @@ export async function pulsar(nombre, selector = 'button,[role="radio"],[role="me
     return true
   }`
   await esperar(guion, `No se pudo pulsar «${nombre}».`)
+}
+
+/**
+ * Pulsa un control una y otra vez hasta que se apague.
+ *
+ * Mirar si está habilitado y pulsarlo en dos viajes distintos no sirve: el
+ * lienzo apunta el zoom en vivo y lo comitea unos milisegundos después, así
+ * que entre la pregunta y el clic el control puede apagarse y el clic falla.
+ * Aquí las dos cosas pasan en la misma vuelta dentro de la página.
+ *
+ * @param nombre Nombre del control.
+ * @param selector Qué controles mirar.
+ */
+export async function pulsarHastaApagar(nombre, selector = 'button') {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...document.querySelectorAll(${JSON.stringify(selector)})]
+      .filter((e) => e.offsetParent !== null && !e.disabled)
+      .find((e) => nombre(e).startsWith(${JSON.stringify(nombre)}))
+    if (!el) return true
+    el.click()
+    return null
+  }`
+  await esperar(guion, `«${nombre}» no se apagó por mucho que se pulsara.`)
 }
 
 /**
@@ -486,4 +524,226 @@ export async function desdeLaBienvenida() {
   }
 
   throw new Error('La aplicación no volvió a la Bienvenida antes de empezar el escenario.')
+}
+
+/**
+ * Espera a que el Editor esté pintado, con el modelo que sea.
+ *
+ * No sirve la tarjeta «Empieza a diseñar tu modelo»: esa solo sale con un
+ * modelo sin tablas (FR-005). Lo que hay siempre es la fila «Todos los
+ * esquemas» de la barra lateral.
+ */
+export async function esperarEditor() {
+  await esperarTexto('Todos los esquemas')
+}
+
+/** Qué elementos puede señalar un gesto: lo que tiene nombre accesible. */
+const SENALABLES = 'button,[role="application"],[role="group"]'
+
+/**
+ * Arrastra con el puntero desde el centro de un elemento.
+ *
+ * Los eventos se emiten a mano porque el gesto del lienzo es de Pointer
+ * Events, y el `moveTo` de WebdriverIO no llega a la ventana de Tauri.
+ *
+ * @param nombre Nombre accesible del elemento, por su principio.
+ * @param dx Cuánto se mueve en horizontal, en píxeles de pantalla.
+ * @param dy Cuánto se mueve en vertical.
+ * @param opciones `boton` 0 es el principal y 1 la rueda pulsada.
+ */
+export async function arrastrar(nombre, dx, dy, { boton = 0 } = {}) {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...document.querySelectorAll(${JSON.stringify(SENALABLES)})]
+      .filter((e) => e.offsetParent !== null)
+      .find((e) => nombre(e).startsWith(${JSON.stringify(nombre)}))
+    if (!el) return null
+    const caja = el.getBoundingClientRect()
+    const x = caja.left + caja.width / 2
+    const y = caja.top + caja.height / 2
+    const comun = (cx, cy, botones) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      button: ${boton},
+      buttons: botones,
+      clientX: cx,
+      clientY: cy,
+    })
+    const botones = ${boton} === 1 ? 4 : 1
+    el.dispatchEvent(new PointerEvent('pointerdown', comun(x, y, botones)))
+    for (let paso = 1; paso <= 4; paso += 1) {
+      const px = x + (${dx} * paso) / 4
+      const py = y + (${dy} * paso) / 4
+      el.dispatchEvent(new PointerEvent('pointermove', comun(px, py, botones)))
+    }
+    el.dispatchEvent(new PointerEvent('pointerup', comun(x + ${dx}, y + ${dy}, 0)))
+    return true
+  }`
+  await esperar(guion, `No se pudo arrastrar «${nombre}».`)
+}
+
+/**
+ * Gira la rueda sobre un elemento.
+ *
+ * @param nombre Nombre accesible del elemento, por su principio.
+ * @param opciones `dx`, `dy` y `meta` para el zoom (⌘ o Ctrl).
+ */
+export async function rueda(nombre, { dx = 0, dy = 0, meta = false } = {}) {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...document.querySelectorAll(${JSON.stringify(SENALABLES)})]
+      .filter((e) => e.offsetParent !== null)
+      .find((e) => nombre(e).startsWith(${JSON.stringify(nombre)}))
+    if (!el) return null
+    const caja = el.getBoundingClientRect()
+    el.dispatchEvent(new WheelEvent('wheel', {
+      bubbles: true,
+      cancelable: true,
+      deltaX: ${dx},
+      deltaY: ${dy},
+      ctrlKey: ${meta},
+      clientX: caja.left + caja.width / 2,
+      clientY: caja.top + caja.height / 2,
+    }))
+    return true
+  }`
+  await esperar(guion, `No se pudo girar la rueda sobre «${nombre}».`)
+}
+
+/**
+ * Mantiene o suelta una tecla sobre un elemento.
+ *
+ * Hace falta para la barra espaciadora: el gesto necesita la tecla abajo
+ * mientras el puntero se mueve, y `browser.keys` la pulsa y la suelta de
+ * seguido.
+ *
+ * @param nombre Nombre accesible del elemento, por su principio.
+ * @param tipo `keydown` o `keyup`.
+ * @param init Campos del evento, por ejemplo `{ key: ' ', code: 'Space' }`.
+ */
+export async function tecla(nombre, tipo, init) {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...document.querySelectorAll(${JSON.stringify(SENALABLES)})]
+      .filter((e) => e.offsetParent !== null)
+      .find((e) => nombre(e).startsWith(${JSON.stringify(nombre)}))
+    if (!el) return null
+    el.focus()
+    el.dispatchEvent(new KeyboardEvent(${JSON.stringify(tipo)}, {
+      bubbles: true,
+      cancelable: true,
+      ...${JSON.stringify(init)},
+    }))
+    return true
+  }`
+  await esperar(guion, `No se pudo pulsar una tecla sobre «${nombre}».`)
+}
+
+/**
+ * La vista del lienzo hecha texto: lo que desplaza y lo que escala, juntos.
+ *
+ * Son dos nodos y no uno porque la capa que el compositor promueve para
+ * arrastrar no puede contener la escala sin pixelar el texto, así que el
+ * recorrido lee los dos `transform` y los concatena.
+ */
+export async function vistaDelLienzo() {
+  return esperar(
+    `() => {
+      const frame = document.querySelector('.sm-frame')
+      const stage = document.querySelector('.sm-stage')
+      return frame && stage ? { transform: frame.style.transform + ' ' + stage.style.transform } : null
+    }`,
+    'No se encontraron los nodos transformados del lienzo.',
+  ).then((encontrado) => encontrado.transform)
+}
+
+/**
+ * Pulsa el fondo del lienzo, sin arrastrarlo.
+ *
+ * Es el gesto que suelta el foco del esquema (FR-031): el puntero baja y sube
+ * en el mismo punto, que es lo que distingue un clic de un arrastre.
+ */
+export async function pulsarElFondo() {
+  await esperar(
+    `() => {
+      const el = document.querySelector('.sm-canvas')
+      if (!el) return null
+      const caja = el.getBoundingClientRect()
+      const x = caja.left + 8
+      const y = caja.bottom - 8
+      const comun = (botones) => ({
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+        button: 0,
+        buttons: botones,
+        clientX: x,
+        clientY: y,
+      })
+      el.dispatchEvent(new PointerEvent('pointerdown', comun(1)))
+      el.dispatchEvent(new PointerEvent('pointerup', comun(0)))
+      return true
+    }`,
+    'No se encontró el fondo del lienzo.',
+  )
+}
+
+/**
+ * Las zonas del lienzo, por su nombre accesible.
+ *
+ * Cada zona viene medida dos veces: en píxeles de pantalla, que es lo que se
+ * ve, y en coordenadas del modelo, que es lo que el archivo guarda. Lo segundo
+ * sale de su propio estilo y no depende del zoom ni de la transición del
+ * lienzo, así que es con lo que se comparan posiciones y tamaños.
+ *
+ * @returns Un objeto por zona con su nombre, su caja en pantalla y su caja en
+ * el modelo.
+ */
+export async function zonas() {
+  return browser.execute(`
+    const nombre = (el) => (el.getAttribute('aria-label') || '').trim()
+    return [...document.querySelectorAll('.sm-zone')].map((el) => {
+      const caja = el.getBoundingClientRect()
+      return {
+        nombre: nombre(el),
+        x: Math.round(caja.left),
+        y: Math.round(caja.top),
+        ancho: Math.round(caja.width),
+        alto: Math.round(caja.height),
+        modelo: {
+          x: parseFloat(el.style.left),
+          y: parseFloat(el.style.top),
+          ancho: parseFloat(el.style.width),
+          alto: parseFloat(el.style.height),
+        },
+        atenuada: el.className.includes('is-dim'),
+      }
+    })
+  `)
+}
+
+/**
+ * Abre el menú contextual de una zona del lienzo con la tecla que lo abre sin
+ * ratón (⇧F10).
+ *
+ * @param nombre Nombre técnico del esquema.
+ */
+export async function menuDeZona(nombre) {
+  await esperarSinMenu()
+  const guion = `() => {
+    const el = [...document.querySelectorAll('.sm-zone')]
+      .find((e) => (e.getAttribute('aria-label') || '').includes(${JSON.stringify(nombre)}))
+    if (!el) return null
+    el.focus()
+    el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 10, clientY: 10 }))
+    return true
+  }`
+  await esperar(guion, `No se encontró la zona de «${nombre}».`)
 }
