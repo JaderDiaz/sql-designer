@@ -107,4 +107,81 @@ describe('parseModel', () => {
     expect(result.errors[0]?.message).toContain('«ventas» no está declarado')
     expect(result.errors[0]?.line).toBe(9)
   })
+  it('lee la posición de un esquema sin tablas', () => {
+    const result = parseModel(readFixture('modelo-posiciones'))
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const empty = result.model.schemas.find((schema) => schema.name === 'reportes')
+    expect(empty?.position).toEqual({ x: 900, y: 120 })
+  })
+
+  it('descarta la posición de un esquema que sí tiene tablas', () => {
+    // La posición de la zona dejó de aplicar en cuanto el esquema recibió una
+    // tabla: no invalida el archivo, se poda al leer (FR-026a).
+    const text = [
+      'formatVersion: 1',
+      'name: Con posición de más',
+      'engine: postgres',
+      'schemas:',
+      '  - name: ventas',
+      '    abbreviation: VEN',
+      '    position:',
+      '      x: 40',
+      '      y: 60',
+      'tables:',
+      '  - name: facturas',
+      '    schema: ventas',
+      '    fields:',
+      '      - name: id',
+      '        type: integer',
+    ].join('\n')
+
+    const result = parseModel(text)
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.model.schemas[0]?.position).toBeUndefined()
+  })
+
+  it('rechaza una clave desconocida dentro de la posición del esquema', () => {
+    const text = [
+      'formatVersion: 1',
+      'name: Posición con clave de más',
+      'engine: postgres',
+      'schemas:',
+      '  - name: ventas',
+      '    abbreviation: VEN',
+      '    position:',
+      '      x: 40',
+      '      z: 60',
+    ].join('\n')
+
+    const result = parseModel(text)
+
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.errors[0]?.message).toBe('La posición solo admite «x» e «y».')
+  })
+
+  it('rechaza una «x» que no es un número en la posición del esquema', () => {
+    const text = [
+      'formatVersion: 1',
+      'name: Posición con texto',
+      'engine: postgres',
+      'schemas:',
+      '  - name: ventas',
+      '    abbreviation: VEN',
+      '    position:',
+      '      x: izquierda',
+      '      y: 60',
+    ].join('\n')
+
+    const result = parseModel(text)
+
+    expect(result.ok).toBe(false)
+    if (result.ok) return
+    expect(result.errors[0]?.message).toBe('«x» de la posición tiene que ser un número.')
+    expect(result.errors[0]?.line).toBe(8)
+  })
 })

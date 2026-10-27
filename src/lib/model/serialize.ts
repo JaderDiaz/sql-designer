@@ -33,7 +33,9 @@ function ordered<TSource extends object>(
 
 /** Pone un esquema en el orden del formato. */
 function fromSchema(schema: Schema): Record<string, unknown> {
-  return ordered(schema, ['name', 'abbreviation', 'color', 'comment'])
+  const out = ordered(schema, ['name', 'abbreviation', 'color', 'position', 'comment'])
+  if (schema.position) out['position'] = ordered(schema.position, ['x', 'y'])
+  return out
 }
 
 /** Pone un índice o un único en el orden del formato. */

@@ -46,10 +46,10 @@ pruebas junto al código que prueban (convención del Incremento 0).
 
 **Purpose**: dejar listo lo que todo lo demás necesita, antes de tocar código.
 
-- [ ] T001 Instalar la única dependencia nueva del incremento: `npm install @radix-ui/react-switch` (research.md R14). Confirmar que `package-lock.json` queda al día, porque CI usa `npm ci`
-- [ ] T002 [P] Exponer en `tailwind.config.js` los cuatro tokens de color que faltan para la paleta: `pink`, `yellow`, `brown` y `gray`, cada uno apuntando a su variable de `src/styles/tokens.css` (research.md R7)
-- [ ] T003 [P] Añadir a `src/lib/model/__fixtures__/index.ts` tres modelos de ejemplo: uno con tablas en tres esquemas de colores distintos y un cuarto esquema vacío, uno con `schemas[].position` en el esquema vacío y `tables[].position` en todas, y uno con posiciones imposibles (negativas y enormes)
-- [ ] T004 [P] Crear `e2e/soporte/modelo-esquemas.yaml`: tres esquemas con tablas y color, un cuarto vacío, y registrarlo en la preparación de la carpeta temporal de `e2e/wdio.conf.js` junto a los modelos que ya hay
+- [X] T001 Instalar la única dependencia nueva del incremento: `npm install @radix-ui/react-switch` (research.md R14). Confirmar que `package-lock.json` queda al día, porque CI usa `npm ci`
+- [X] T002 [P] Exponer en `tailwind.config.js` los cuatro tokens de color que faltan para la paleta: `pink`, `yellow`, `brown` y `gray`, cada uno apuntando a su variable de `src/styles/tokens.css` (research.md R7)
+- [X] T003 [P] Añadir a `src/lib/model/__fixtures__/index.ts` tres modelos de ejemplo: uno con tablas en tres esquemas de colores distintos y un cuarto esquema vacío, uno con `schemas[].position` en el esquema vacío y `tables[].position` en todas, y uno con posiciones imposibles (negativas y enormes)
+- [X] T004 [P] Crear `e2e/soporte/modelo-esquemas.yaml`: tres esquemas con tablas y color, un cuarto vacío, y registrarlo en la preparación de la carpeta temporal de `e2e/wdio.conf.js` junto a los modelos que ya hay
 
 **Checkpoint**: dependencia disponible, tokens completos y modelos de ejemplo
 listos para las pruebas.
@@ -66,29 +66,29 @@ necesitan.
 
 ### El campo nuevo del formato (data-model.md §1, contracts/model.schema.json)
 
-- [ ] T005 Añadir `position?: Position` a `Schema` en `src/lib/model/types.ts`, con su JSDoc en español diciendo que solo existe mientras el esquema no tiene tablas (FR-026a)
-- [ ] T006 Aceptar `position` en el esquema en `src/lib/model/validate.ts`: añadirla a `ALLOWED_KEYS.schema` y validar su forma con las mismas reglas que la de la tabla — «La posición solo admite «x» e «y».» y ««x» de la posición tiene que ser un número.» (data-model.md §6)
-- [ ] T007 Escribir `position` en su orden en `src/lib/model/serialize.ts`: `name`, `abbreviation`, `color`, `position`, `comment` (data-model.md §1.1)
-- [ ] T008 Podar en `src/lib/model/parse.ts` la `position` de todo esquema que tenga al menos una tabla, sin tratar el archivo como inválido, para que el modelo en memoria nunca lleve un dato que el archivo no deba tener (research.md R6, data-model.md §1.2)
-- [ ] T009 Ampliar `src/lib/model/parse.test.ts`: la posición se lee en un esquema vacío, se descarta en uno con tablas, y una clave desconocida o una `x` no numérica sí invalidan el archivo (FR-026a, FR-044)
-- [ ] T010 Ampliar `src/lib/model/roundtrip.test.ts` con un modelo que trae `schemas[].position` y `tables[].position`: parsear → serializar → parsear da el mismo modelo y el mismo texto (puerta 3, FR-044)
+- [X] T005 Añadir `position?: Position` a `Schema` en `src/lib/model/types.ts`, con su JSDoc en español diciendo que solo existe mientras el esquema no tiene tablas (FR-026a)
+- [X] T006 Aceptar `position` en el esquema en `src/lib/model/validate.ts`: añadirla a `ALLOWED_KEYS.schema` y validar su forma con las mismas reglas que la de la tabla — «La posición solo admite «x» e «y».» y ««x» de la posición tiene que ser un número.» (data-model.md §6)
+- [X] T007 Escribir `position` en su orden en `src/lib/model/serialize.ts`: `name`, `abbreviation`, `color`, `position`, `comment` (data-model.md §1.1)
+- [X] T008 Podar en `src/lib/model/parse.ts` la `position` de todo esquema que tenga al menos una tabla, sin tratar el archivo como inválido, para que el modelo en memoria nunca lleve un dato que el archivo no deba tener (research.md R6, data-model.md §1.2)
+- [X] T009 Ampliar `src/lib/model/parse.test.ts`: la posición se lee en un esquema vacío, se descarta en uno con tablas, y una clave desconocida o una `x` no numérica sí invalidan el archivo (FR-026a, FR-044)
+- [X] T010 Ampliar `src/lib/model/roundtrip.test.ts` con un modelo que trae `schemas[].position` y `tables[].position`: parsear → serializar → parsear da el mismo modelo y el mismo texto (puerta 3, FR-044)
 
 ### Paleta y propuesta de nombres (data-model.md §5, contracts/canvas.md §1)
 
-- [ ] T011 [P] Crear `src/lib/model/colors.ts` con `SchemaColor`, los once colores en orden (`gray` Grafito, `blue` Azul, `indigo` Índigo, `purple` Morado, `pink` Rosa, `red` Rojo, `orange` Naranja, `yellow` Amarillo, `brown` Marrón, `green` Verde, `teal` Teal), `DEFAULT_SCHEMA_COLOR = 'indigo'` y `resolveSchemaColor(color)` que cae al color por defecto con un identificador desconocido (FR-021)
-- [ ] T012 [P] Crear `src/lib/model/colors.test.ts`: los once identificadores están, el orden es el declarado, y un identificador que no existe cae a `indigo` sin lanzar
-- [ ] T013 [P] Crear `src/lib/model/propose.ts` con `toTechnicalName(name)` —sin acentos, minúsculas, lo que no es letra ni número pasa a guion bajo, no empieza por número, tope de `TECHNICAL_NAME_MAX_LENGTH` (63)— y `toAbbreviation(name)` —iniciales de las tres primeras palabras, o las tres primeras letras si hay una sola, en mayúsculas, rellenando con `X` si no llegan a tres— (FR-016, FR-043)
-- [ ] T014 [P] Crear `src/lib/model/propose.test.ts` con la tabla de `contracts/canvas.md` §1: «Ventas y cobros» → `ventas_y_cobros` / `VEN`, «Unidad residencial» → `unidad_residencial` / `URE`, «Área 51» → `area_51` / `A51`, «3 puertas» → `_3_puertas` / `3PU`, y el vacío devuelve cadena vacía
+- [X] T011 [P] Crear `src/lib/model/colors.ts` con `SchemaColor`, los once colores en orden (`gray` Grafito, `blue` Azul, `indigo` Índigo, `purple` Morado, `pink` Rosa, `red` Rojo, `orange` Naranja, `yellow` Amarillo, `brown` Marrón, `green` Verde, `teal` Teal), `DEFAULT_SCHEMA_COLOR = 'indigo'` y `resolveSchemaColor(color)` que cae al color por defecto con un identificador desconocido (FR-021)
+- [X] T012 [P] Crear `src/lib/model/colors.test.ts`: los once identificadores están, el orden es el declarado, y un identificador que no existe cae a `indigo` sin lanzar
+- [X] T013 [P] Crear `src/lib/model/propose.ts` con `toTechnicalName(name)` —sin acentos, minúsculas, lo que no es letra ni número pasa a guion bajo, no empieza por número, tope de `TECHNICAL_NAME_MAX_LENGTH` (63)— y `toAbbreviation(name)` —iniciales de las tres primeras palabras, o las tres primeras letras si hay una sola, en mayúsculas, rellenando con `X` si no llegan a tres— (FR-016, FR-043)
+- [X] T014 [P] Crear `src/lib/model/propose.test.ts` con la tabla de `contracts/canvas.md` §1: «Ventas y cobros» → `ventas_y_cobros` / `VYC`, «Unidad residencial» → `unidad_residencial` / `URE`, «Área 51» → `area_51` / `A51`, «3 puertas» → `_3_puertas` / `3PU`, y el vacío devuelve cadena vacía
 
 ### Geometría pura del lienzo (research.md R4, R5, R10)
 
-- [ ] T015 [P] Crear `src/lib/canvas/constants.ts` con las medidas del lienzo: `TABLE_WIDTH = 200`, `TABLE_HEIGHT = 64`, `ZONE_PADDING = 20`, `ZONE_HEADER = 40`, `EMPTY_ZONE_WIDTH = 240`, `EMPTY_ZONE_HEIGHT = 180`, `ZOOM_MIN = 0.4`, `ZOOM_MAX = 2`, `FIT_MARGIN = 48`, y los tipos `Rect` y `View`
-- [ ] T016 Crear `src/lib/canvas/layout.ts` con `resolveLayout(model)`: devuelve la posición de cada tabla —la del archivo si la trae— y, para las que no, una rejilla de tres columnas por esquema con 40 px de separación, cada esquema a la derecha del anterior con 80 px de aire. Determinista y sin mutar el modelo (FR-013, FR-028)
-- [ ] T017 Crear `src/lib/canvas/geometry.ts` con `SchemaZone`, `schemaZones(model, layout)` —envolvente de las tablas más `ZONE_PADDING` a los lados y abajo y `ZONE_HEADER` arriba; una zona vacía toma `schemas[].position` o la posición determinista por su orden, con tamaño `EMPTY_ZONE_*`— y `contentBounds(zones)`, que devuelve `null` con un modelo sin nada (FR-023 a FR-026a)
-- [ ] T018 Crear `src/lib/canvas/zoom.ts` con `clampZoom(zoom)`, `zoomAt(view, zoom, pointer)` —el punto del modelo bajo el puntero sigue bajo el puntero— y `fitToContent(bounds, viewport)` —deja todo dentro con `FIT_MARGIN`, recorta a los topes y, con `bounds` nulo, devuelve `{ pan: {x: 0, y: 0}, zoom: 1 }`— (FR-008 a FR-011)
-- [ ] T019 [P] Crear `src/lib/canvas/layout.test.ts`: el mismo modelo da el mismo mapa, la posición del archivo se respeta sin tocar, las zonas resultantes no se solapan y el modelo no se muta (FR-013, FR-028)
-- [ ] T020 [P] Crear `src/lib/canvas/geometry.test.ts`: la zona envuelve sus tablas con el margen exacto, el alto mínimo con una sola tabla deja sitio al rótulo, la zona vacía mide 240 × 180, y las zonas salen en el orden del modelo (FR-023 a FR-025)
-- [ ] T021 [P] Crear `src/lib/canvas/zoom.test.ts`: los topes 40 % y 200 %, el punto bajo el puntero no se mueve, «Ajustar» con posiciones negativas y enormes las trae a la vista, y el modelo vacío da 100 % centrado (FR-008 a FR-011, SC-004)
+- [X] T015 [P] Crear `src/lib/canvas/constants.ts` con las medidas del lienzo: `TABLE_WIDTH = 200`, `TABLE_HEIGHT = 64`, `ZONE_PADDING = 20`, `ZONE_HEADER = 40`, `EMPTY_ZONE_WIDTH = 240`, `EMPTY_ZONE_HEIGHT = 180`, `ZOOM_MIN = 0.4`, `ZOOM_MAX = 2`, `FIT_MARGIN = 48`, y los tipos `Rect` y `View`
+- [X] T016 Crear `src/lib/canvas/layout.ts` con `resolveLayout(model)`: devuelve la posición de cada tabla —la del archivo si la trae— y, para las que no, una rejilla de tres columnas por esquema con 40 px de separación, cada esquema a la derecha del anterior con 80 px de aire. Determinista y sin mutar el modelo (FR-013, FR-028)
+- [X] T017 Crear `src/lib/canvas/geometry.ts` con `SchemaZone`, `schemaZones(model, layout)` —envolvente de las tablas más `ZONE_PADDING` a los lados y abajo y `ZONE_HEADER` arriba; una zona vacía toma `schemas[].position` o la posición determinista por su orden, con tamaño `EMPTY_ZONE_*`— y `contentBounds(zones)`, que devuelve `null` con un modelo sin nada (FR-023 a FR-026a)
+- [X] T018 Crear `src/lib/canvas/zoom.ts` con `clampZoom(zoom)`, `zoomAt(view, zoom, pointer)` —el punto del modelo bajo el puntero sigue bajo el puntero— y `fitToContent(bounds, viewport)` —deja todo dentro con `FIT_MARGIN`, recorta a los topes y, con `bounds` nulo, devuelve `{ pan: {x: 0, y: 0}, zoom: 1 }`— (FR-008 a FR-011)
+- [X] T019 [P] Crear `src/lib/canvas/layout.test.ts`: el mismo modelo da el mismo mapa, la posición del archivo se respeta sin tocar, las zonas resultantes no se solapan y el modelo no se muta (FR-013, FR-028)
+- [X] T020 [P] Crear `src/lib/canvas/geometry.test.ts`: la zona envuelve sus tablas con el margen exacto, el alto mínimo con una sola tabla deja sitio al rótulo, la zona vacía mide 240 × 180, y las zonas salen en el orden del modelo (FR-023 a FR-025)
+- [X] T021 [P] Crear `src/lib/canvas/zoom.test.ts`: los topes 40 % y 200 %, el punto bajo el puntero no se mueve, «Ajustar» con posiciones negativas y enormes las trae a la vista, y el modelo vacío da 100 % centrado (FR-008 a FR-011, SC-004)
 
 ### Estado (data-model.md §3, research.md R2)
 

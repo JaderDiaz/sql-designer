@@ -1,0 +1,81 @@
+formatVersion: 1
+name: Comercio · Tres esquemas
+engine: postgres
+schemas:
+  - name: ventas
+    abbreviation: VEN
+    color: blue
+    comment: Facturación y cobros
+  - name: inventario
+    abbreviation: INV
+    color: green
+  - name: personas
+    abbreviation: PER
+    color: purple
+  - name: reportes
+    abbreviation: REP
+    color: orange
+    comment: Todavía sin tablas
+enums:
+  - name: estado_factura
+    schema: ventas
+    values:
+      - borrador
+      - emitida
+      - pagada
+tables:
+  - name: facturas
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+      - name: cliente_id
+        type: integer
+      - name: estado
+        type: estado_factura
+    primaryKey:
+      - id
+  - name: pagos
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+      - name: factura_id
+        type: integer
+      - name: importe
+        type: numeric(10,2)
+    primaryKey:
+      - id
+  - name: productos
+    schema: inventario
+    fields:
+      - name: id
+        type: integer
+      - name: nombre
+        type: text
+    primaryKey:
+      - id
+  - name: clientes
+    schema: personas
+    fields:
+      - name: id
+        type: integer
+      - name: nombre
+        type: text
+    primaryKey:
+      - id
+relations:
+  - name: pagos_factura_fk
+    fromTable: pagos
+    fromFields:
+      - factura_id
+    toTable: facturas
+    toFields:
+      - id
+    onDelete: cascade
+views:
+  - name: facturas_pagadas
+    schema: ventas
+    tables:
+      - facturas
+      - pagos

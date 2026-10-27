@@ -40,7 +40,7 @@ export function toAbbreviation(name: string): string
 
 | Entrada | `toTechnicalName` | `toAbbreviation` |
 | ------- | ----------------- | ---------------- |
-| `Ventas y cobros` | `ventas_y_cobros` | `VEN` |
+| `Ventas y cobros` | `ventas_y_cobros` | `VYC` |
 | `Unidad residencial` | `unidad_residencial` | `URE` |
 | `Cartera` | `cartera` | `CAR` |
 | `Área 51` | `area_51` | `A51` |
@@ -49,6 +49,12 @@ export function toAbbreviation(name: string): string
 
 Las dos devuelven cadena vacía cuando no queda nada que proponer; el diálogo
 entonces no propone y espera que el usuario escriba (FR-016, FR-018).
+
+La regla de `toAbbreviation` es la inicial de cada una de las tres primeras
+palabras y, si el nombre no tiene tres, se sigue tomando letras de la última
+hasta llegar a tres, rellenando con `X` si aun así no llegan. La tabla decía
+`VEN` para «Ventas y cobros», que es un nombre de tres palabras y por tanto
+propone `VYC`; se corrigió al implementar.
 
 ---
 

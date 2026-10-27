@@ -24,6 +24,9 @@ export type FixtureName =
   | 'modelo-roto'
   | 'modelo-clave-desconocida'
   | 'modelo-50-tablas'
+  | 'modelo-tres-esquemas'
+  | 'modelo-posiciones'
+  | 'modelo-posiciones-extremas'
 
 /**
  * Lee un modelo de ejemplo.

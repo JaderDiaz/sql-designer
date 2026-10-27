@@ -39,6 +39,15 @@ export interface Schema {
   abbreviation: string
   /** Identificador de token de color; lo fija el Incremento 2. */
   color?: string
+  /**
+   * Posición de su zona en el lienzo.
+   *
+   * Solo existe mientras el esquema no tiene ninguna tabla: entonces la zona
+   * no se puede deducir de nada y hay que recordar dónde la dejó el usuario.
+   * En cuanto el esquema recibe una tabla, la zona se deduce de sus tablas y
+   * este campo se descarta al leer el archivo (FR-026a).
+   */
+  position?: Position
   /** Descripción libre. */
   comment?: string
 }
