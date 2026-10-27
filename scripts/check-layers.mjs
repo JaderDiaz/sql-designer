@@ -5,10 +5,12 @@ import { fileURLToPath } from 'node:url'
 /**
  * Puerta 7 de la constitución: verifica la dirección de las dependencias.
  *
- * Comprueba dos reglas y falla con código 1 si alguna se rompe:
+ * Comprueba tres reglas y falla con código 1 si alguna se rompe:
  * 1. Ningún archivo de `src/components/ui/` importa de `src/store/` ni de
  *    `src/components/features/`: el sistema de diseño es puro.
  * 2. `invoke` solo aparece en `src/lib/tauri/`, que es la única frontera.
+ * 3. Ningún archivo de `src/lib/` importa de `src/components/`: la lógica pura
+ *    no conoce la interfaz, y por eso se puede probar sin montar nada.
  */
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -45,6 +47,14 @@ for (const file of allFiles) {
   const isBoundary = relative(root, file).startsWith(join('src', 'lib', 'tauri'))
   if (!isBoundary && /\binvoke\b/.test(code)) {
     problems.push(`${relative(root, file)}: \`invoke\` fuera de src/lib/tauri/`)
+  }
+}
+
+const libFiles = await sources(join(root, 'src', 'lib'))
+for (const file of libFiles) {
+  const code = await readFile(file, 'utf8')
+  if (/from '@\/components\//.test(code)) {
+    problems.push(`${relative(root, file)}: un archivo de lib importa de componentes`)
   }
 }
 

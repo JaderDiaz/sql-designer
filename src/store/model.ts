@@ -25,6 +25,11 @@ import type { AppSlice } from '@/store/types'
  * excepción deliberada: crear un modelo escribe el archivo en ese momento,
  * porque el archivo **es** el modelo y hasta que existe no hay nada que abrir
  * (FR-005).
+ *
+ * Abrir, crear y cerrar un modelo dejan la vista del lienzo sin desplazar y
+ * sin foco: el lienzo la ajusta al modelo en cuanto mide su caja, porque el
+ * encuadre depende del tamaño de la ventana y aquí no se conoce (FR-014,
+ * FR-032).
  */
 
 /** Lo que hace falta para crear un modelo nuevo. */
@@ -173,6 +178,10 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       openStartedMs: startedMs,
       screen: 'editor',
       dialog: null,
+      pan: { x: 0, y: 0 },
+      zoom: 1,
+      focusedSchema: null,
+      selectedSchema: null,
     })
 
     await Promise.all([
@@ -273,6 +282,10 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       screen: 'editor',
       dialog: null,
       pendingIntent: null,
+      pan: { x: 0, y: 0 },
+      zoom: 1,
+      focusedSchema: null,
+      selectedSchema: null,
     })
 
     await Promise.all([
@@ -440,6 +453,10 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       screen: 'welcome',
       dialog: null,
       pendingIntent: null,
+      pan: { x: 0, y: 0 },
+      zoom: 1,
+      focusedSchema: null,
+      selectedSchema: null,
     })
   },
 

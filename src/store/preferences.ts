@@ -33,6 +33,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   lastModelPath: null,
   engine: 'postgres',
   lastFolder: null,
+  sidebarHidden: false,
+  inspectorHidden: false,
 }
 
 /**

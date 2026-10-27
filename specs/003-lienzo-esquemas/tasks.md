@@ -92,23 +92,23 @@ necesitan.
 
 ### Estado (data-model.md §3, research.md R2)
 
-- [ ] T022 Crear `src/store/canvas.ts` con `createCanvasSlice`: `pan`, `zoom`, `focusedSchema`, `selectedSchema`, `isGesturing`, `isSidebarHidden`, `isInspectorHidden` y las acciones de `contracts/canvas.md` §2.1 (`setView`, `zoomBy`, `zoomTo`, `fitToModel`, `focusSchema`, `selectSchema`, `setGesturing`, `toggleSidebar`, `toggleInspector`)
-- [ ] T023 Crear `src/store/schemas.ts` con `createSchemasSlice`: `createSchema`, `updateSchema`, `deleteSchema` y `moveSchema`, cada una con su paso de historial etiquetado («crear el esquema», «editar el esquema», «eliminar el esquema», «mover el esquema» / «mover las tablas del esquema») y midiendo `isDirty` contra el modelo del archivo, como hace `renameModel` (contracts/canvas.md §2.2, research.md R16). Las cuatro se prueban en la fase de su historia —T046, T055 y T079—, porque cada prueba necesita el escenario completo de esa historia; aquí solo entran su firma, su efecto en el modelo y su paso de historial
-- [ ] T024 Componer las dos partes nuevas en `src/store/index.ts` y `src/store/types.ts`, en el orden del almacén existente
-- [ ] T025 Quitar el foco solo cuando desaparece su esquema o se cierra el modelo: en `src/store/schemas.ts` (`deleteSchema`) y en `src/store/model.ts` (`closeModel`, `openModel`, `createModel`), que además dejan la vista ajustada al modelo nuevo (FR-014, FR-032)
+- [X] T022 Crear `src/store/canvas.ts` con `createCanvasSlice`: `pan`, `zoom`, `focusedSchema`, `selectedSchema`, `isGesturing`, `isSidebarHidden`, `isInspectorHidden` y las acciones de `contracts/canvas.md` §2.1 (`setView`, `zoomBy`, `zoomTo`, `fitToModel`, `focusSchema`, `selectSchema`, `setGesturing`, `toggleSidebar`, `toggleInspector`)
+- [X] T023 Crear `src/store/schemas.ts` con `createSchemasSlice`: `createSchema`, `updateSchema`, `deleteSchema` y `moveSchema`, cada una con su paso de historial etiquetado («crear el esquema», «editar el esquema», «eliminar el esquema», «mover el esquema» / «mover las tablas del esquema») y midiendo `isDirty` contra el modelo del archivo, como hace `renameModel` (contracts/canvas.md §2.2, research.md R16). Las cuatro se prueban en la fase de su historia —T046, T055 y T079—, porque cada prueba necesita el escenario completo de esa historia; aquí solo entran su firma, su efecto en el modelo y su paso de historial
+- [X] T024 Componer las dos partes nuevas en `src/store/index.ts` y `src/store/types.ts`, en el orden del almacén existente
+- [X] T025 Quitar el foco solo cuando desaparece su esquema o se cierra el modelo: en `src/store/schemas.ts` (`deleteSchema`) y en `src/store/model.ts` (`closeModel`, `openModel`, `createModel`), que además dejan la vista ajustada al modelo nuevo (FR-014, FR-032)
 
 ### Preferencias de la disposición (contracts/preferences.md)
 
-- [ ] T026 [P] Añadir `sidebar_hidden` e `inspector_hidden` a `Preferences` y a `PreferencesPatch` en `src-tauri/src/preferences.rs`, con `#[serde(default)]`, su `///` en español y su rama en `apply_patch`. `FORMAT_VERSION` sigue en `1`
-- [ ] T027 [P] Añadir las pruebas en `src-tauri/src/preferences.rs`: un `preferences.json` sin los campos nuevos los lee como `false` y no genera `.bak`, y un parche cambia uno sin tocar el otro
-- [ ] T028 Reflejar los dos campos en `src/lib/tauri/types.ts` (`Preferences` y el parche) y en `DEFAULT_PREFERENCES` de `src/store/preferences.ts`
+- [X] T026 [P] Añadir `sidebar_hidden` e `inspector_hidden` a `Preferences` y a `PreferencesPatch` en `src-tauri/src/preferences.rs`, con `#[serde(default)]`, su `///` en español y su rama en `apply_patch`. `FORMAT_VERSION` sigue en `1`
+- [X] T027 [P] Añadir las pruebas en `src-tauri/src/preferences.rs`: un `preferences.json` sin los campos nuevos los lee como `false` y no genera `.bak`, y un parche cambia uno sin tocar el otro
+- [X] T028 Reflejar los dos campos en `src/lib/tauri/types.ts` (`Preferences` y el parche) y en `DEFAULT_PREFERENCES` de `src/store/preferences.ts`
 
 ### Primitivos del sistema de diseño (principio V, research.md R14)
 
-- [ ] T029 [P] Crear `src/components/ui/Switch.tsx` sobre `@radix-ui/react-switch`: puro, con etiqueta y pista opcionales, `role="switch"` del propio primitivo y estilos de token. No importa del almacén ni de `features` (puerta 7)
-- [ ] T030 [P] Crear `src/components/ui/ColorSwatches.tsx` sobre `@radix-ui/react-radio-group`: recibe la lista de colores con su nombre y el seleccionado, cada muestra con su nombre accesible («Índigo») y el grupo con `aria-label`. Puro, sin conocer la paleta del modelo
-- [ ] T031 [P] Declarar en `src/styles/screens.css` las clases de la zona del esquema, la tarjeta de tabla, el minimapa y la barra de zoom, con el color resuelto por `color-mix` sobre la variable del esquema: relleno al 4 %, borde al 18 % con tablas y al 40 % punteado sin tablas, radio 14 px, y la variante `is-dim` para la atenuación del foco. Ningún valor de color literal
-- [ ] T031a [P] Añadir a `scripts/check-layers.mjs` la tercera regla de la puerta 7: ningún archivo de `src/lib/` importa de `src/components/`. Hoy el script solo comprueba que `ui/` no importe del almacén ni de `features` y que `invoke` viva en `src/lib/tauri/`, así que la geometría pura no la vigilaba nadie (puerta 7)
+- [X] T029 [P] Crear `src/components/ui/Switch.tsx` sobre `@radix-ui/react-switch`: puro, con etiqueta y pista opcionales, `role="switch"` del propio primitivo y estilos de token. No importa del almacén ni de `features` (puerta 7)
+- [X] T030 [P] Crear `src/components/ui/ColorSwatches.tsx` sobre `@radix-ui/react-radio-group`: recibe la lista de colores con su nombre y el seleccionado, cada muestra con su nombre accesible («Índigo») y el grupo con `aria-label`. Puro, sin conocer la paleta del modelo
+- [X] T031 [P] Declarar en `src/styles/screens.css` las clases de la zona del esquema, la tarjeta de tabla, el minimapa y la barra de zoom, con el color resuelto por `color-mix` sobre la variable del esquema: relleno al 4 %, borde al 18 % con tablas y al 40 % punteado sin tablas, radio 14 px, y la variante `is-dim` para la atenuación del foco. Ningún valor de color literal
+- [X] T031a [P] Añadir a `scripts/check-layers.mjs` la tercera regla de la puerta 7: ningún archivo de `src/lib/` importa de `src/components/`. Hoy el script solo comprueba que `ui/` no importe del almacén ni de `features` y que `invoke` viva en `src/lib/tauri/`, así que la geometría pura no la vigilaba nadie (puerta 7)
 
 **Checkpoint**: el formato lee y escribe el campo nuevo, la geometría está
 probada, el almacén tiene vista y esquemas, y los dos primitivos existen. Las
