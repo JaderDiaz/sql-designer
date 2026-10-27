@@ -12,6 +12,31 @@
  * lista, así que por aquí el recorrido va a la velocidad de la aplicación.
  */
 
+/**
+ * Tecla modificadora de los atajos del sistema: ⌘ en macOS, Ctrl en el resto
+ * (RS-12).
+ */
+export const MODIFICADOR = process.platform === 'darwin' ? 'Meta' : 'Control'
+
+/**
+ * Pulsa un atajo del sistema con el modificador que toque.
+ *
+ * @param tecla Letra o signo del atajo, por ejemplo `s` para guardar.
+ */
+export async function atajo(tecla) {
+  await browser.keys([MODIFICADOR, tecla])
+}
+
+/**
+ * Cómo escribe la interfaz un atajo, que no es igual en los dos sistemas:
+ * «⌘N» en macOS y «Ctrl+N» en Windows (`src/lib/platform.ts`).
+ *
+ * @param tecla Letra o signo del atajo.
+ */
+export function atajoEscrito(tecla) {
+  return process.platform === 'darwin' ? `⌘${tecla}` : `Ctrl+${tecla}`
+}
+
 /** Cuánto se espera por algo que tiene que aparecer, en milisegundos. */
 const ESPERA_MS = 15000
 
@@ -455,7 +480,7 @@ export async function desdeLaBienvenida() {
     } else if (abiertos.length > 0) {
       await browser.keys('Escape')
     } else {
-      await browser.keys(['Meta', 'w'])
+      await atajo('w')
     }
     await browser.pause(300)
   }

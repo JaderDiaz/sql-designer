@@ -1,8 +1,9 @@
 import { appendFileSync, chmodSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { carpetaDePruebas } from '../soporte/entorno.js'
+import { WINDOWS, carpetaDePruebas } from '../soporte/entorno.js'
 import {
+  atajo,
   escribir,
   esperarDialogo,
   esperarSinDialogo,
@@ -58,7 +59,7 @@ describe('Escenario 4 · Guardar y estado de cambios', () => {
   })
 
   it('⌘S guarda, avisa y vuelve a «Guardado»', async () => {
-    await browser.keys(['Meta', 's'])
+    await atajo('s')
 
     await esperarTexto('Guardado')
     expect(readFileSync(ruta, 'utf8')).toContain('name: Livy · Reservas 2026')
@@ -67,7 +68,7 @@ describe('Escenario 4 · Guardar y estado de cambios', () => {
   it('⌘S sin cambios no vuelve a escribir el archivo', async () => {
     const antes = statSync(ruta).mtimeMs
 
-    await browser.keys(['Meta', 's'])
+    await atajo('s')
     await browser.pause(500)
 
     expect(statSync(ruta).mtimeMs).toBe(antes)
@@ -76,7 +77,7 @@ describe('Escenario 4 · Guardar y estado de cambios', () => {
   it('si el archivo cambió por fuera, cancelar no escribe nada', async () => {
     appendFileSync(ruta, '\n# tocado por fuera\n')
     await renombrar('Livy · Reservas 2027')
-    await browser.keys(['Meta', 's'])
+    await atajo('s')
 
     await esperarDialogo('«modelo.yaml» cambió en el disco')
     await pulsarEn('«modelo.yaml» cambió en el disco', 'Cancelar')
@@ -87,7 +88,7 @@ describe('Escenario 4 · Guardar y estado de cambios', () => {
   })
 
   it('sobrescribir guarda y se lleva por delante lo de fuera', async () => {
-    await browser.keys(['Meta', 's'])
+    await atajo('s')
     await esperarDialogo('«modelo.yaml» cambió en el disco')
     await pulsarEn('«modelo.yaml» cambió en el disco', 'Sobrescribir')
     await esperarSinDialogo('«modelo.yaml» cambió en el disco')
@@ -100,25 +101,27 @@ describe('Escenario 4 · Guardar y estado de cambios', () => {
 
   it('sin permiso de escritura avisa y no pierde el cambio', async () => {
     await renombrar('Livy · Reservas 2028')
-    // El permiso se le quita a la carpeta y no al archivo: la escritura es
-    // atómica —se escribe un temporal al lado y se renombra encima—, y
-    // renombrar encima de un archivo de solo lectura funciona igual mientras
-    // la carpeta deje escribir.
-    chmodSync(carpeta, 0o555)
+    // La escritura es atómica: se escribe un temporal al lado y se renombra
+    // encima. Así que el permiso se quita donde cada sistema impide ese
+    // renombrado: en macOS a la carpeta, porque renombrar sobre un archivo de
+    // solo lectura funciona igual; en Windows al archivo, porque es el que
+    // bloquea el renombrado y el permiso de la carpeta no se toca con `chmod`.
+    const objetivo = WINDOWS ? ruta : carpeta
+    chmodSync(objetivo, WINDOWS ? 0o444 : 0o555)
     try {
-      await browser.keys(['Meta', 's'])
+      await atajo('s')
       await esperarTexto('No se pudo guardar')
       await esperarTexto('Editado')
       expect((await texto()).includes('Livy · Reservas 2028')).toBe(true)
     } finally {
-      chmodSync(carpeta, 0o755)
+      chmodSync(objetivo, WINDOWS ? 0o666 : 0o755)
     }
   })
 
   after(async () => {
     // Se deja el modelo guardado para que el escenario siguiente arranque
     // desde un estado limpio.
-    await browser.keys(['Meta', 's'])
+    await atajo('s')
     await esperarTexto('Guardado')
   })
 })

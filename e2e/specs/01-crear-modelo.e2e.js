@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { carpetaDePruebas } from '../soporte/entorno.js'
 import {
   alerta,
+  atajo,
   escribir,
   esperarDialogo,
   esperarSinAlerta,
@@ -96,7 +97,7 @@ describe('Escenario 1 · Crear un modelo', () => {
   })
 
   it('el mismo nombre en la misma carpeta dice que ya existe y no deja crear', async () => {
-    await browser.keys(['Meta', 'n'])
+    await atajo('n')
     await esperarDialogo('Nuevo modelo')
 
     await escribir('Nombre del modelo', 'Livy · Reservas')

@@ -1,4 +1,5 @@
 import {
+  atajoEscrito,
   esperarDialogo,
   esperarSinDialogo,
   esperarTexto,
@@ -91,11 +92,11 @@ describe('Escenario 7 · Teclado y temas', () => {
     await esperarSinDialogo('Nuevo modelo')
   })
 
-  it('los atajos salen con los símbolos de macOS', async () => {
+  it('los atajos salen con los símbolos del sistema', async () => {
     const pantalla = await texto()
-    expect(pantalla).toContain('⌘N')
-    expect(pantalla).toContain('⌘O')
-    expect(pantalla).toContain('⌘,')
+    for (const tecla of ['N', 'O', ',']) {
+      expect(pantalla).toContain(atajoEscrito(tecla))
+    }
   })
 
   it('el tema cambia a oscuro, a claro y vuelve al del sistema', async () => {

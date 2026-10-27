@@ -1,9 +1,10 @@
 # El recorrido de `specs/002-archivos-modelo/quickstart.md`: los ocho
 # escenarios sobre la aplicación de verdad.
 #
-# Va aparte de las puertas porque es lento —compila el binario con la bandera
-# `webdriver`— y porque necesita una ventana de verdad, así que solo corre en
-# macOS. En Windows el montaje todavía está pendiente.
+# Va aparte de las puertas porque es lento: compila el binario con la bandera
+# `webdriver`. Corre en las dos plataformas del producto, y ahí comprueba lo
+# que cambia con el sistema —símbolos de atajo, nombre del gestor de archivos,
+# rutas del estado del usuario— sin que haga falta una persona delante.
 name: Recorrido
 
 on:
@@ -17,9 +18,14 @@ concurrency:
 
 jobs:
   escenarios:
-    name: Los ocho escenarios en macOS
-    runs-on: macos-latest
+    name: Los ocho escenarios en ${{ matrix.sistema }}
+    runs-on: ${{ matrix.sistema }}
     timeout-minutes: 60
+    strategy:
+      # Si una plataforma falla, la otra termina igual.
+      fail-fast: false
+      matrix:
+        sistema: [macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v5
@@ -43,6 +49,8 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: registro-de-la-aplicacion
-          path: ~/Library/Logs/com.jaderdiaz.sql-designer/sql-designer.log
+          name: registro-de-la-aplicacion-${{ matrix.sistema }}
+          path: |
+            ~/Library/Logs/com.jaderdiaz.sql-designer/sql-designer.log
+            ~/AppData/Local/com.jaderdiaz.sql-designer/logs/sql-designer.log
           if-no-files-found: ignore
