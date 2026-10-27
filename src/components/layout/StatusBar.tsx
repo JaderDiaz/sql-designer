@@ -32,12 +32,12 @@ export function StatusBar() {
       className="flex flex-none flex-wrap items-center gap-3 border-t-[length:var(--hairline)] border-separator bg-window px-4 py-1 text-[11px] leading-[14px] text-label-secondary [font-variant-numeric:tabular-nums]"
     >
       <span>{ENGINE_LABELS[model.engine]}</span>
-      <span aria-hidden="true" className="h-[12px] w-[length:var(--hairline)] bg-separator" />
+      <span aria-hidden="true" className="h-[12px] w-[var(--hairline)] bg-separator" />
       <span aria-live="polite">{saveStatusText(isDirty, savedAtMs)}</span>
 
       {focusedSchema === null ? null : (
         <>
-          <span aria-hidden="true" className="h-[12px] w-[length:var(--hairline)] bg-separator" />
+          <span aria-hidden="true" className="h-[12px] w-[var(--hairline)] bg-separator" />
           <span>Enfocado: {focusedSchema}</span>
         </>
       )}
@@ -45,9 +45,9 @@ export function StatusBar() {
       <span className="flex-1" />
 
       <span>{schemas === 1 ? '1 esquema' : `${schemas} esquemas`}</span>
-      <span aria-hidden="true" className="h-[12px] w-[length:var(--hairline)] bg-separator" />
+      <span aria-hidden="true" className="h-[12px] w-[var(--hairline)] bg-separator" />
       <span>{tables === 1 ? '1 tabla' : `${tables} tablas`}</span>
-      <span aria-hidden="true" className="h-[12px] w-[length:var(--hairline)] bg-separator" />
+      <span aria-hidden="true" className="h-[12px] w-[var(--hairline)] bg-separator" />
       <span aria-label={`Zoom ${Math.round(zoom * 100)} %`}>{Math.round(zoom * 100)} %</span>
     </footer>
   )

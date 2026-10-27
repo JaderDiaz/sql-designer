@@ -117,7 +117,7 @@ export function EditorChrome() {
           onClick={redo}
         />
 
-        <span aria-hidden="true" className="mx-1 h-[18px] w-[length:var(--hairline)] bg-separator" />
+        <span aria-hidden="true" className="mx-1 h-[18px] w-[var(--hairline)] bg-separator" />
 
         <Button
           variant="plain"
