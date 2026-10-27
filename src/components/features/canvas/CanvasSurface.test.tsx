@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -104,5 +104,133 @@ describe('CanvasSurface', () => {
     await dragZone('ventas', [100, 100], [160, 140])
 
     expect(useAppStore.getState().isGesturing).toBe(false)
+  })
+})
+
+describe('CanvasSurface: mover la vista y hacer zoom (FR-007 a FR-011, FR-039)', () => {
+  beforeEach(() => renderCanvas())
+
+  /** El lienzo, por su nombre accesible. */
+  function canvas(): HTMLElement {
+    return screen.getByRole('application', { name: 'Lienzo del modelo' })
+  }
+
+  it('arrastrar desde un espacio vacío mueve la vista (FR-007)', async () => {
+    await userEvent.pointer([
+      { keys: '[MouseLeft>]', target: canvas(), coords: { clientX: 400, clientY: 300 } },
+      { target: canvas(), coords: { clientX: 460, clientY: 340 } },
+      { keys: '[/MouseLeft]', target: canvas(), coords: { clientX: 460, clientY: 340 } },
+    ])
+
+    await waitFor(() => {
+      expect(useAppStore.getState().pan).toEqual({ x: 60, y: 40 })
+    })
+    expect(useAppStore.getState().zoom).toBe(1)
+  })
+
+  it('arrastrar con la rueda pulsada mueve la vista también encima de una zona (FR-007)', async () => {
+    const zone = screen.getByRole('button', { name: /^Esquema VEN · ventas,/ })
+
+    await userEvent.pointer([
+      { keys: '[MouseMiddle>]', target: zone, coords: { clientX: 400, clientY: 300 } },
+      { target: zone, coords: { clientX: 380, clientY: 280 } },
+      { keys: '[/MouseMiddle]', target: zone, coords: { clientX: 380, clientY: 280 } },
+    ])
+
+    await waitFor(() => {
+      expect(useAppStore.getState().pan).toEqual({ x: -20, y: -20 })
+    })
+    // La zona no se movió: el gesto era de la vista.
+    expect(useAppStore.getState().model?.tables?.[0]?.position).toBeUndefined()
+  })
+
+  it('con la barra espaciadora mantenida, arrastrar una zona mueve la vista (FR-007)', async () => {
+    const zone = screen.getByRole('button', { name: /^Esquema VEN · ventas,/ })
+    fireEvent.keyDown(canvas(), { key: ' ', code: 'Space' })
+
+    await userEvent.pointer([
+      { keys: '[MouseLeft>]', target: zone, coords: { clientX: 400, clientY: 300 } },
+      { target: zone, coords: { clientX: 450, clientY: 300 } },
+      { keys: '[/MouseLeft]', target: zone, coords: { clientX: 450, clientY: 300 } },
+    ])
+
+    await waitFor(() => {
+      expect(useAppStore.getState().pan).toEqual({ x: 50, y: 0 })
+    })
+    expect(useAppStore.getState().model?.tables?.[0]?.position).toBeUndefined()
+
+    fireEvent.keyUp(canvas(), { key: ' ', code: 'Space' })
+  })
+
+  it('soltar la barra espaciadora devuelve el arrastre a la zona', async () => {
+    fireEvent.keyDown(canvas(), { key: ' ', code: 'Space' })
+    fireEvent.keyUp(canvas(), { key: ' ', code: 'Space' })
+
+    await dragZone('ventas', [100, 100], [160, 140])
+
+    expect(useAppStore.getState().model?.tables?.[0]?.position).toEqual({ x: 60, y: 40 })
+  })
+
+  it('la rueda sola mueve la vista (FR-007)', async () => {
+    fireEvent.wheel(canvas(), { deltaX: 30, deltaY: 50 })
+
+    await waitFor(() => {
+      expect(useAppStore.getState().pan).toEqual({ x: -30, y: -50 })
+    })
+    expect(useAppStore.getState().zoom).toBe(1)
+  })
+
+  it('⌘ y la rueda acercan sin mover la escala al centro (FR-009)', async () => {
+    fireEvent.wheel(canvas(), { deltaY: -200, metaKey: true })
+
+    await waitFor(() => {
+      expect(useAppStore.getState().zoom).toBeGreaterThan(1)
+    })
+  })
+
+  it('el pellizco del panel táctil aleja igual que ⌘ y la rueda (FR-009)', async () => {
+    fireEvent.wheel(canvas(), { deltaY: 200, ctrlKey: true })
+
+    await waitFor(() => {
+      expect(useAppStore.getState().zoom).toBeLessThan(1)
+    })
+  })
+
+  it('el zoom de la rueda no se sale de los topes (FR-008)', async () => {
+    for (let index = 0; index < 20; index += 1) {
+      fireEvent.wheel(canvas(), { deltaY: -400, metaKey: true })
+    }
+
+    await waitFor(() => {
+      expect(useAppStore.getState().zoom).toBe(2)
+    })
+  })
+
+  it('las flechas mueven la vista (FR-039)', async () => {
+    fireEvent.keyDown(canvas(), { key: 'ArrowRight' })
+
+    await waitFor(() => {
+      expect(useAppStore.getState().pan.x).toBeLessThan(0)
+    })
+  })
+
+  it('⌘0 devuelve el 100 % y ⇧1 ajusta (FR-039)', () => {
+    act(() => {
+      useAppStore.getState().setView({ pan: { x: 0, y: 0 }, zoom: 1.8 })
+    })
+
+    fireEvent.keyDown(canvas(), { key: '0', metaKey: true })
+    expect(useAppStore.getState().zoom).toBe(1)
+
+    fireEvent.keyDown(canvas(), { key: '1', code: 'Digit1', shiftKey: true })
+    expect(useAppStore.getState().zoom).not.toBe(1)
+  })
+
+  it('⌘+ y ⌘− cambian el zoom un paso (FR-039)', () => {
+    fireEvent.keyDown(canvas(), { key: '=', metaKey: true })
+    expect(useAppStore.getState().zoom).toBeCloseTo(1.1, 6)
+
+    fireEvent.keyDown(canvas(), { key: '-', metaKey: true })
+    expect(useAppStore.getState().zoom).toBeCloseTo(1, 6)
   })
 })

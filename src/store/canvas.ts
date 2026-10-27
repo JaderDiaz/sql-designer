@@ -42,12 +42,23 @@ export interface CanvasSlice {
   selectedSchema: string | null
   /** Si hay un gesto en curso; el lienzo pinta sin sombras (research R19). */
   isGesturing: boolean
+  /**
+   * Si la vista está esperando su encuadre inicial (FR-014).
+   *
+   * Abrir un modelo no puede encuadrarlo todavía: la caja del lienzo no está
+   * medida hasta que el componente monta. Así que el modelo lo pide y el
+   * lienzo lo cumple con la primera medida.
+   */
+  needsFit: boolean
   /** La barra lateral está escondida (FR-006). */
   isSidebarHidden: boolean
   /** El inspector está escondido (FR-006). */
   isInspectorHidden: boolean
   setViewport: (viewport: Rect) => void
+  requestFit: () => void
   setView: (view: { pan: Position; zoom: number }) => void
+  panBy: (delta: Position) => void
+  centerOn: (point: Position) => void
   zoomBy: (delta: number, pointer?: Position) => void
   zoomTo: (zoom: number, pointer?: Position) => void
   fitToModel: () => void
@@ -77,6 +88,7 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
   focusedSchema: null,
   selectedSchema: null,
   isGesturing: false,
+  needsFit: false,
   isSidebarHidden: false,
   isInspectorHidden: false,
 
@@ -89,6 +101,11 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
     set({ viewport })
   },
 
+  /** Pide que la vista se encuadre con la primera medida del lienzo (FR-014). */
+  requestFit() {
+    set({ needsFit: true })
+  },
+
   /**
    * Fija la vista completa, recortando el zoom a los topes.
    *
@@ -96,6 +113,30 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
    */
   setView(view) {
     set({ pan: view.pan, zoom: clampZoom(view.zoom) })
+  },
+
+  /**
+   * Mueve la vista sin cambiar el zoom (FR-007).
+   *
+   * @param delta Desplazamiento en píxeles de pantalla.
+   */
+  panBy(delta) {
+    const { pan } = get()
+    set({ pan: { x: pan.x + delta.x, y: pan.y + delta.y } })
+  },
+
+  /**
+   * Deja un punto del modelo en el centro del lienzo (FR-012).
+   *
+   * Es lo que hace el minimapa al pulsarlo: la vista salta a donde se señala
+   * sin cambiar la escala.
+   *
+   * @param point Punto en coordenadas del modelo.
+   */
+  centerOn(point) {
+    const { zoom, viewport } = get()
+    const center = centerOf(viewport)
+    set({ pan: { x: center.x - point.x * zoom, y: center.y - point.y * zoom } })
   },
 
   /**
@@ -129,7 +170,7 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
     const bounds =
       model === null ? null : contentBounds(schemaZones(model, resolveLayout(model)))
     const next = fitToContent(bounds, viewport)
-    set({ pan: next.pan, zoom: next.zoom })
+    set({ pan: next.pan, zoom: next.zoom, needsFit: false })
   },
 
   /**

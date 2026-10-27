@@ -523,6 +523,14 @@
   font: 400 11px/16px var(--font-sans);
   color: var(--label-tertiary);
 }
+/* Con la barra espaciadora mantenida, todo el lienzo se arrastra (FR-007). */
+.sm-canvas[data-space] {
+  cursor: grab;
+}
+.sm-canvas[data-space] .sm-zone {
+  cursor: inherit;
+}
+
 /* El grupo que se arrastra se desplaza con dos variables que el lienzo escribe
  * por referencia, sin volver a dibujar el árbol (FR-026, research R3). */
 .sm-zone[data-drag],
@@ -565,6 +573,11 @@
   border-radius: 3px;
   background: color-mix(in srgb, var(--zone) 35%, transparent);
 }
+.sm-minimap-mark {
+  position: absolute;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--zone) 75%, transparent);
+}
 .sm-minimap-view {
   position: absolute;
   border-radius: var(--radius-xs);
@@ -585,6 +598,34 @@
   box-shadow:
     var(--shadow-popover),
     inset 0 0 0 1px var(--border-subtle);
+}
+.sm-zoom-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--label-secondary);
+  transition: background var(--duration-fast) var(--easing-standard);
+}
+.sm-zoom-button:hover:not(:disabled) {
+  background: var(--fill-hover);
+  color: var(--label);
+}
+.sm-zoom-button:disabled {
+  color: var(--label-tertiary);
+}
+.sm-zoom-button:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+.sm-zoom-rule {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--separator);
 }
 .sm-zoom-value {
   min-width: 46px;

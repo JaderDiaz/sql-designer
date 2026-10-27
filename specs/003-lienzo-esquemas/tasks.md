@@ -221,19 +221,19 @@ el porcentaje mostrado y los topes.
 
 ### Tests for User Story 4
 
-- [ ] T062 [P] [US4] Ampliar `src/store/canvas.test.ts`: `zoomBy` y `zoomTo` recortan a los topes y conservan el punto bajo el puntero, `fitToModel` usa el envolvente del modelo entero, y la vista no se escribe en el archivo (FR-008 a FR-011, FR-014)
-- [ ] T063 [P] [US4] Crear `src/components/features/canvas/ZoomBar.test.tsx`: el porcentaje se muestra, el botón del tope alcanzado queda deshabilitado, y «Ajustar» llama a `fitToModel` (FR-008, FR-010)
-- [ ] T064 [P] [US4] Crear `src/components/features/canvas/Minimap.test.tsx`: dibuja una marca por tabla y el contorno de cada zona, muestra el recuadro del área visible, y pulsar dentro mueve la vista (FR-012)
+- [X] T062 [P] [US4] Ampliar `src/store/canvas.test.ts`: `zoomBy` y `zoomTo` recortan a los topes y conservan el punto bajo el puntero, `fitToModel` usa el envolvente del modelo entero, y la vista no se escribe en el archivo (FR-008 a FR-011, FR-014)
+- [X] T063 [P] [US4] Crear `src/components/features/canvas/ZoomBar.test.tsx`: el porcentaje se muestra, el botón del tope alcanzado queda deshabilitado, y «Ajustar» llama a `fitToModel` (FR-008, FR-010)
+- [X] T064 [P] [US4] Crear `src/components/features/canvas/Minimap.test.tsx`: dibuja una marca por tabla y el contorno de cada zona, muestra el recuadro del área visible, y pulsar dentro mueve la vista (FR-012)
 
 ### Implementation for User Story 4
 
-- [ ] T065 [US4] Mover la vista en `CanvasSurface` de las tres formas de FR-007: arrastrar desde un espacio vacío, arrastrar con la rueda presionada (`button === 1`, cancelando el autoscroll de Windows con `preventDefault` en `mousedown` y `auxclick`) y Espacio mantenido —que cambia el cursor a `grab` y se suelta también en `blur`—. Las dos últimas MUST funcionar también encima de una tabla o de una zona, no solo sobre el fondo (FR-007, research.md R9)
-- [ ] T066 [US4] Escuchar la rueda con `addEventListener('wheel', …, { passive: false })`: con ⌘/Ctrl o con el pellizco del panel táctil hace zoom en el puntero, sin modificador mueve la vista; comitear al almacén tras 120 ms sin ruedas (FR-007 a FR-009, research.md R3, R9)
-- [ ] T067 [P] [US4] Crear `src/components/features/canvas/ZoomBar.tsx` abajo a la izquierda: «−», el porcentaje con `aria-live="polite"`, «+», separador y «Ajustar», con el botón del tope alcanzado deshabilitado (FR-008, FR-010)
-- [ ] T068 [P] [US4] Crear `src/components/features/canvas/Minimap.tsx` de 168 × 108 abajo a la derecha, con la escala derivada del envolvente, una marca por tabla con el color de su esquema, el contorno de cada zona y el recuadro del área visible; pulsar o arrastrar dentro mueve la vista (FR-012, research.md R11)
-- [ ] T069 [US4] Dar al lienzo su forma sin ratón: `tabIndex=0` con `aria-label="Lienzo del modelo"`, flechas que mueven la vista, ⌘+ / ⌘− para el zoom, ⌘0 al 100 %, ⇧1 para ajustar, y el tabulador recorriendo zonas y tablas (FR-039, contracts/canvas.md §4)
-- [ ] T070 [US4] Arrancar la vista ajustada al abrir un modelo y no escribirla nunca en el archivo, también al cambiar de modelo (FR-014)
-- [ ] T071 [US4] Pintar sin sombras ni transiciones mientras `isGesturing` está en `true`, y marcar `contain: layout paint` en las tarjetas (SC-003, research.md R19)
+- [X] T065 [US4] Mover la vista en `CanvasSurface` de las tres formas de FR-007: arrastrar desde un espacio vacío, arrastrar con la rueda presionada (`button === 1`, cancelando el autoscroll de Windows con `preventDefault` en `mousedown` y `auxclick`) y Espacio mantenido —que cambia el cursor a `grab` y se suelta también en `blur`—. Las dos últimas MUST funcionar también encima de una tabla o de una zona, no solo sobre el fondo (FR-007, research.md R9)
+- [X] T066 [US4] Escuchar la rueda con `addEventListener('wheel', …, { passive: false })`: con ⌘/Ctrl o con el pellizco del panel táctil hace zoom en el puntero, sin modificador mueve la vista; comitear al almacén tras 120 ms sin ruedas (FR-007 a FR-009, research.md R3, R9)
+- [X] T067 [P] [US4] Crear `src/components/features/canvas/ZoomBar.tsx` abajo a la izquierda: «−», el porcentaje con `aria-live="polite"`, «+», separador y «Ajustar», con el botón del tope alcanzado deshabilitado (FR-008, FR-010)
+- [X] T068 [P] [US4] Crear `src/components/features/canvas/Minimap.tsx` de 168 × 108 abajo a la derecha, con la escala derivada del envolvente, una marca por tabla con el color de su esquema, el contorno de cada zona y el recuadro del área visible; pulsar o arrastrar dentro mueve la vista (FR-012, research.md R11)
+- [X] T069 [US4] Dar al lienzo su forma sin ratón: `tabIndex=0` con `aria-label="Lienzo del modelo"`, flechas que mueven la vista, ⌘+ / ⌘− para el zoom, ⌘0 al 100 %, ⇧1 para ajustar, y el tabulador recorriendo zonas y tablas (FR-039, contracts/canvas.md §4)
+- [X] T070 [US4] Arrancar la vista ajustada al abrir un modelo y no escribirla nunca en el archivo, también al cambiar de modelo (FR-014)
+- [X] T071 [US4] Pintar sin sombras ni transiciones mientras `isGesturing` está en `true`, y marcar `contain: layout paint` en las tarjetas (SC-003, research.md R19)
 
 **Checkpoint**: un modelo que no cabe en la pantalla se recorre y se encuadra,
 con el porcentaje a la vista y el minimapa diciendo dónde está la vista.

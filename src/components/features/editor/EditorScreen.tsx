@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 
 import { CanvasSurface } from '@/components/features/canvas/CanvasSurface'
 import { EmptyModelCard } from '@/components/features/canvas/EmptyModelCard'
+import { Minimap } from '@/components/features/canvas/Minimap'
+import { ZoomBar } from '@/components/features/canvas/ZoomBar'
 import { EditorChrome } from '@/components/layout/EditorChrome'
 import { EditorLayout } from '@/components/layout/EditorLayout'
 import { Inspector } from '@/components/layout/Inspector'
@@ -70,14 +72,18 @@ export function EditorScreen() {
         canvas={
           <CanvasSurface
             overlay={
-              // La tarjeta va centrada, así que no se pone hasta que la
-              // ventana está en su sitio: mientras crece, su centro se mueve
-              // en cada paso y la tarjeta temblaba persiguiéndolo.
-              tables === 0 && !isWindowSettling ? (
-                <div className="pointer-events-none absolute inset-0 grid place-items-center p-6">
-                  <EmptyModelCard />
-                </div>
-              ) : null
+              <>
+                {/* La tarjeta va centrada, así que no se pone hasta que la
+                    ventana está en su sitio: mientras crece, su centro se
+                    mueve en cada paso y la tarjeta temblaba persiguiéndolo. */}
+                {tables === 0 && !isWindowSettling ? (
+                  <div className="pointer-events-none absolute inset-0 grid place-items-center p-6">
+                    <EmptyModelCard />
+                  </div>
+                ) : null}
+                <ZoomBar />
+                <Minimap />
+              </>
             }
           />
         }

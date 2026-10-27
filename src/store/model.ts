@@ -180,6 +180,7 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       dialog: null,
       pan: { x: 0, y: 0 },
       zoom: 1,
+      needsFit: true,
       focusedSchema: null,
       selectedSchema: null,
     })
@@ -284,6 +285,7 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       pendingIntent: null,
       pan: { x: 0, y: 0 },
       zoom: 1,
+      needsFit: true,
       focusedSchema: null,
       selectedSchema: null,
     })
@@ -455,6 +457,7 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       pendingIntent: null,
       pan: { x: 0, y: 0 },
       zoom: 1,
+      needsFit: true,
       focusedSchema: null,
       selectedSchema: null,
     })

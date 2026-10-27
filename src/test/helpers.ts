@@ -99,6 +99,7 @@ export function resetStore(
     focusedSchema: null,
     selectedSchema: null,
     isGesturing: false,
+    needsFit: false,
     isSidebarHidden: false,
     isInspectorHidden: false,
   })

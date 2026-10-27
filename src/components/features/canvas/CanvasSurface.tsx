@@ -6,6 +6,7 @@ import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMen
 import { schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { cn } from '@/lib/cn'
+import { useCanvasView } from '@/hooks/useCanvasView'
 import { useAppStore } from '@/store'
 
 /**
@@ -58,15 +59,22 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   const selectedSchema = useAppStore((state) => state.selectedSchema)
   const selectSchema = useAppStore((state) => state.selectSchema)
   const setViewport = useAppStore((state) => state.setViewport)
+  const needsFit = useAppStore((state) => state.needsFit)
+  const fitToModel = useAppStore((state) => state.fitToModel)
   const setGesturing = useAppStore((state) => state.setGesturing)
   const moveSchema = useAppStore((state) => state.moveSchema)
 
   const surface = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
+  const grid = useRef<HTMLDivElement>(null)
   const drag = useRef<DragState | null>(null)
   // Qué esquema se arrastra es lo único del gesto que el árbol necesita saber,
   // y solo cambia dos veces: al empezar y al terminar.
   const [dragging, setDragging] = useState<string | null>(null)
+
+  // Mover la vista y hacer zoom son del gesto, no de este componente: el
+  // lienzo solo le presta sus tres nodos.
+  const view = useCanvasView({ surface, stage, grid })
 
   // La caja del lienzo se mide al montar y en cada cambio de tamaño: esconder
   // la barra lateral o el inspector la cambia sin que la ventana se mueva.
@@ -85,6 +93,12 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     observer.observe(node)
     return () => observer.disconnect()
   }, [setViewport])
+
+  // Abrir un modelo lo deja entero a la vista, pero solo se puede encuadrar
+  // cuando la caja del lienzo ya está medida (FR-014).
+  useEffect(() => {
+    if (needsFit) fitToModel()
+  }, [fitToModel, needsFit])
 
   // La geometría se recalcula solo cuando el modelo cambia: mover la vista no
   // la toca, porque no depende de ella.
@@ -105,8 +119,9 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   /** Empieza a arrastrar la zona de un esquema (FR-026). */
   function startDrag(event: React.PointerEvent<HTMLButtonElement>, schema: string) {
     // Solo el botón principal arrastra: el derecho abre el menú contextual y
-    // el central mueve la vista (FR-007, FR-038).
-    if (event.button !== 0 || drag.current !== null) return
+    // el central mueve la vista (FR-007, FR-038). Con la barra espaciadora
+    // mantenida, arrastrar encima de una zona mueve la vista, no el esquema.
+    if (event.button !== 0 || view.isPanning() || drag.current !== null) return
     event.currentTarget.setPointerCapture(event.pointerId)
     drag.current = {
       schema,
@@ -164,10 +179,15 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
       tabIndex={0}
       className={cn('sm-canvas relative min-h-0 flex-1 overflow-hidden', className)}
       data-gesturing={isGesturing ? '' : undefined}
+      onPointerDown={view.onPointerDown}
+      onPointerMove={view.onPointerMove}
+      onPointerUp={view.onPointerUp}
+      onPointerCancel={view.onPointerUp}
     >
       <div
+        ref={grid}
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
+        className="absolute inset-0"
         style={{
           backgroundImage:
             'radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--label) 12%, transparent) 1px, transparent 0)',
