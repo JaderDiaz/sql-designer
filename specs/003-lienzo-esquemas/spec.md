@@ -8,6 +8,16 @@
 
 **Input**: User description: "Incremento 2 · Lienzo y esquemas. Objetivo: el Editor muestra el lienzo y permite organizar el modelo en esquemas de color. Depende de: Incremento 1. Se demuestra: crear tres esquemas, moverlos por el lienzo y enfocarlos. SF-2.1 Estructura del Editor y modelo vacío; SF-2.2 Navegar el lienzo; SF-2.3 Crear y editar un esquema; SF-2.4 Eliminar un esquema; SF-2.5 Zonas de esquema; SF-2.6 Enfocar un esquema."
 
+## Clarifications
+
+### Session 2026-10-27
+
+- Q: ¿En este incremento el lienzo solo dibuja las tablas que ya trae el archivo, o también se puede arrastrar una tabla para llevarla a otro esquema? → A: Solo dibujar; mover una tabla sola o cambiarle el esquema llega en el Incremento 3, y la zona vacía dice «Aún no hay tablas en este esquema»
+
+- Q: ¿Dónde se guarda la posición de la zona de un esquema que no tiene tablas? → A: En un campo opcional de posición del esquema, que solo se escribe cuando el esquema está vacío y se ha movido; el formato gana un campo opcional sin subir de versión
+
+- Q: Cuando se elimina un esquema con el interruptor «Eliminar también sus tablas» apagado, ¿quién decide a qué esquema pasan sus tablas? → A: El usuario elige en el diálogo, con el primer esquema restante propuesto; con un solo destino posible, el diálogo lo nombra sin selector
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Estructura del Editor y modelo vacío (Priority: P1)
@@ -57,7 +67,7 @@ aplicación propone el nombre técnico y una abreviatura de tres letras, que se
 pueden corregir, y ofrece una paleta de colores con vista previa de cómo se verá
 la zona en el lienzo. Los nombres y abreviaturas repetidos se avisan antes de
 guardar. Un esquema recién creado aparece en el lienzo como una zona vacía que
-invita a llevarle una tabla.
+espera sus tablas.
 
 **Why this priority**: es la mitad del objetivo del incremento y lo primero de
 la demostración (crear tres esquemas). Depende solo del marco de la historia 1.
@@ -86,8 +96,9 @@ error de duplicado, el color elegido y la zona vacía resultante en el lienzo.
 7. **Dado** una abreviatura que no son exactamente tres letras, **entonces** veo
    el error y no puedo guardar (RS-04).
 8. **Dado** un esquema válido, **cuando** guardo, **entonces** aparece en la
-   barra lateral y en el lienzo como una zona vacía con el texto «Arrastra una
-   tabla aquí», el modelo queda «Editado» y puedo deshacer la creación.
+   barra lateral y en el lienzo como una zona vacía con el texto «Aún no hay
+   tablas en este esquema», el modelo queda «Editado» y puedo deshacer la
+   creación.
 9. **Dado** un esquema existente, **cuando** lo edito, **entonces** puedo
    cambiar su nombre, su abreviatura, su color y su descripción con las mismas
    reglas, y el lienzo y la barra lateral lo reflejan al confirmar.
@@ -120,7 +131,7 @@ modelo queda «Editado».
 2. **Dado** la zona de un esquema, **entonces** muestra su abreviatura, su
    nombre y el número de tablas que contiene.
 3. **Dado** un esquema sin tablas, **entonces** su zona se dibuja igual, con un
-   tamaño mínimo propio y el texto «Arrastra una tabla aquí».
+   tamaño mínimo propio y el texto «Aún no hay tablas en este esquema».
 4. **Dado** dos esquemas, **entonces** sus zonas no se superponen al abrir el
    modelo.
 5. **Dado** una zona, **cuando** la arrastro, **entonces** la zona y todas sus
@@ -133,6 +144,9 @@ modelo queda «Editado».
 8. **Dado** un modelo cuyas tablas no traen posición en el archivo, **entonces**
    el lienzo las coloca de forma ordenada dentro de la zona de su esquema y el
    modelo **no** queda «Editado» por haberlas colocado.
+9. **Dado** un esquema sin tablas, **cuando** arrastro su zona y guardo,
+   **entonces** al volver a abrir el modelo la zona sigue donde la dejé; y
+   **cuando** ese esquema recibe tablas, su zona vuelve a rodearlas.
 
 ---
 
@@ -243,7 +257,8 @@ un modelo de un solo esquema la opción está deshabilitada.
    **entonces** el esquema desaparece y sus tablas pasan al esquema de destino
    que indica el diálogo, conservando su contenido.
 3. **Dado** que el modelo tiene más de un esquema restante, **entonces** la
-   confirmación permite elegir a cuál pasan las tablas.
+   confirmación permite elegir a cuál pasan las tablas y propone el primero del
+   modelo distinto del que se elimina.
 4. **Dado** la confirmación con el interruptor encendido, **cuando** confirmo,
    **entonces** el esquema y sus tablas desaparecen, y el diálogo lo había dicho
    nombrando cuántas tablas se iban.
@@ -258,6 +273,9 @@ un modelo de un solo esquema la opción está deshabilitada.
 8. **Dado** un esquema con enums o vistas, **cuando** lo elimino con el
    interruptor apagado, **entonces** esos objetos pasan al mismo esquema de
    destino que las tablas, y el diálogo lo dice.
+9. **Dado** un modelo con dos esquemas, **cuando** elimino uno con el
+   interruptor apagado, **entonces** el diálogo nombra el único destino posible
+   y no ofrece elección.
 
 ---
 
@@ -274,9 +292,16 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **Color desconocido**: un esquema cuyo color no está en la paleta se dibuja con
   el color por defecto y se puede volver a elegir, sin tratar el archivo como
   inválido (FR-021).
-- **Zona vacía arrastrada**: mover la zona de un esquema sin tablas no cambia el
-  archivo —no hay posiciones que escribir— y al reabrir el modelo vuelve a su
-  sitio derivado (FR-026).
+- **Zona vacía arrastrada**: mover la zona de un esquema sin tablas marca el
+  modelo «Editado» y guarda su posición; cuando ese esquema recibe tablas, la
+  zona pasa a deducirse de ellas y la posición guardada deja de usarse
+  (FR-026a).
+- **Esquema vacío sin posición guardada**: un esquema sin tablas que nunca se
+  movió se coloca de forma determinista a partir de su orden en el modelo, sin
+  marcar «Editado» (FR-025).
+- **Destino único al eliminar**: al eliminar uno de dos esquemas con el
+  interruptor apagado no hay nada que elegir: el diálogo nombra el esquema que
+  recibirá las tablas y no muestra el selector (FR-036).
 - **Zoom en los topes**: en el 40 % y en el 200 % los botones del tope quedan
   deshabilitados y el porcentaje no cambia (FR-008).
 - **Modelo grande**: 50 tablas y 60 relaciones se recorren y se arrastran sin que
@@ -378,11 +403,16 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **FR-024**: Cada zona MUST mostrar la abreviatura, el nombre y el número de
   tablas del esquema.
 - **FR-025**: Un esquema sin tablas MUST dibujarse como una zona de tamaño mínimo
-  con el texto «Arrastra una tabla aquí».
+  con el texto «Aún no hay tablas en este esquema».
 - **FR-026**: El sistema MUST permitir arrastrar una zona, moviendo con ella
   todas sus tablas y conservando sus posiciones relativas; al soltar MUST marcar
-  el modelo «Editado» y MUST escribir las posiciones nuevas al guardar. Arrastrar
-  la zona de un esquema sin tablas MUST NOT cambiar el archivo.
+  el modelo «Editado» y MUST escribir las posiciones nuevas al guardar.
+- **FR-026a**: Arrastrar la zona de un esquema sin tablas MUST guardar su
+  posición en el esquema, de modo que al reabrir el modelo la zona siga donde se
+  dejó. Esa posición MUST ser un campo opcional del esquema, MUST escribirse solo
+  cuando el esquema no tiene tablas y se ha movido, y MUST dejar de escribirse
+  cuando el esquema vuelve a tener tablas, porque entonces la zona se deduce de
+  ellas.
 - **FR-027**: Mover una zona MUST poder deshacerse y rehacerse como un solo paso,
   devolviendo todas sus tablas a donde estaban (RS-06).
 - **FR-028**: Al abrir un modelo, las zonas MUST NOT superponerse entre sí.
@@ -412,7 +442,9 @@ un modelo de un solo esquema la opción está deshabilitada.
   solo esquema, diciendo que un modelo siempre tiene al menos uno (RS-02).
 - **FR-036**: Con el interruptor apagado, confirmar MUST mover las tablas, los
   enums y las vistas del esquema al esquema de destino, que el diálogo MUST
-  nombrar y, cuando queda más de un esquema, MUST permitir elegir.
+  nombrar siempre. Cuando quedan dos o más esquemas, el diálogo MUST dejar
+  elegir el destino y MUST proponer el primer esquema del modelo distinto del
+  que se elimina; cuando queda uno solo, MUST nombrarlo sin ofrecer elección.
 - **FR-037**: Eliminar un esquema MUST marcar el modelo «Editado» y MUST poder
   deshacerse como un solo paso, recuperando el esquema, su color y las tablas con
   sus posiciones (RS-06).
@@ -436,8 +468,10 @@ un modelo de un solo esquema la opción está deshabilitada.
   técnicos MUST seguir las reglas del producto (RS-03, RS-12).
 - **FR-044**: El archivo del modelo MUST seguir siendo la única fuente de verdad:
   las posiciones y los colores que este incremento cambia MUST viajar en el
-  archivo sin alterar la versión del formato, y leer, guardar y volver a leer un
-  modelo MUST producir el mismo modelo.
+  archivo, y leer, guardar y volver a leer un modelo MUST producir el mismo
+  modelo. El campo de posición de esquema que este incremento añade MUST ser
+  opcional, de modo que la versión del formato no cambia y los archivos ya
+  guardados siguen siendo válidos.
 - **FR-045**: Ninguna acción del lienzo MUST bloquear la interfaz: arrastrar,
   hacer zoom y ajustar MUST conservar la ventana respondiendo.
 
@@ -446,9 +480,14 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **Esquema**: agrupación con nombre legible, nombre técnico único, abreviatura
   de tres letras única, color de la paleta y descripción. Un modelo tiene al
   menos uno (RS-02). Es el objeto que este incremento crea, edita y elimina.
-- **Zona de esquema**: la representación del esquema en el lienzo. No es dato del
-  archivo: se deriva de las tablas del esquema —su rectángulo envolvente con un
-  margen— o, si no tiene ninguna, de un sitio derivado de su orden en el modelo.
+- **Zona de esquema**: la representación del esquema en el lienzo. Con tablas se
+  deduce de ellas —su rectángulo envolvente con un margen—; sin tablas se dibuja
+  con un tamaño mínimo en su posición guardada, o, si no tiene ninguna, en un
+  sitio derivado de su orden en el modelo.
+- **Posición de esquema**: las coordenadas opcionales de la zona de un esquema en
+  el lienzo, que el archivo guarda solo mientras el esquema no tiene tablas
+  (decidido en Clarifications). Es el único campo que este incremento añade al
+  formato.
 - **Posición de tabla**: las coordenadas de una tabla en el lienzo, que ya existen
   en el formato del archivo. Este incremento las lee, las mueve al arrastrar una
   zona y las escribe al guardar.
@@ -499,25 +538,30 @@ un modelo de un solo esquema la opción está deshabilitada.
   contextual y confirmación), y los componentes y tokens vienen del sistema de
   diseño «Aura». El lienzo es referencia de diseño, no base de código
   (constitución, puerta 6).
-- **Las tablas no se crean ni se editan en este incremento**: el lienzo dibuja
-  las tablas que trae el archivo para que las zonas las rodeen y el minimapa las
-  sitúe, pero crear, editar, eliminar y arrastrar una tabla sola llegan en el
+- **Las tablas solo se dibujan en este incremento** (decidido en
+  Clarifications): el lienzo pinta las tablas que trae el archivo para que las
+  zonas las rodeen y el minimapa las sitúe, pero crear, editar, eliminar, mover
+  una tabla sola y cambiarle el esquema arrastrándola a otra zona llegan en el
   Incremento 3. «Crear la primera tabla» y «Definir un enum» de la tarjeta del
   modelo vacío siguen siendo informativas, como en el Incremento 1; «Agregar un
   esquema» sí abre su diálogo.
 - **Las relaciones todavía no se dibujan**: el archivo las conserva, pero las
   líneas entre tablas pertenecen al incremento de tablas y relaciones.
-- **La zona se deriva, no se guarda**: el formato del archivo no gana campos en
-  este incremento. La zona de un esquema con tablas es el rectángulo que las
-  envuelve; la de un esquema sin tablas se coloca de forma determinista a partir
-  de su orden en el modelo, de modo que reabrir el archivo la deja en el mismo
-  sitio. Por eso arrastrar una zona vacía no deja rastro en el archivo.
+- **La zona se deduce de las tablas, salvo sin tablas** (decidido en
+  Clarifications): la zona de un esquema con tablas es el rectángulo que las
+  envuelve, y no se guarda. La de un esquema sin tablas sí se guarda, en un campo
+  opcional de posición del esquema, para que lo que el usuario mueve se quede
+  donde lo dejó; mientras ese esquema no se haya movido, la zona se coloca de
+  forma determinista a partir de su orden en el modelo. El campo es opcional, de
+  modo que los archivos ya guardados siguen siendo válidos y la versión del
+  formato no sube.
 - **Un color por esquema**: la paleta es un conjunto fijo de identificadores de
   token (el campo `color` que el formato ya reserva); no hay color libre ni
   selector hexadecimal.
-- **Esquema de destino al eliminar**: con el interruptor apagado y varios
-  esquemas restantes el diálogo deja elegir, y propone el primero del modelo
-  distinto del que se elimina.
+- **El usuario elige el esquema de destino al eliminar** (decidido en
+  Clarifications): con el interruptor apagado y varios esquemas restantes el
+  diálogo deja elegir y propone el primero del modelo distinto del que se
+  elimina; con un solo destino posible lo nombra sin selector.
 - **Deshacer**: se reutiliza el historial del Incremento 1, que ya cubre el
   renombrado del modelo; este incremento añade sus propios pasos con etiqueta
   (RS-06).
@@ -538,7 +582,8 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **Incremento 0 (`specs/001-base-aplicacion`)**: ventana propia, temas claro y
   oscuro, preferencias y atajos.
 - **Formato del modelo**: este incremento escribe `schemas[].color` y
-  `tables[].position`, que el formato versión 1 ya declara; no cambia la versión
-  del formato.
+  `tables[].position`, que el formato versión 1 ya declara, y añade la posición
+  opcional de la zona de un esquema sin tablas; al ser opcional, la versión del
+  formato no cambia.
 - **Incremento 3 (tablas y relaciones)**: hereda de aquí el lienzo, las zonas y
   el foco, y es quien añade crear y arrastrar tablas y dibujar relaciones.

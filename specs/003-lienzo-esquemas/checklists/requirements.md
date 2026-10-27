@@ -32,14 +32,17 @@
 ## Notes
 
 - Validado el 2026-10-27 sin iteraciones pendientes. Las seis historias (SF-2.1 a
-  SF-2.6 del enunciado) cubren las 45 FR, y cada FR tiene al menos un escenario de
+  SF-2.6 del enunciado) cubren las 46 FR, y cada FR tiene al menos un escenario de
   aceptación o un caso borde que la comprueba.
-- Tres decisiones se tomaron como suposición razonable en lugar de bloquear la
-  especificación, y conviene confirmarlas en `/speckit-clarify` antes de planificar:
-  1. Las tablas no se crean ni se arrastran por separado en este incremento; el
-     lienzo solo dibuja las que trae el archivo.
-  2. La zona de un esquema se deriva de sus tablas y el formato del archivo no gana
-     campos, de modo que arrastrar la zona de un esquema vacío no deja rastro.
+- Las tres decisiones que se habían tomado como suposición quedaron confirmadas en
+  `/speckit-clarify` el 2026-10-27 y están registradas en la sección
+  `## Clarifications` de la especificación:
+  1. Las tablas solo se dibujan en este incremento; moverlas o cambiarles el
+     esquema llega en el Incremento 3.
+  2. La zona de un esquema se deduce de sus tablas, salvo cuando no tiene ninguna:
+     entonces su posición vive en un campo opcional del esquema (FR-026a) y la
+     versión del formato no sube.
   3. Al eliminar un esquema con el interruptor apagado, el diálogo deja elegir el
-     esquema de destino y propone el primero del modelo.
+     destino y propone el primero del modelo; con un solo destino posible lo
+     nombra sin selector.
 - Items marked incomplete require spec updates before `/speckit-clarify` or `/speckit-plan`
