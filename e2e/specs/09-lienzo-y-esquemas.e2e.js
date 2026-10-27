@@ -3,6 +3,7 @@ import { join } from 'node:path'
 
 import { carpetaDePruebas } from '../soporte/entorno.js'
 import {
+  MODIFICADOR,
   arrastrar,
   atajo,
   desdeLaBienvenida,
@@ -12,13 +13,13 @@ import {
   esperarSinMenu,
   esperarSinTexto,
   esperarTexto,
-  estado,
   estadoEn,
   filas,
   menuDeZona,
   pulsar,
   pulsarElFondo,
   pulsarEn,
+  pulsarHastaApagar,
   rueda,
   seleccionar,
   tecla,
@@ -86,10 +87,10 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
   })
 
   it('2 · esconder y recuperar la barra lateral y el inspector (FR-006)', async () => {
-    await browser.keys(['Alt', 'Meta', 's'])
+    await browser.keys([MODIFICADOR, 'Alt', 's'])
     await esperarSinTexto('Todos los esquemas')
 
-    await browser.keys(['Alt', 'Meta', 's'])
+    await browser.keys([MODIFICADOR, 'Alt', 's'])
     await esperarTexto('Todos los esquemas')
 
     // Y con los botones de la barra superior, que es la otra vía.
@@ -136,12 +137,11 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
       timeoutMsg: 'La rueda con el modificador no acercó.',
     })
 
-    // Se aleja hasta el tope y no más: el botón se apaga al llegar, y pulsar
-    // de más fallaría porque `pulsar` solo mira controles habilitados.
-    while (!(await estado('Alejar')).deshabilitado) await pulsar('Alejar')
+    // Se aleja hasta el tope y no más: el botón se apaga al llegar.
+    await pulsarHastaApagar('Alejar')
     await esperarTexto('40 %')
 
-    while (!(await estado('Acercar')).deshabilitado) await pulsar('Acercar')
+    await pulsarHastaApagar('Acercar')
     await esperarTexto('200 %')
 
     // «Ajustar» se prueba desde el tope de acercamiento, no desde el de

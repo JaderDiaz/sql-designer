@@ -158,6 +158,30 @@ export async function pulsar(nombre, selector = 'button,[role="radio"],[role="me
 }
 
 /**
+ * Pulsa un control una y otra vez hasta que se apague.
+ *
+ * Mirar si está habilitado y pulsarlo en dos viajes distintos no sirve: el
+ * lienzo apunta el zoom en vivo y lo comitea unos milisegundos después, así
+ * que entre la pregunta y el clic el control puede apagarse y el clic falla.
+ * Aquí las dos cosas pasan en la misma vuelta dentro de la página.
+ *
+ * @param nombre Nombre del control.
+ * @param selector Qué controles mirar.
+ */
+export async function pulsarHastaApagar(nombre, selector = 'button') {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...document.querySelectorAll(${JSON.stringify(selector)})]
+      .filter((e) => e.offsetParent !== null && !e.disabled)
+      .find((e) => nombre(e).startsWith(${JSON.stringify(nombre)}))
+    if (!el) return true
+    el.click()
+    return null
+  }`
+  await esperar(guion, `«${nombre}» no se apagó por mucho que se pulsara.`)
+}
+
+/**
  * Escribe en un campo de texto por su etiqueta.
  *
  * El valor se pone con el asignador nativo y un evento `input`, que es como lo
