@@ -28,7 +28,9 @@ ha empezado.
 
 ## Requisitos
 
-- Node.js 20 o superior y npm
+- Node.js 22.15 o superior y npm (lo pide el recorrido automatizado: WebdriverIO
+  arrastra un `undici` que usa `createZstdDecompress`, que no existe antes; en
+  GitHub se usa la 24)
 - Rust 1.75 o superior (`rustup`)
 - Las dependencias de sistema de Tauri 2 (en macOS, las Command Line Tools de Xcode)
 
