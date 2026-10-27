@@ -58,6 +58,7 @@ export interface SchemasSlice {
    */
   schemaTarget: string | null
   openSchemaDialog: (name: string | null) => void
+  openDeleteSchemaDialog: (name: string) => void
   createSchema: (draft: SchemaDraft) => void
   updateSchema: (name: string, draft: SchemaDraft) => void
   deleteSchema: (name: string, options: DeleteSchemaOptions) => void
@@ -113,6 +114,15 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
    */
   openSchemaDialog(name) {
     set({ schemaTarget: name, dialog: 'schema' })
+  },
+
+  /**
+   * Abre la confirmación de eliminar un esquema (FR-034).
+   *
+   * @param name Nombre técnico del esquema a eliminar.
+   */
+  openDeleteSchemaDialog(name) {
+    set({ schemaTarget: name, dialog: 'delete-schema' })
   },
 
   /**

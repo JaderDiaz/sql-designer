@@ -12,7 +12,13 @@ import { useAppStore } from '@/store'
  * la zona del lienzo, para que el esquema se maneje igual desde los dos
  * sitios. Se abre con el botón derecho y con ⇧F10, que es lo que aporta
  * `ContextMenu`.
+ *
+ * Con un solo esquema en el modelo, eliminar queda deshabilitado y la entrada
+ * dice por qué: un modelo necesita al menos un esquema (FR-035, RS-02).
  */
+
+/** Lo que se dice cuando el esquema que se mira es el único del modelo. */
+export const LAST_SCHEMA_LABEL = 'Eliminar esquema… (es el único del modelo)'
 
 /** Props del menú de un esquema. */
 export interface SchemaContextMenuProps {
@@ -25,7 +31,11 @@ export interface SchemaContextMenuProps {
 
 export function SchemaContextMenu({ schema, tableCount, children }: SchemaContextMenuProps) {
   const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
+  const openDeleteSchemaDialog = useAppStore((state) => state.openDeleteSchemaDialog)
   const selectSchema = useAppStore((state) => state.selectSchema)
+  const count = useAppStore((state) => state.model?.schemas.length ?? 0)
+
+  const isLast = count <= 1
 
   const actions: ContextMenuAction[] = [
     {
@@ -33,6 +43,15 @@ export function SchemaContextMenu({ schema, tableCount, children }: SchemaContex
       label: 'Editar esquema…',
       icon: 'pencil',
       onSelect: () => openSchemaDialog(schema.name),
+    },
+    {
+      id: 'delete',
+      label: isLast ? LAST_SCHEMA_LABEL : 'Eliminar esquema…',
+      icon: 'trash-2',
+      destructive: true,
+      disabled: isLast,
+      separatorBefore: true,
+      onSelect: () => openDeleteSchemaDialog(schema.name),
     },
   ]
 

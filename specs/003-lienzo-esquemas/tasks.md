@@ -279,16 +279,16 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 
 ### Tests for User Story 6
 
-- [ ] T079 [P] [US6] Ampliar `src/store/schemas.test.ts` con `deleteSchema`: con el interruptor apagado las tablas, enums y vistas pasan al destino elegido; con él encendido se van con el esquema junto a las relaciones que los tocaban; el único esquema del modelo no se elimina; todo en un solo paso de deshacer (FR-035 a FR-037, SC-006)
-- [ ] T080 [P] [US6] Crear `src/components/features/schema/DeleteSchemaDialog.test.tsx`: el interruptor arranca apagado, con tres esquemas hay selector de destino que propone el primero del modelo distinto del que se elimina, con dos el destino se nombra sin selector, y el texto dice cuántas tablas quedan afectadas (FR-034, FR-036)
+- [X] T079 [P] [US6] Ampliar `src/store/schemas.test.ts` con `deleteSchema`: con el interruptor apagado las tablas, enums y vistas pasan al destino elegido; con él encendido se van con el esquema junto a las relaciones que los tocaban; el único esquema del modelo no se elimina; todo en un solo paso de deshacer (FR-035 a FR-037, SC-006)
+- [X] T080 [P] [US6] Crear `src/components/features/schema/DeleteSchemaDialog.test.tsx`: el interruptor arranca apagado, con tres esquemas hay selector de destino que propone el primero del modelo distinto del que se elimina, con dos el destino se nombra sin selector, y el texto dice cuántas tablas quedan afectadas (FR-034, FR-036)
 
 ### Implementation for User Story 6
 
-- [ ] T081 [US6] Añadir a `src/components/features/schema/SchemaContextMenu.tsx` la entrada «Eliminar esquema…», deshabilitada con un solo esquema en el modelo y diciendo por qué (FR-033, FR-035, SC-009)
-- [ ] T082 [US6] Ofrecer el menú contextual en los dos sitios de FR-033: la fila del esquema en `ModelSidebar` y su zona en el lienzo, las dos también con ⇧F10 (FR-033, FR-038)
-- [ ] T083 [US6] Crear `src/components/features/schema/DeleteSchemaDialog.tsx`: título «¿Eliminar «<nombre>»?», el recuento de tablas, el `Switch` «Eliminar también sus N tablas» apagado por defecto, el selector de destino cuando quedan dos o más esquemas —proponiendo el primero del modelo distinto del que se elimina— y los botones Cancelar y «Eliminar esquema» / «Eliminar esquema y tablas» en variante destructiva (FR-034, FR-036)
-- [ ] T084 [US6] Mover también los enums y las vistas del esquema al destino, y decirlo en el diálogo (US6 esc. 8, FR-036)
-- [ ] T085 [US6] Dejar el modelo «Editado» y deshacer la eliminación completa —esquema, color, tablas y sus posiciones— en un solo paso (FR-037)
+- [X] T081 [US6] Añadir a `src/components/features/schema/SchemaContextMenu.tsx` la entrada «Eliminar esquema…», deshabilitada con un solo esquema en el modelo y diciendo por qué (FR-033, FR-035, SC-009)
+- [X] T082 [US6] Ofrecer el menú contextual en los dos sitios de FR-033: la fila del esquema en `ModelSidebar` y su zona en el lienzo, las dos también con ⇧F10 (FR-033, FR-038)
+- [X] T083 [US6] Crear `src/components/features/schema/DeleteSchemaDialog.tsx`: título «¿Eliminar «<nombre>»?», el recuento de tablas, el `Switch` «Eliminar también sus N tablas» apagado por defecto, el selector de destino cuando quedan dos o más esquemas —proponiendo el primero del modelo distinto del que se elimina— y los botones Cancelar y «Eliminar esquema» / «Eliminar esquema y tablas» en variante destructiva (FR-034, FR-036)
+- [X] T084 [US6] Mover también los enums y las vistas del esquema al destino, y decirlo en el diálogo (US6 esc. 8, FR-036)
+- [X] T085 [US6] Dejar el modelo «Editado» y deshacer la eliminación completa —esquema, color, tablas y sus posiciones— en un solo paso (FR-037)
 
 **Checkpoint**: las seis historias funcionan de forma independiente.
 
