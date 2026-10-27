@@ -65,7 +65,7 @@ export function BrowserDialog({
           <RadixDialog.Title className="sr-only">{label}</RadixDialog.Title>
           <div className="flex min-h-0 flex-1 flex-col">{children}</div>
           {footer ? (
-            <div className="flex h-14 flex-none items-center gap-2 border-t-[0.5px] border-separator px-4">
+            <div className="flex h-14 flex-none items-center gap-2 border-t-[length:var(--hairline)] border-separator px-4">
               {footer}
             </div>
           ) : null}

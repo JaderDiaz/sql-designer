@@ -143,7 +143,7 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
 
   return (
     <div className={className}>
-      <div className="flex h-12 flex-none items-center gap-2 border-b-[0.5px] border-separator px-3">
+      <div className="flex h-12 flex-none items-center gap-2 border-b-[length:var(--hairline)] border-separator px-3">
         <div className="flex gap-0.5">
           <Button
             variant="plain"
@@ -174,7 +174,7 @@ export function FileBrowser({ onActivateFile, className }: FileBrowserProps) {
       </div>
 
       <div className="flex min-h-0 flex-1">
-        <div className="w-[172px] flex-none scroll-p-2.5 overflow-auto border-r-[0.5px] border-separator bg-sidebar p-2">
+        <div className="w-[172px] flex-none scroll-p-2.5 overflow-auto border-r-[length:var(--hairline)] border-separator bg-sidebar p-2">
           <Sidebar
             label="Ubicaciones"
             sections={toSections(

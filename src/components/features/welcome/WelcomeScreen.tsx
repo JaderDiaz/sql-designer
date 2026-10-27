@@ -56,7 +56,7 @@ export function WelcomeScreen() {
       <motion.aside
         data-tauri-drag-region
         variants={slideInLeft}
-        className="relative m-2 flex w-[300px] flex-none flex-col rounded-md bg-sidebar px-4 pb-5 shadow-[0_0_0_0.5px_var(--separator)]"
+        className="relative m-2 flex w-[300px] flex-none flex-col rounded-md bg-sidebar px-4 pb-5 shadow-[0_0_0_var(--hairline)_var(--separator)]"
       >
         <motion.div
           data-tauri-drag-region
@@ -111,7 +111,7 @@ export function WelcomeScreen() {
 
         <RecentsList />
 
-        <div className="mx-3 flex h-[52px] flex-none items-center justify-between gap-3 border-t-[0.5px] border-separator px-2.5">
+        <div className="mx-3 flex h-[52px] flex-none items-center justify-between gap-3 border-t-[length:var(--hairline)] border-separator px-2.5">
           <ShowWelcomeToggle />
           <Button
             variant="primary"

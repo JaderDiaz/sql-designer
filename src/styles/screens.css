@@ -12,7 +12,7 @@
   padding: 0;
   border: 0;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 0 0 var(--hairline) rgba(0, 0, 0, 0.12);
   cursor: default;
 }
 .sm-traffic:focus-visible {
@@ -316,7 +316,7 @@
   align-items: center;
   gap: var(--space-2);
   padding: 0 var(--space-5);
-  border-bottom: 0.5px solid var(--separator);
+  border-bottom: var(--hairline) solid var(--separator);
   font-size: 11px;
   line-height: 14px;
   font-weight: 600;
@@ -507,7 +507,7 @@
   padding: 0 6px 0 5px;
   border-radius: var(--radius-xs);
   background: color-mix(in srgb, var(--zone) 14%, var(--bg-raised));
-  box-shadow: inset 0 0 0 0.5px color-mix(in srgb, var(--zone) 35%, transparent);
+  box-shadow: inset 0 0 0 var(--hairline) color-mix(in srgb, var(--zone) 35%, transparent);
   color: var(--label);
   font: 600 10px/1 var(--font-mono);
   letter-spacing: 0.05em;
@@ -693,7 +693,7 @@
   outline-offset: 1px;
 }
 .sm-zoom-rule {
-  width: 0.5px;
+  width: var(--hairline);
   height: 16px;
   margin: 0 var(--space-1);
   background: var(--separator);
@@ -720,5 +720,5 @@ button.sm-zoom-value:hover {
 .sm-zoom-field {
   width: 56px;
   background: var(--bg-inset);
-  box-shadow: inset 0 0 0 0.5px var(--separator);
+  box-shadow: inset 0 0 0 var(--hairline) var(--separator);
 }

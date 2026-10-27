@@ -44,7 +44,7 @@ export function Inspector() {
     <ScrollRegion label="Datos del modelo" className="flex flex-col">
       <section
         aria-label="Modelo"
-        className="flex flex-col gap-3.5 border-b-[0.5px] border-separator p-4"
+        className="flex flex-col gap-3.5 border-b-[length:var(--hairline)] border-separator p-4"
       >
         <div className="flex items-start gap-2.5">
           <span

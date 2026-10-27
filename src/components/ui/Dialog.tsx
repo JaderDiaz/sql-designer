@@ -48,7 +48,7 @@ export function Dialog({
             className,
           )}
         >
-          <div className="border-b-[0.5px] border-separator bg-sidebar">
+          <div className="border-b-[length:var(--hairline)] border-separator bg-sidebar">
             <div className="relative flex h-[38px] items-center justify-center">
               <RadixDialog.Title className="text-[13px] font-semibold leading-[18px] text-label">
                 {title}
@@ -74,7 +74,7 @@ export function Dialog({
           <RadixDialog.Close
             aria-label="Cerrar"
             title="Cerrar"
-            className="absolute left-[14px] top-[13px] h-3 w-3 rounded-full shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.14)] active:brightness-90"
+            className="absolute left-[14px] top-[13px] h-3 w-3 rounded-full shadow-[inset_0_0_0_var(--hairline)_rgba(0,0,0,0.14)] active:brightness-90"
             style={{ background: 'var(--traffic-close)' }}
           />
         </RadixDialog.Content>

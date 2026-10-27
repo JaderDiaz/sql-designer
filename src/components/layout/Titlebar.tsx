@@ -103,7 +103,7 @@ function WindowButton({ action, label, tone, onClick, isDirty }: WindowButtonPro
       style={{ background: TONE_COLOR[tone] }}
       className={cn(
         'flex h-3 w-3 items-center justify-center rounded-full',
-        'shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.14)]',
+        'shadow-[inset_0_0_0_var(--hairline)_rgba(0,0,0,0.14)]',
         'transition-[filter] duration-fast ease-standard active:brightness-90',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
         'focus-visible:outline-[var(--focus-ring)]',

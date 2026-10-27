@@ -53,7 +53,7 @@ export function EditorLayout({
         <nav
           aria-label="Esquemas y tablas del modelo"
           style={{ width: SIDEBAR_WIDTH }}
-          className="m-2 flex min-h-0 flex-none flex-col overflow-hidden rounded-[10px] bg-sidebar shadow-[0_0_0_0.5px_var(--separator)]"
+          className="m-2 flex min-h-0 flex-none flex-col overflow-hidden rounded-[10px] bg-sidebar shadow-[0_0_0_var(--hairline)_var(--separator)]"
         >
           {sidebar}
         </nav>
@@ -72,7 +72,7 @@ export function EditorLayout({
             <aside
               aria-label="Inspector"
               style={{ width: INSPECTOR_WIDTH }}
-              className="flex min-h-0 flex-none flex-col border-l-[0.5px] border-separator bg-window"
+              className="flex min-h-0 flex-none flex-col border-l-[length:var(--hairline)] border-separator bg-window"
             >
               {inspector}
             </aside>

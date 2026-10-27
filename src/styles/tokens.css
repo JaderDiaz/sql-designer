@@ -110,15 +110,24 @@
   --purple-soft: rgba(175, 82, 222, 0.1);
   --skeleton-shine: rgba(255, 255, 255, 0.65);
 
-  --shadow-control: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 0.5px 1px rgba(0, 0, 0, 0.1);
-  --shadow-accent: inset 0 0.5px 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.18);
+  /* Un pelo de un píxel del dispositivo: medio píxel CSS donde la pantalla
+     tiene dos por cada uno, y uno entero donde no los tiene. Medio píxel en
+     una pantalla de densidad sencilla no se puede pintar, así que el motor lo
+     reparte entre dos filas, y el reparto no sale igual arriba que abajo
+     cuando la caja cae en una coordenada fraccionaria: el borde de abajo se ve
+     más fino, como cortado. Con un píxel entero las dos filas reciben la misma
+     tinta en los dos bordes. */
+  --hairline: 1px;
+
+  --shadow-control: 0 0 0 var(--hairline) rgba(0, 0, 0, 0.12), 0 0.5px 1px rgba(0, 0, 0, 0.1);
+  --shadow-accent: inset 0 var(--hairline) 0 rgba(255, 255, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.18);
   --shadow-knob:
-    0 0 0 0.5px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.18), 0 1px 1px rgba(0, 0, 0, 0.08);
-  --shadow-card: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
-  --shadow-raised: 0 0 0 0.5px rgba(0, 0, 0, 0.08), 0 8px 24px -6px rgba(0, 0, 0, 0.14);
+    0 0 0 var(--hairline) rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.18), 0 1px 1px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 0 0 var(--hairline) rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-raised: 0 0 0 var(--hairline) rgba(0, 0, 0, 0.08), 0 8px 24px -6px rgba(0, 0, 0, 0.14);
   --shadow-popover:
-    0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.06);
-  --shadow-window: 0 0 0 0.5px rgba(0, 0, 0, 0.14), 0 22px 70px 4px rgba(0, 0, 0, 0.22);
+    0 0 0 var(--hairline) rgba(0, 0, 0, 0.12), 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --shadow-window: 0 0 0 var(--hairline) rgba(0, 0, 0, 0.14), 0 22px 70px 4px rgba(0, 0, 0, 0.22);
   --shadow-focus: 0 0 0 3px rgba(99, 99, 102, 0.22);
 }
 
@@ -177,14 +186,22 @@
   --purple-soft: rgba(191, 90, 242, 0.16);
   --skeleton-shine: rgba(255, 255, 255, 0.07);
 
-  --shadow-control: 0 0 0 0.5px rgba(255, 255, 255, 0.1), inset 0 0.5px 0 rgba(255, 255, 255, 0.12);
-  --shadow-accent: inset 0 0.5px 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-knob: 0 0 0 0.5px rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 0 0 0.5px rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.3);
-  --shadow-raised: 0 0 0 0.5px rgba(255, 255, 255, 0.1), 0 8px 24px -6px rgba(0, 0, 0, 0.6);
-  --shadow-popover: 0 0 0 0.5px rgba(255, 255, 255, 0.14), 0 12px 32px rgba(0, 0, 0, 0.5);
-  --shadow-window: 0 0 0 0.5px rgba(255, 255, 255, 0.14), 0 22px 70px 4px rgba(0, 0, 0, 0.6);
+  --shadow-control: 0 0 0 var(--hairline) rgba(255, 255, 255, 0.1), inset 0 var(--hairline) 0 rgba(255, 255, 255, 0.12);
+  --shadow-accent: inset 0 var(--hairline) 0 rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-knob: 0 0 0 var(--hairline) rgba(0, 0, 0, 0.2), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 0 0 var(--hairline) rgba(255, 255, 255, 0.08), 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 0 0 var(--hairline) rgba(255, 255, 255, 0.1), 0 8px 24px -6px rgba(0, 0, 0, 0.6);
+  --shadow-popover: 0 0 0 var(--hairline) rgba(255, 255, 255, 0.14), 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-window: 0 0 0 var(--hairline) rgba(255, 255, 255, 0.14), 0 22px 70px 4px rgba(0, 0, 0, 0.6);
   --shadow-focus: 0 0 0 3px rgba(174, 174, 178, 0.26);
+}
+
+/* Donde la pantalla tiene dos píxeles del dispositivo por cada píxel CSS, el
+   pelo vuelve a medio píxel, que es lo que pide el diseño. */
+@media (min-resolution: 2dppx), (-webkit-min-device-pixel-ratio: 2) {
+  :root {
+    --hairline: 0.5px;
+  }
 }
 
 /* FR-010: con movimiento reducido las duraciones se anulan. */

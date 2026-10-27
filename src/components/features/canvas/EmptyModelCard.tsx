@@ -65,7 +65,7 @@ export function EmptyModelCard() {
       animate="visible"
       role="region"
       aria-labelledby="sm-start-title"
-      className="sm-start pointer-events-auto box-border flex w-[440px] max-w-full flex-col items-center gap-4 rounded-xl bg-raised px-6 pb-5 pt-7 shadow-[var(--shadow-raised),0_0_0_0.5px_var(--separator)]"
+      className="sm-start pointer-events-auto box-border flex w-[440px] max-w-full flex-col items-center gap-4 rounded-xl bg-raised px-6 pb-5 pt-7 shadow-[var(--shadow-raised),0_0_0_var(--hairline)_var(--separator)]"
     >
       <span className="sm-tint-indigo flex h-12 w-12 items-center justify-center rounded-lg">
         <Icon name="table-2" size={24} className="text-indigo" />

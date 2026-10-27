@@ -29,7 +29,7 @@ export function AppShell({ children, showTitlebar = true }: AppShellProps) {
   return (
     <div
       data-tauri-drag-region
-      className="relative flex h-full flex-col overflow-hidden rounded-xl bg-window text-label shadow-[inset_0_0_0_0.5px_var(--border-subtle)]"
+      className="relative flex h-full flex-col overflow-hidden rounded-xl bg-window text-label shadow-[inset_0_0_0_var(--hairline)_var(--border-subtle)]"
     >
       <main className="flex min-h-0 flex-1 flex-col">{children}</main>
       {/* Las luces se desvanecen con la pantalla que las trae: el Editor pinta

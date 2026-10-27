@@ -68,7 +68,7 @@ export function EditorChrome() {
     <header
       data-tauri-drag-region
       style={{ paddingLeft: isSidebarHidden ? 16 : 8 }}
-      className="flex min-h-[52px] flex-none items-center gap-2 border-b-[0.5px] border-separator py-2 pr-3"
+      className="flex min-h-[52px] flex-none items-center gap-2 border-b-[length:var(--hairline)] border-separator py-2 pr-3"
     >
       {isSidebarHidden ? (
         <Titlebar
@@ -117,7 +117,7 @@ export function EditorChrome() {
           onClick={redo}
         />
 
-        <span aria-hidden="true" className="mx-1 h-[18px] w-[0.5px] bg-separator" />
+        <span aria-hidden="true" className="mx-1 h-[18px] w-[length:var(--hairline)] bg-separator" />
 
         <Button
           variant="plain"
