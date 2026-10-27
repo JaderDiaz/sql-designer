@@ -45,7 +45,10 @@ describe('las tres vías de abrir Ajustes (FR-020)', () => {
     const user = userEvent.setup()
     render(<App />)
 
-    await user.click(screen.getByRole('button', { name: /ajustes/i }))
+    // La Bienvenida llega cuando la pantalla de carga cumple su mínimo, que se
+    // cuenta desde que arrancó la página: si este archivo es el primero del
+    // proceso, el control todavía no está en el DOM al montar.
+    await user.click(await screen.findByRole('button', { name: /ajustes/i }, { timeout: 3000 }))
 
     expect(useAppStore.getState().isPreferencesOpen).toBe(true)
   })
