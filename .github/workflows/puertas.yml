@@ -1,0 +1,67 @@
+# Las cinco puertas de la constitución, en las dos plataformas del producto.
+#
+# Corren en cada empuje y en cada PR: lo mismo que se corre en local antes de
+# commitear, pero en una máquina que arranca de cero. Ahí salen los fallos que
+# un equipo de trabajo esconde —una dependencia que nunca llegó a
+# `package.json`, un archivo sin commitear— y, sobre todo, Windows, que es la
+# plataforma que no tenemos a mano.
+name: Puertas
+
+on:
+  push:
+    branches-ignore: [gh-pages]
+  pull_request:
+    branches: [main]
+
+# Un empuje nuevo sobre la misma rama cancela la ejecución anterior.
+concurrency:
+  group: puertas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  puertas:
+    name: Puertas en ${{ matrix.sistema }}
+    runs-on: ${{ matrix.sistema }}
+    timeout-minutes: 45
+    strategy:
+      # Si una plataforma falla, la otra termina igual: interesa saber si el
+      # fallo es de las dos o solo de una.
+      fail-fast: false
+      matrix:
+        sistema: [macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # La versión mínima que declara el README: WebdriverIO arrastra un
+          # `undici` que pide `createZstdDecompress` de `node:zlib`, y eso no
+          # existe antes de Node 22.15.
+          node-version: '24'
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Tipos (puerta 1)
+        run: npm run typecheck
+
+      - name: Lint y capas (puertas 1 y 7)
+        run: npm run lint
+
+      - name: Pruebas del frontend
+        run: npx vitest run
+
+      # Rust ya viene instalado en las imágenes de macOS y de Windows; lo que
+      # falta es la caché de `~/.cargo` y de `target`, sin la cual cada
+      # ejecución compilaría Tauri entero desde cero.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Rust comprueba (puerta 1)
+        run: cargo check --manifest-path src-tauri/Cargo.toml --locked
+
+      - name: Pruebas de Rust
+        run: cargo test --manifest-path src-tauri/Cargo.toml --locked

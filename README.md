@@ -4,39 +4,79 @@ Diseñador visual de bases de datos relacionales para Windows y macOS: modela
 esquemas, tablas y relaciones, y genera SQL, documentación e imagen del
 diagrama. No se conecta a ninguna base de datos ni la administra.
 
+[![Puertas](https://github.com/JaderDiaz/sql-designer/actions/workflows/puertas.yml/badge.svg)](https://github.com/JaderDiaz/sql-designer/actions/workflows/puertas.yml)
+[![Recorrido](https://github.com/JaderDiaz/sql-designer/actions/workflows/recorrido.yml/badge.svg)](https://github.com/JaderDiaz/sql-designer/actions/workflows/recorrido.yml)
+
 ## Estado
 
-Incremento 0 «Base de la aplicación»: la aplicación arranca, muestra la
-Bienvenida con su identidad, sigue el tema del sistema o el elegido en Ajustes,
-y recuerda el tamaño y la posición de la ventana. Crear y abrir modelos llega en
-el Incremento 1.
+Versión 1.1.0, Incremento 1 «Archivos de modelo» cerrado. Lo que ya hace:
+
+- Arranca con la Bienvenida y su identidad, sigue el tema del sistema o el
+  elegido en Ajustes y recuerda el tamaño y la posición de la ventana
+  (Incremento 0).
+- Crea un modelo con su nombre, su motor, su carpeta y su archivo `.yaml`.
+- Abre un archivo de modelo con vista previa, y dice la línea del error cuando
+  el archivo está roto.
+- Guarda con ⌘S, distingue «Guardado» de «Editado», avisa si el archivo cambió
+  en el disco y no pierde el cambio cuando no puede escribir.
+- Cierra el modelo preguntando por los cambios sin guardar.
+- Lista los diez modelos recientes con su estado, y sobre cada uno: abrir,
+  renombrar, copiar la ruta, quitar de la lista y mover a la papelera.
+
+Diseñar tablas, columnas y relaciones llega en el Incremento 2, que todavía no
+ha empezado.
 
 ## Requisitos
 
-- Node.js 20 o superior y npm
+- Node.js 22.15 o superior y npm (lo pide el recorrido automatizado: WebdriverIO
+  arrastra un `undici` que usa `createZstdDecompress`, que no existe antes; en
+  GitHub se usa la 24)
 - Rust 1.75 o superior (`rustup`)
 - Las dependencias de sistema de Tauri 2 (en macOS, las Command Line Tools de Xcode)
 
 ## Arrancar
 
 ```bash
-npm install          # instala dependencias y copia las fuentes Geist
+npm install          # instala dependencias
 npm run tauri dev    # abre la aplicación en una ventana nativa
 npm run dev          # solo el frontend, en el navegador
 ```
 
 ## Probar
 
+Las cinco puertas, que son las que tienen que estar en verde antes de cualquier
+commit:
+
 ```bash
-npm run test                                    # Vitest: almacén, hooks y pantallas
 npm run typecheck                               # TypeScript en modo strict
 npm run lint                                    # ESLint y la puerta 7 de la constitución
-cargo test --manifest-path src-tauri/Cargo.toml # preferencias, geometría e identidad
+npm test                                        # Vitest: modelo, almacén, hooks y pantallas
 cargo check --manifest-path src-tauri/Cargo.toml
+cargo test --manifest-path src-tauri/Cargo.toml # preferencias, archivos, recientes e identidad
 ```
 
-El recorrido manual por historia está en
-[`specs/001-base-aplicacion/quickstart.md`](specs/001-base-aplicacion/quickstart.md).
+Y el recorrido de los ocho escenarios del Incremento 1, que conduce la
+aplicación de verdad con WebdriverIO:
+
+```bash
+npm run e2e          # compila el binario del recorrido y ejecuta los escenarios
+```
+
+Esto compila con la bandera `webdriver`, que mete un servidor de WebDriver
+dentro de la aplicación y abre automatización en `127.0.0.1:4445`. No entra en
+ninguna compilación normal ni en la de publicación. Solo corre en macOS; en
+Windows el montaje está pendiente.
+
+En cada empuje y en cada PR, GitHub repite las cinco puertas en macOS y en
+Windows (`.github/workflows/puertas.yml`), y el recorrido en macOS cuando el PR
+va hacia `main` (`.github/workflows/recorrido.yml`).
+
+Lo que ninguna máquina puede comprobar —el tema del sistema, «Reducir
+movimiento», que el Finder abra con el archivo seleccionado— queda anotado como
+recorrido manual en
+[`specs/001-base-aplicacion/quickstart.md`](specs/001-base-aplicacion/quickstart.md)
+y
+[`specs/002-archivos-modelo/quickstart.md`](specs/002-archivos-modelo/quickstart.md).
 
 ## Empaquetar
 
@@ -63,11 +103,12 @@ El procedimiento completo y los números medidos están en
 
 ## Dónde viven los datos
 
-La aplicación no guarda nada fuera del equipo. Sus dos archivos locales:
+La aplicación no guarda nada fuera del equipo. Sus tres archivos locales:
 
 | Archivo             | macOS                                                                       | Windows                                                           |
 | ------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | Preferencias        | `~/Library/Application Support/com.jaderdiaz.sql-designer/preferences.json` | `%APPDATA%\com.jaderdiaz.sql-designer\preferences.json`           |
+| Modelos recientes   | `~/Library/Application Support/com.jaderdiaz.sql-designer/recents.json`     | `%APPDATA%\com.jaderdiaz.sql-designer\recents.json`               |
 | Registro de errores | `~/Library/Logs/com.jaderdiaz.sql-designer/sql-designer.log`                | `%LOCALAPPDATA%\com.jaderdiaz.sql-designer\logs\sql-designer.log` |
 
 Si el archivo de preferencias no se puede leer, la aplicación abre con los
@@ -79,7 +120,9 @@ anota la causa en el registro.
 ```text
 src-tauri/   Contenedor y backend en Rust: ventana, menús, preferencias, registro
 src/         Interfaz: componentes, hooks, almacén y tokens de diseño
-scripts/     Comprobaciones de las puertas de calidad y copia de fuentes
+scripts/     Comprobaciones de las puertas de calidad y compilación del recorrido
+e2e/         Recorrido automatizado: conduce la aplicación de verdad
+.github/     Workflows que corren las puertas y el recorrido en cada PR
 specs/       Especificaciones Spec Kit por incremento
 ```
 

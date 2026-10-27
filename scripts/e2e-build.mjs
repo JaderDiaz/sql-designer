@@ -43,7 +43,17 @@ const resultado = spawnSync(
               {
                 identifier: 'recorrido',
                 windows: ['main'],
-                permissions: ['wdio:default', 'wdio-webdriver:default'],
+                permissions: [
+                  'wdio:default',
+                  'wdio-webdriver:default',
+                  // Traer la ventana al frente antes de empezar. Una ventana
+                  // tapada está «oculta» para WebKit, que entonces suspende
+                  // `requestAnimationFrame`: la animación de entrada no avanza
+                  // y la aplicación se queda en la pantalla de carga.
+                  'core:window:allow-show',
+                  'core:window:allow-unminimize',
+                  'core:window:allow-set-focus',
+                ],
               },
             ],
           },
