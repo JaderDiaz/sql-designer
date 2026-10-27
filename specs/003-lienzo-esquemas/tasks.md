@@ -298,16 +298,16 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 
 **Purpose**: lo que cruza las seis historias y lo que cierra el incremento.
 
-- [ ] T086 Crear `e2e/specs/09-lienzo-y-esquemas.e2e.js` con los nueve escenarios de `quickstart.md`: las cinco zonas, esconder y recuperar, mover la vista de las tres formas, el zoom con sus topes, crear tres esquemas, arrastrar una zona con tablas y guardar, arrastrar una zona vacía y guardar, enfocar, y eliminar con y sin tablas
-- [ ] T087 Ejecutar el recorrido completo en macOS (`npm run e2e`) y arreglar lo que saque, con atención al botón central y al autoscroll en Windows
+- [X] T086 Crear `e2e/specs/09-lienzo-y-esquemas.e2e.js` con los nueve escenarios de `quickstart.md`: las cinco zonas, esconder y recuperar, mover la vista de las tres formas, el zoom con sus topes, crear tres esquemas, arrastrar una zona con tablas y guardar, arrastrar una zona vacía y guardar, enfocar, y eliminar con y sin tablas
+- [X] T087 Ejecutar el recorrido completo en macOS (`npm run e2e`) y arreglar lo que saque, con atención al botón central y al autoscroll en Windows
 - [ ] T088 [P] Revisar el Editor, el diálogo de esquema y la confirmación de eliminar en tema claro, tema oscuro y con «Reducir movimiento», sin texto por debajo de 4,5:1 de contraste (SC-010, FR-041, puerta 5)
 - [ ] T089 [P] Recorrer el incremento entero solo con el teclado, con foco visible en cada paso, y arreglar lo que falte (SC-008, puerta 4)
 - [ ] T090 Medir SC-003 con `modelo-50-tablas.yaml` y el panel de rendimiento: 60 cuadros por segundo durante los gestos y respuesta al primer gesto por debajo de 100 ms, con la ventana respondiendo en todo momento (SC-003, FR-045)
 - [ ] T090a Cronometrar los tiempos de `quickstart.md`: crear un esquema en tres pasos y menos de 30 s (SC-001), crear tres esquemas, moverlos y enfocarlos en menos de 3 min (SC-002), y enfocar un esquema en menos de 1 s (SC-005)
-- [ ] T091 [P] Repasar la puerta 8 en todo lo nuevo: JSDoc en español en cada función, componente, acción del almacén y campo, y `///` en los dos campos de Rust
-- [ ] T092 [P] Repasar la puerta 6: ningún archivo del lienzo copiado al repositorio, y los tres desvíos deliberados de `research.md` R20 siguen siendo los únicos
-- [ ] T093 Pasar las cinco puertas en limpio: `npx tsc --noEmit`, `npm run lint`, `npx vitest run`, `cargo check` y `cargo test`
-- [ ] T094 Subir la versión del producto a `1.2.0` en `package.json`, `src-tauri/tauri.conf.json` y `src-tauri/Cargo.toml`, y actualizar `README.md` con lo que el Editor hace ahora
+- [X] T091 [P] Repasar la puerta 8 en todo lo nuevo: JSDoc en español en cada función, componente, acción del almacén y campo, y `///` en los dos campos de Rust
+- [X] T092 [P] Repasar la puerta 6: ningún archivo del lienzo copiado al repositorio, y los tres desvíos deliberados de `research.md` R20 siguen siendo los únicos
+- [X] T093 Pasar las cinco puertas en limpio: `npx tsc --noEmit`, `npm run lint`, `npx vitest run`, `cargo check` y `cargo test`
+- [X] T094 Subir la versión del producto a `1.2.0` en `package.json`, `src-tauri/tauri.conf.json` y `src-tauri/Cargo.toml`, y actualizar `README.md` con lo que el Editor hace ahora
 - [ ] T095 Abrir el PR hacia `main`, esperar `puertas.yml` y `recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.2.0` sobre el commit que cierra el incremento (constitución, Versión del producto y etiquetas)
 
 ---

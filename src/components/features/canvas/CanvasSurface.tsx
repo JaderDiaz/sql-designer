@@ -6,6 +6,7 @@ import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMen
 import { schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { cn } from '@/lib/cn'
+import { capturePointer } from '@/lib/pointer'
 import { useCanvasView } from '@/hooks/useCanvasView'
 import { useAppStore } from '@/store'
 
@@ -122,7 +123,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     // el central mueve la vista (FR-007, FR-038). Con la barra espaciadora
     // mantenida, arrastrar encima de una zona mueve la vista, no el esquema.
     if (event.button !== 0 || view.isPanning() || drag.current !== null) return
-    event.currentTarget.setPointerCapture(event.pointerId)
+    capturePointer(event.currentTarget, event.pointerId)
     drag.current = {
       schema,
       pointerId: event.pointerId,

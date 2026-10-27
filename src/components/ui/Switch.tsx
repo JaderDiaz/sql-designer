@@ -38,6 +38,9 @@ export function Switch({
     <div className={cn('au-switch', className)}>
       <RadixSwitch.Root
         id={id}
+        // El primitivo dibuja un `button`, y un `button` no tiene etiqueta
+        // enlazada: el nombre tiene que ser explícito.
+        aria-label={label}
         className="au-switch-track"
         checked={checked}
         disabled={disabled}

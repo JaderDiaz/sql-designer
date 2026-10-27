@@ -6,6 +6,7 @@ import {
   atajo,
   escribir,
   esperarDialogo,
+  esperarEditor,
   esperarSinDialogo,
   esperarTexto,
   pulsar,
@@ -73,7 +74,7 @@ describe('Escenario 8 · Medidas de SC-002 y SC-003', () => {
     await seleccionar('modelo-50-tablas.yaml')
     await pulsarEn('Abrir modelo', 'Abrir')
     await esperarSinDialogo('Abrir modelo')
-    await esperarTexto('Empieza a diseñar tu modelo')
+    await esperarEditor()
 
     expect(await milisegundos('SC-002 modelo abierto')).toBeLessThan(2000)
   })

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, type RefObject } from 'react'
 
 import type { View } from '@/lib/canvas/constants'
 import { zoomAt } from '@/lib/canvas/zoom'
+import { capturePointer } from '@/lib/pointer'
 import { useAppStore } from '@/store'
 import { ZOOM_STEP } from '@/store/canvas'
 
@@ -269,7 +270,7 @@ export function useCanvasView({ surface, stage, grid }: CanvasNodes): CanvasView
       const wheelButton = event.button === 1
       if (!wheelButton && !space.current && !(event.button === 0 && onBackground)) return
 
-      event.currentTarget.setPointerCapture(event.pointerId)
+      capturePointer(event.currentTarget, event.pointerId)
       drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY }
       setGesturing(true)
     },

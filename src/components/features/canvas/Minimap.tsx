@@ -4,6 +4,7 @@ import { TABLE_HEIGHT, TABLE_WIDTH, type Rect } from '@/lib/canvas/constants'
 import { contentBounds, schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { resolveSchemaColor } from '@/lib/model/colors'
+import { capturePointer } from '@/lib/pointer'
 import { useAppStore } from '@/store'
 
 /**
@@ -125,7 +126,7 @@ export function Minimap() {
       onPointerDown={(event) => {
         if (event.button !== 0) return
         pointer.current = event.pointerId
-        event.currentTarget.setPointerCapture(event.pointerId)
+        capturePointer(event.currentTarget, event.pointerId)
         goTo(event)
       }}
       onPointerMove={(event) => {

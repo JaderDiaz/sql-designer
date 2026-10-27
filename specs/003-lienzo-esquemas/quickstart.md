@@ -43,7 +43,7 @@ Las cinco tienen que pasar sin avisos nuevos (puerta 1 de la constitución).
 | `src/lib/canvas/geometry.test.ts` | La zona envuelve sus tablas con el margen exacto; alto mínimo con una sola tabla; zona vacía de 240 × 180; las zonas salen en el orden del modelo | FR-023 a FR-025 |
 | `src/lib/canvas/layout.test.ts` | `resolveLayout` es determinista; respeta la posición del archivo; agrupa por esquema sin solapar zonas; no muta el modelo | FR-013, FR-028 |
 | `src/lib/canvas/zoom.test.ts` | Topes 40 % y 200 %; el punto bajo el puntero no se mueve; «Ajustar» con posiciones negativas y enormes; modelo vacío → 100 % centrado | FR-008 a FR-011 |
-| `src/lib/model/propose.test.ts` | «Ventas y cobros» → `ventas_y_cobros` / `VEN`; acentos; una sola palabra; empieza por número; vacío | FR-016 |
+| `src/lib/model/propose.test.ts` | «Ventas y cobros» → `ventas_y_cobros` / `VYC`; acentos; una sola palabra; empieza por número; vacío | FR-016 |
 | `src/lib/model/colors.test.ts` | Los once identificadores; uno desconocido cae a `indigo` sin error | FR-021 |
 | `src/lib/model/parse.test.ts` | `schemas[].position` se lee en un esquema vacío y **se descarta** en uno con tablas; una clave desconocida o una `x` no numérica sí invalidan el archivo | FR-026a, FR-044 |
 | `src/lib/model/roundtrip.test.ts` | Un modelo con posición de esquema vacío y posiciones de tabla da el mismo texto al ir y volver | FR-044, puerta 3 |
