@@ -435,20 +435,33 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--zone) 18%, transparent);
   transition:
     opacity var(--duration-base) var(--easing-standard),
-    filter var(--duration-base) var(--easing-standard);
+    background var(--duration-fast) var(--easing-standard),
+    box-shadow var(--duration-fast) var(--easing-standard);
 }
-/* Al pasar por encima, la zona sube el color en vez de cambiar de fondo. */
+/*
+ * Al pasar por encima, la zona sube su propio color. El diseño lo hace con
+ * `filter: saturate()`, que aquí no vale: un filtro promueve la capa del
+ * compositor, y una capa guarda su contenido rasterizado a una escala, así
+ * que el texto se pixelaba y daba un salto al entrar y salir el puntero. Subir
+ * los porcentajes del `color-mix` se ve igual y no promueve nada.
+ */
 .sm-zone:hover {
-  filter: saturate(1.4);
+  background: color-mix(in srgb, var(--zone) 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--zone) 28%, transparent);
+}
+.sm-zone.is-empty:hover {
+  background: color-mix(in srgb, var(--zone) 7%, transparent);
+  box-shadow: none;
+  border-color: color-mix(in srgb, var(--zone) 55%, transparent);
 }
 .sm-zone.is-empty {
   background: color-mix(in srgb, var(--zone) 4%, transparent);
   box-shadow: none;
   border: 1px dashed color-mix(in srgb, var(--zone) 40%, transparent);
 }
+/* Atenuar es solo opacidad, por lo mismo: un filtro promovería la capa. */
 .sm-zone.is-dim {
-  opacity: 0.35;
-  filter: saturate(0.3);
+  opacity: 0.3;
 }
 /*
  * La zona seleccionada solo aprieta su propio borde. El diseño no le pone
