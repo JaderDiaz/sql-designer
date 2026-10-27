@@ -266,9 +266,10 @@ un modelo de un solo esquema la opción está deshabilitada.
 4. **Dado** la confirmación con el interruptor encendido, **cuando** confirmo,
    **entonces** el esquema y sus tablas desaparecen, y el diálogo lo había dicho
    nombrando cuántas tablas se iban.
-5. **Dado** un modelo con un solo esquema, **entonces** «Eliminar…» está
-   deshabilitada y se dice por qué: un modelo siempre tiene al menos un esquema
-   (RS-02).
+5. **Dado** un modelo con un solo esquema, **cuando** lo elimino, **entonces**
+   el modelo se queda sin esquemas y el lienzo vuelve a la tarjeta de empezar;
+   si ese esquema tenía tablas, se van con él, porque no hay destino al que
+   moverlas (FR-035).
 6. **Dado** un esquema eliminado, **entonces** el modelo queda «Editado» y puedo
    deshacer la eliminación completa —esquema, color, tablas y sus posiciones—
    con ⌘Z / Ctrl+Z.
@@ -287,8 +288,9 @@ un modelo de un solo esquema la opción está deshabilitada.
 
 - **Esquema repetido**: ¿qué pasa si el nombre técnico o la abreviatura ya
   existen? Error junto al campo, sin poder guardar (FR-018).
-- **Único esquema**: eliminar el último esquema queda deshabilitado; el modelo
-  siempre tiene al menos uno (RS-02, FR-035).
+- **Único esquema**: eliminar el último esquema está permitido y deja el modelo
+  en blanco; sus tablas se eliminan con él, porque no hay otro esquema al que
+  moverlas (FR-005a, FR-035).
 - **Tablas sin posición**: un modelo guardado sin posiciones se coloca de forma
   ordenada y determinista al abrirlo, sin marcar «Editado» (FR-013).
 - **Posiciones imposibles**: coordenadas negativas, enormes o repetidas no dejan
@@ -369,6 +371,10 @@ un modelo de un solo esquema la opción está deshabilitada.
   tope alcanzado.
 - **FR-009**: Al hacer zoom con el puntero, el sistema MUST conservar bajo el
   puntero el punto del modelo que había debajo.
+- **FR-009a**: El porcentaje de la barra de zoom MUST poder escribirse: pulsarlo
+  MUST convertirlo en un campo con el valor actual dentro, Intro MUST aplicar lo
+  escrito recortado a los topes de FR-008, y Esc MUST dejar el zoom como
+  estaba.
 - **FR-010**: El sistema MUST ofrecer «Ajustar», que MUST dejar visible todo el
   modelo con un margen, y con un modelo vacío MUST volver al 100 % centrado.
 - **FR-011**: El sistema MUST garantizar que ninguna tabla queda inalcanzable:
@@ -456,8 +462,10 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **FR-034**: Eliminar MUST pedir confirmación nombrando el esquema y cuántas
   tablas tiene, con el interruptor «Eliminar también sus tablas» apagado por
   defecto.
-- **FR-035**: El sistema MUST deshabilitar «Eliminar…» cuando el modelo tiene un
-  solo esquema, diciendo que un modelo siempre tiene al menos uno (RS-02).
+- **FR-035**: El sistema MUST permitir eliminar cualquier esquema, también el
+  único del modelo, que entonces MUST dejar el modelo en blanco (FR-005a).
+  Cuando no queda ningún esquema de destino, el diálogo MUST decir que las
+  tablas se eliminan con él y MUST NOT ofrecer moverlas.
 - **FR-036**: Con el interruptor apagado, confirmar MUST mover las tablas, los
   enums y las vistas del esquema al esquema de destino, que el diálogo MUST
   nombrar siempre. Cuando quedan dos o más esquemas, el diálogo MUST dejar
@@ -496,8 +504,8 @@ un modelo de un solo esquema la opción está deshabilitada.
 ### Key Entities
 
 - **Esquema**: agrupación con nombre legible, nombre técnico único, abreviatura
-  de tres letras única, color de la paleta y descripción. Un modelo tiene al
-  menos uno (RS-02). Es el objeto que este incremento crea, edita y elimina.
+  de tres letras única, color de la paleta y descripción. Un modelo puede no
+  tener ninguno: así nace y así queda si se eliminan todos (FR-005a). Es el objeto que este incremento crea, edita y elimina.
 - **Zona de esquema**: la representación del esquema en el lienzo. Con tablas se
   deduce de ellas —su rectángulo envolvente con un margen—; sin tablas se dibuja
   con un tamaño mínimo en su posición guardada, o, si no tiene ninguna, en un

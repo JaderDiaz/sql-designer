@@ -197,10 +197,10 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
   /**
    * Elimina un esquema, con sus tablas o moviéndolas a otro (FR-033 a FR-037).
    *
-   * El último esquema del modelo no se elimina: un modelo necesita al menos
-   * uno (RS-02, FR-035). Con `withTables` se van también sus enums, sus vistas
-   * y las relaciones que tocaban a sus tablas, porque una relación sin sus dos
-   * extremos no es nada.
+   * Se puede eliminar cualquiera, también el último: un modelo sin esquemas es
+   * el estado con el que nace (FR-005a, FR-035). Con `withTables` se van
+   * también sus enums, sus vistas y las relaciones que tocaban a sus tablas,
+   * porque una relación sin sus dos extremos no es nada.
    *
    * @param name Nombre técnico del esquema.
    * @param options Si se eliminan sus tablas y, si no, a qué esquema pasan.
@@ -208,7 +208,6 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
   deleteSchema(name, options) {
     const { model, savedModel, past, focusedSchema, selectedSchema } = get()
     if (model === null) return
-    if (model.schemas.length <= 1) return
     if (model.schemas.every((schema) => schema.name !== name)) return
 
     let next: Model

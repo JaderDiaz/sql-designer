@@ -79,3 +79,59 @@ describe('ZoomBar en los topes (FR-008)', () => {
     expect(screen.getByText('40 %')).toBeInTheDocument()
   })
 })
+
+describe('ZoomBar con el porcentaje escrito (FR-009)', () => {
+  /** Abre el campo del porcentaje, que es pulsar lo que dice el zoom. */
+  async function abrirCampo() {
+    await userEvent.click(screen.getByRole('button', { name: /^Zoom / }))
+    return screen.getByRole('textbox', { name: 'Porcentaje de zoom' })
+  }
+
+  it('pulsar el porcentaje lo convierte en un campo con el valor dentro', async () => {
+    renderBar(1)
+
+    expect(await abrirCampo()).toHaveValue('100')
+  })
+
+  it('escribir un porcentaje y pulsar Intro lo aplica', async () => {
+    renderBar(1)
+    const field = await abrirCampo()
+
+    await userEvent.clear(field)
+    await userEvent.type(field, '150{Enter}')
+
+    expect(useAppStore.getState().zoom).toBeCloseTo(1.5)
+    expect(screen.getByText('150 %')).toBeInTheDocument()
+  })
+
+  it('un porcentaje fuera de los topes se recorta (FR-008)', async () => {
+    renderBar(1)
+    const field = await abrirCampo()
+
+    await userEvent.clear(field)
+    await userEvent.type(field, '900{Enter}')
+
+    expect(useAppStore.getState().zoom).toBe(ZOOM_MAX)
+  })
+
+  it('Esc deja el zoom como estaba', async () => {
+    renderBar(1)
+    const field = await abrirCampo()
+
+    await userEvent.clear(field)
+    await userEvent.type(field, '75{Escape}')
+
+    expect(useAppStore.getState().zoom).toBe(1)
+    expect(screen.getByText('100 %')).toBeInTheDocument()
+  })
+
+  it('lo que no es un número deja el zoom como estaba', async () => {
+    renderBar(1)
+    const field = await abrirCampo()
+
+    await userEvent.clear(field)
+    await userEvent.type(field, 'ocho{Enter}')
+
+    expect(useAppStore.getState().zoom).toBe(1)
+  })
+})

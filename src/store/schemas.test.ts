@@ -220,7 +220,7 @@ describe('deleteSchema', () => {
     expect(model?.views?.[0]?.schema).toBe('inventario')
   })
 
-  it('no hace nada si es el único esquema del modelo (FR-035)', () => {
+  it('eliminar el único esquema deja el modelo en blanco (FR-035, FR-005a)', () => {
     openModel({
       formatVersion: 1,
       name: 'Uno',
@@ -230,8 +230,8 @@ describe('deleteSchema', () => {
 
     useAppStore.getState().deleteSchema('public', { withTables: true, target: null })
 
-    expect(useAppStore.getState().model?.schemas).toHaveLength(1)
-    expect(useAppStore.getState().isDirty).toBe(false)
+    expect(useAppStore.getState().model?.schemas).toHaveLength(0)
+    expect(useAppStore.getState().isDirty).toBe(true)
   })
 
   it('no hace nada si el destino no existe', () => {

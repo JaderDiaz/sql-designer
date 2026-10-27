@@ -16,6 +16,10 @@ import { useAppStore } from '@/store'
  *
  * El interruptor arranca apagado: mover es reversible de un vistazo y eliminar
  * no lo parece, aunque las dos cosas se deshagan igual en un paso.
+ *
+ * Cuando el esquema es el único del modelo no hay interruptor que valga: no
+ * existe destino al que mover sus tablas, así que se van con él y el diálogo
+ * lo dice en lugar de ofrecer una elección que no existe (FR-035).
  */
 
 /** Cómo se lee el número de tablas afectadas. */
@@ -51,6 +55,10 @@ export function DeleteSchemaDialog() {
   // El destino propuesto es el primer esquema del modelo distinto del que se
   // elimina (FR-036); sin elección, es ese.
   const target = chosen ?? others[0]?.name ?? ''
+  // Sin ningún otro esquema, eliminar las tablas no es una opción: es la única
+  // salida, así que el interruptor no se pinta y vale por encendido.
+  const isOnly = others.length === 0
+  const deletesTables = isOnly || withTables
 
   const tables = (model?.tables ?? []).filter((table) => table.schema === schema.name)
   const enums = (model?.enums ?? []).filter((value) => value.schema === schema.name)
@@ -65,7 +73,7 @@ export function DeleteSchemaDialog() {
   /** Elimina el esquema con lo que se haya elegido y cierra (FR-037). */
   const name = schema.name
   const confirm = () => {
-    deleteSchema(name, { withTables, target: withTables ? null : target })
+    deleteSchema(name, { withTables: deletesTables, target: deletesTables ? null : target })
     closeDialog()
   }
 
@@ -91,13 +99,21 @@ export function DeleteSchemaDialog() {
         <>
           <Button onClick={closeDialog}>Cancelar</Button>
           <Button variant="destructive" type="submit">
-            {withTables ? 'Eliminar esquema y tablas' : 'Eliminar esquema'}
+            {deletesTables && tables.length > 0 ? 'Eliminar esquema y tablas' : 'Eliminar esquema'}
           </Button>
         </>
       }
     >
       <div className="flex flex-col gap-4">
-        {tables.length > 0 ? (
+        {isOnly && tables.length > 0 ? (
+          <p className="m-0 text-[12px] leading-4 text-label-secondary">
+            Es el único esquema del modelo, así que sus{' '}
+            {affectedLabel(tables.length)} se eliminan con él, junto a las relaciones que las
+            tocaban. El modelo queda en blanco.
+          </p>
+        ) : null}
+
+        {!isOnly && tables.length > 0 ? (
           <Switch
             checked={withTables}
             onCheckedChange={setWithTables}
@@ -110,7 +126,7 @@ export function DeleteSchemaDialog() {
           />
         ) : null}
 
-        {!withTables && others.length > 0 ? (
+        {!deletesTables && others.length > 0 ? (
           <div className="flex flex-col gap-2">
             <span className="text-[12px] font-medium leading-4 text-label">
               {others.length === 1 ? 'Destino' : 'Mover a'}
@@ -137,7 +153,7 @@ export function DeleteSchemaDialog() {
 
         {alsoMoves.length > 0 ? (
           <p className="m-0 text-[12px] leading-4 text-label-secondary">
-            {withTables ? 'También se eliminan ' : 'También se mueven '}
+            {deletesTables ? 'También se eliminan ' : 'También se mueven '}
             {alsoMoves.join(' y ')}.
           </p>
         ) : null}

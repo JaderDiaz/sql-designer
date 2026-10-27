@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { CanvasSurface } from '@/components/features/canvas/CanvasSurface'
-import { LAST_SCHEMA_LABEL } from '@/components/features/schema/SchemaContextMenu'
 import { ModelSidebar } from '@/components/layout/ModelSidebar'
 import { readFixture } from '@/lib/model/__fixtures__'
 import { parseModel } from '@/lib/model/parse'
@@ -76,7 +75,7 @@ describe('menú contextual en la fila de la barra lateral (FR-033)', () => {
     expect(useAppStore.getState().schemaTarget).toBe('ventas')
   })
 
-  it('con un solo esquema, eliminar está deshabilitado y dice por qué (FR-035, SC-009)', async () => {
+  it('el único esquema del modelo también se puede eliminar (FR-035)', async () => {
     open({
       formatVersion: 1,
       name: 'Uno',
@@ -87,8 +86,8 @@ describe('menú contextual en la fila de la barra lateral (FR-033)', () => {
 
     fireEvent.contextMenu(screen.getByRole('option', { name: 'public, sin tablas' }))
 
-    const entry = await screen.findByRole('menuitem', { name: LAST_SCHEMA_LABEL })
-    expect(entry).toHaveAttribute('data-disabled')
+    const entry = await screen.findByRole('menuitem', { name: 'Eliminar esquema…' })
+    expect(entry).not.toHaveAttribute('data-disabled')
   })
 })
 

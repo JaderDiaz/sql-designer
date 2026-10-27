@@ -308,7 +308,7 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     await esperarSinMenu()
   })
 
-  it('9b · con un solo esquema, eliminar está deshabilitado (FR-035, RS-02)', async () => {
+  it('9b · el único esquema del modelo también se elimina (FR-035, FR-005a)', async () => {
     // Lo que haya quedado abierto se cierra sin guardar nada.
     await desdeLaBienvenida()
 
@@ -324,11 +324,17 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     await escribir('Nombre', 'ventas')
     await pulsarEn('Nuevo esquema', 'Crear esquema')
     await esperarSinDialogo('Nuevo esquema')
+    await esperarSinTexto('Empieza a diseñar tu modelo')
+    expect(await zonas()).toHaveLength(1)
 
     await menuDeZona('ventas')
-    const visible = await texto()
-    expect(visible).toContain('es el único del modelo')
-    await browser.keys('Escape')
-    await esperarSinMenu()
+    await pulsar('Eliminar esquema…')
+    await esperarDialogo('¿Eliminar «ventas»?')
+    await pulsarEn('¿Eliminar «ventas»?', 'Eliminar esquema')
+    await esperarSinDialogo('¿Eliminar «ventas»?')
+
+    // Y el modelo vuelve a estar en blanco.
+    await esperarTexto('Empieza a diseñar tu modelo')
+    expect(await zonas()).toHaveLength(0)
   })
 })

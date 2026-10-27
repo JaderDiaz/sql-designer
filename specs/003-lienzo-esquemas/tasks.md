@@ -324,6 +324,9 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 - [X] T103 El lienzo de un modelo en blanco no dibuja ninguna zona y la tarjeta «Empieza a diseñar tu modelo» sale solo entonces; con un esquema o una tabla, la tarjeta se va y el lienzo dibuja (`src/lib/model/defaults.ts` con `isBlankModel`, `src/components/features/canvas/CanvasSurface.tsx`, `src/components/features/editor/EditorScreen.tsx`, FR-005, FR-005a)
 - [X] T104 El inspector mira la tabla seleccionada, que llega con el Incremento 3: hasta entonces muestra siempre la ficha del modelo y enfocar un esquema no lo cambia (`src/components/layout/Inspector.tsx`, FR-003)
 - [X] T105 El porcentaje de zoom es del usuario: abrir un modelo lo centra al 100 %, enfocar un esquema centra su zona sin cambiar la escala, y solo «Ajustar» ajusta; pulsar el fondo del lienzo suelta el foco (`src/lib/canvas/zoom.ts` con `centerOnContent`, `src/store/canvas.ts`, `src/hooks/useCanvasView.ts`, FR-014, FR-029, FR-031)
+- [X] T106 Quitar la transición de `transform` del lienzo: el navegador la anima en el compositor, promueve la capa y el texto se ve borroso mientras dura (`src/styles/screens.css`); lo mismo con el `filter` del realce y de la atenuación de la zona, que se sustituyen por `color-mix` y opacidad
+- [X] T107 El porcentaje de la barra de zoom se escribe: pulsarlo abre un campo con el valor, Intro lo aplica recortado a los topes y Esc lo deja como estaba (`src/components/features/canvas/ZoomBar.tsx`, `src/styles/screens.css`, FR-009a)
+- [X] T108 Eliminar el único esquema del modelo deja de estar prohibido: el menú ya no lo deshabilita, el almacén lo permite y el diálogo dice que sus tablas se van con él porque no hay destino (`src/components/features/schema/SchemaContextMenu.tsx`, `src/store/schemas.ts`, `src/components/features/schema/DeleteSchemaDialog.tsx`, FR-035)
 
 ---
 

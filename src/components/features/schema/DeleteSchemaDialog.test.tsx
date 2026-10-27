@@ -140,3 +140,35 @@ describe('DeleteSchemaDialog con dos esquemas', () => {
     expect(model?.tables?.every((table) => table.schema === 'inventario')).toBe(true)
   })
 })
+
+describe('DeleteSchemaDialog con un solo esquema', () => {
+  /** El modelo con un único esquema, que sigue teniendo sus tablas. */
+  function oneSchema(): Model {
+    const model = threeSchemas()
+    return {
+      ...model,
+      schemas: model.schemas.filter((schema) => schema.name === 'ventas'),
+      tables: (model.tables ?? []).filter((table) => table.schema === 'ventas'),
+      enums: [],
+      views: [],
+    }
+  }
+
+  it('no ofrece interruptor ni destino: las tablas se van con él (FR-035)', () => {
+    renderOpen('ventas', oneSchema())
+
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    expect(screen.getByText(/Es el único esquema del modelo/)).toBeInTheDocument()
+  })
+
+  it('confirmar deja el modelo en blanco (FR-005a, FR-035)', async () => {
+    renderOpen('ventas', oneSchema())
+
+    await userEvent.click(screen.getByRole('button', { name: 'Eliminar esquema y tablas' }))
+
+    const model = useAppStore.getState().model
+    expect(model?.schemas).toEqual([])
+    expect(model?.tables ?? []).toEqual([])
+  })
+})
