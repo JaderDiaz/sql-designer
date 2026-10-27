@@ -54,7 +54,7 @@ const START_ROWS: StartRow[] = [
 
 export function EmptyModelCard() {
   const model = useAppStore((state) => state.model)
-  const openDialog = useAppStore((state) => state.openDialog)
+  const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
 
   const schema = model?.schemas[0]
 
@@ -106,7 +106,7 @@ export function EmptyModelCard() {
                 <button
                   type="button"
                   className="sm-start-row sm-start-row-action w-full"
-                  onClick={() => openDialog('schema')}
+                  onClick={() => openSchemaDialog(null)}
                 >
                   {content}
                   <Icon name="chevron-right" size={14} className="text-label-tertiary" />

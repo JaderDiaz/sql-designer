@@ -50,6 +50,14 @@ export const MOVE_SCHEMA_TABLES_LABEL = 'mover las tablas del esquema'
 
 /** Estado y acciones de la parte de los esquemas. */
 export interface SchemasSlice {
+  /**
+   * Esquema que está editando el diálogo, o `null` si está creando uno.
+   *
+   * Nuevo esquema y Editar esquema son el mismo diálogo con otro título
+   * (FR-015, FR-020), así que lo que los distingue es este campo.
+   */
+  schemaTarget: string | null
+  openSchemaDialog: (name: string | null) => void
   createSchema: (draft: SchemaDraft) => void
   updateSchema: (name: string, draft: SchemaDraft) => void
   deleteSchema: (name: string, options: DeleteSchemaOptions) => void
@@ -96,6 +104,17 @@ function renameSchemaReferences(model: Model, from: string, to: string): Model {
  * @param get Lectura del almacén compuesto.
  */
 export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
+  schemaTarget: null,
+
+  /**
+   * Abre el diálogo de esquema, para crear uno o para editar el que se diga.
+   *
+   * @param name Nombre técnico del esquema a editar, o `null` para crear.
+   */
+  openSchemaDialog(name) {
+    set({ schemaTarget: name, dialog: 'schema' })
+  },
+
   /**
    * Añade un esquema al final del modelo (FR-015 a FR-022).
    *

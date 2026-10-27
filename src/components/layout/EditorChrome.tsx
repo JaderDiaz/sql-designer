@@ -48,6 +48,7 @@ export function EditorChrome() {
   const redo = useAppStore((state) => state.redo)
   const requestClose = useAppStore((state) => state.requestClose)
   const openDialog = useAppStore((state) => state.openDialog)
+  const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
   const isSidebarHidden = useAppStore((state) => state.isSidebarHidden)
   const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
   const toggleSidebar = useAppStore((state) => state.toggleSidebar)
@@ -93,7 +94,7 @@ export function EditorChrome() {
         icon="plus"
         aria-label="Nuevo esquema"
         title="Nuevo esquema"
-        onClick={() => openDialog('schema')}
+        onClick={() => openSchemaDialog(null)}
       />
 
       <div className="flex-1" />

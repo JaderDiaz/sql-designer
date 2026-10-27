@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { tableCountLabel } from '@/components/layout/ModelSidebar'
+import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { resolveSchemaColor, schemaColorLabel } from '@/lib/model/colors'
 import { useAppStore } from '@/store'
@@ -27,6 +28,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 export function Inspector() {
   const model = useAppStore((state) => state.model)
   const selectedSchema = useAppStore((state) => state.selectedSchema)
+  const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
 
   const schema = model?.schemas.find((candidate) => candidate.name === selectedSchema)
 
@@ -57,6 +59,14 @@ export function Inspector() {
         <h2 className="m-0 min-w-0 flex-1 truncate text-[15px] font-semibold leading-5">
           {schema.name}
         </h2>
+        <Button
+          variant="plain"
+          size="sm"
+          icon="pencil"
+          aria-label="Editar esquema"
+          title="Editar esquema"
+          onClick={() => openSchemaDialog(schema.name)}
+        />
       </div>
 
       <dl className="m-0 flex flex-col gap-3">

@@ -79,9 +79,7 @@ export function EditorScreen() {
                 </div>
               ) : null
             }
-          >
-            {null}
-          </CanvasSurface>
+          />
         }
       />
     </motion.section>

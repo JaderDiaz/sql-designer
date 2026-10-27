@@ -7,6 +7,7 @@ import { EditorScreen } from '@/components/features/editor/EditorScreen'
 import { RenameModelDialog } from '@/components/features/editor/RenameModelDialog'
 import { StaleFileDialog } from '@/components/features/editor/StaleFileDialog'
 import { NewModelDialog } from '@/components/features/new-model/NewModelDialog'
+import { SchemaDialog } from '@/components/features/schema/SchemaDialog'
 import { FileErrorDialog } from '@/components/features/open-model/FileErrorDialog'
 import { OpenModelDialog } from '@/components/features/open-model/OpenModelDialog'
 import { PreferencesWindow } from '@/components/features/preferences/PreferencesWindow'
@@ -218,6 +219,7 @@ export default function App() {
         <ConfirmCloseDialog />
         <RecentNotFoundDialog />
         <TrashConfirmDialog />
+        <SchemaDialog />
       </AppShell>
       <PreferencesWindow />
     </MotionConfig>

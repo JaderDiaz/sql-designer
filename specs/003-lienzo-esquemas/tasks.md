@@ -163,18 +163,18 @@ el color elegido y la zona vacía resultante en la barra lateral y en el lienzo.
 
 ### Tests for User Story 2
 
-- [ ] T046 [P] [US2] Crear `src/store/schemas.test.ts` con la parte de crear y editar: el esquema entra al final de `schemas`, el modelo queda «Editado», deshacer lo quita en un paso, y editar el nombre técnico lo propaga a las tablas, enums y vistas de ese esquema (FR-015, FR-020, FR-022, SC-006)
-- [ ] T047 [P] [US2] Crear `src/components/features/schema/SchemaDialog.test.tsx`: propone nombre técnico y abreviatura al escribir el nombre, deja de proponer cuando el usuario escribe a mano, muestra los seis errores de FR-018 sin dejar guardar, y la vista previa cambia con el color elegido (FR-016 a FR-019)
+- [X] T046 [P] [US2] Crear `src/store/schemas.test.ts` con la parte de crear y editar: el esquema entra al final de `schemas`, el modelo queda «Editado», deshacer lo quita en un paso, y editar el nombre técnico lo propaga a las tablas, enums y vistas de ese esquema (FR-015, FR-020, FR-022, SC-006)
+- [X] T047 [P] [US2] Crear `src/components/features/schema/SchemaDialog.test.tsx`: propone nombre técnico y abreviatura al escribir el nombre, deja de proponer cuando el usuario escribe a mano, muestra los seis errores de FR-018 sin dejar guardar, y la vista previa cambia con el color elegido (FR-016 a FR-019)
 
 ### Implementation for User Story 2
 
-- [ ] T048 [US2] Crear `src/components/features/schema/SchemaDialog.tsx` sobre `Dialog`: campos Nombre, Nombre técnico (mono) y Abreviatura (tres letras, 128 px), la paleta con `ColorSwatches`, la vista previa de la zona con el color elegido, y los botones Cancelar y «Crear esquema» / «Guardar cambios» (FR-015 a FR-020)
-- [ ] T049 [US2] Validar en el diálogo los seis casos de FR-018 con los mensajes de `data-model.md` §6: nombre legible vacío, nombre técnico vacío, con forma inválida o repetido, abreviatura que no son tres letras o repetida. El botón de guardar queda deshabilitado mientras haya error (FR-018, SC-009)
-- [ ] T050 [US2] Abrir el diálogo desde las tres vías de FR-015: el botón «+» de la sección Esquemas de `ModelSidebar`, un botón de `EditorChrome` y la fila «Agregar un esquema» de `EmptyModelCard`; el diálogo se declara en `src/store/navigation.ts` como un `dialog` más
-- [ ] T051 [US2] Mostrar el esquema nuevo en la barra lateral y en el lienzo como zona vacía con el texto «Aún no hay tablas en este esquema», y dejar el modelo «Editado» con su paso de deshacer (FR-025, FR-022, SC-009)
-- [ ] T052 [US2] Permitir editar un esquema existente desde su menú contextual en la barra lateral y desde el inspector, reusando el mismo diálogo en modo «editar» y reflejando el cambio en lienzo, barra lateral e inspector al confirmar (FR-020)
-- [ ] T052a [US2] Crear `src/components/features/schema/SchemaContextMenu.tsx` sobre `ContextMenu` con una sola entrada, «Editar esquema…», y engancharlo a la fila del esquema en `ModelSidebar`, también con ⇧F10. La entrada de eliminar la añade US6 (FR-020, FR-038)
-- [ ] T053 [US2] Dar al aviso breve de deshacer y rehacer las etiquetas nuevas, reutilizando el `showNotice` del Incremento 1 (FR-022, RS-06)
+- [X] T048 [US2] Crear `src/components/features/schema/SchemaDialog.tsx` sobre `Dialog`: campos Nombre, Nombre técnico (mono) y Abreviatura (tres letras, 128 px), la paleta con `ColorSwatches`, la vista previa de la zona con el color elegido, y los botones Cancelar y «Crear esquema» / «Guardar cambios» (FR-015 a FR-020)
+- [X] T049 [US2] Validar en el diálogo los seis casos de FR-018 con los mensajes de `data-model.md` §6: nombre legible vacío, nombre técnico vacío, con forma inválida o repetido, abreviatura que no son tres letras o repetida. El botón de guardar queda deshabilitado mientras haya error (FR-018, SC-009)
+- [X] T050 [US2] Abrir el diálogo desde las tres vías de FR-015: el botón «+» de la sección Esquemas de `ModelSidebar`, un botón de `EditorChrome` y la fila «Agregar un esquema» de `EmptyModelCard`; el diálogo se declara en `src/store/navigation.ts` como un `dialog` más
+- [X] T051 [US2] Mostrar el esquema nuevo en la barra lateral y en el lienzo como zona vacía con el texto «Aún no hay tablas en este esquema», y dejar el modelo «Editado» con su paso de deshacer (FR-025, FR-022, SC-009)
+- [X] T052 [US2] Permitir editar un esquema existente desde su menú contextual en la barra lateral y desde el inspector, reusando el mismo diálogo en modo «editar» y reflejando el cambio en lienzo, barra lateral e inspector al confirmar (FR-020)
+- [X] T052a [US2] Crear `src/components/features/schema/SchemaContextMenu.tsx` sobre `ContextMenu` con una sola entrada, «Editar esquema…», y engancharlo a la fila del esquema en `ModelSidebar`, también con ⇧F10. La entrada de eliminar la añade US6 (FR-020, FR-038)
+- [X] T053 [US2] Dar al aviso breve de deshacer y rehacer las etiquetas nuevas, reutilizando el `showNotice` del Incremento 1 (FR-022, RS-06)
 
 **Checkpoint**: crear tres esquemas con color funciona de principio a fin, con
 sus errores, su vista previa y su deshacer.
@@ -193,17 +193,17 @@ zona para ver que sus tablas la acompañan, que el modelo queda «Editado» y qu
 
 ### Tests for User Story 3
 
-- [ ] T054 [P] [US3] Crear `src/components/features/canvas/SchemaZone.test.tsx`: el rótulo trae abreviatura, nombre y número de tablas, una zona vacía muestra «Aún no hay tablas en este esquema», y el nombre accesible es el de `contracts/canvas.md` §5 (FR-024, FR-025, FR-040)
-- [ ] T055 [P] [US3] Ampliar `src/store/schemas.test.ts` con `moveSchema`: con tablas suma el desplazamiento a la `position` de cada una —resolviendo primero las que no la traían— y borra `schemas[].position`; sin tablas escribe `schemas[].position`; en los dos casos es un solo paso de deshacer (FR-026, FR-026a, FR-027, SC-006)
+- [X] T054 [P] [US3] Crear `src/components/features/canvas/SchemaZone.test.tsx`: el rótulo trae abreviatura, nombre y número de tablas, una zona vacía muestra «Aún no hay tablas en este esquema», y el nombre accesible es el de `contracts/canvas.md` §5 (FR-024, FR-025, FR-040)
+- [X] T055 [P] [US3] Ampliar `src/store/schemas.test.ts` con `moveSchema`: con tablas suma el desplazamiento a la `position` de cada una —resolviendo primero las que no la traían— y borra `schemas[].position`; sin tablas escribe `schemas[].position`; en los dos casos es un solo paso de deshacer (FR-026, FR-026a, FR-027, SC-006)
 
 ### Implementation for User Story 3
 
-- [ ] T056 [US3] Crear `src/components/features/canvas/TableCard.tsx`: tarjeta compacta de 200 × 64 con el nombre de la tabla, el chip de su esquema y el número de campos, solo dibujo —ni crear, ni editar, ni mover una tabla sola, que son del Incremento 3 (Clarifications)
-- [ ] T057 [US3] Crear `src/components/features/canvas/SchemaZone.tsx`: el rectángulo con el relleno y el borde del color del esquema, punteado cuando está vacía, y el rótulo con abreviatura, nombre y número de tablas (FR-023 a FR-025)
-- [ ] T058 [US3] Dibujar zonas y tarjetas en `CanvasSurface` a partir de `resolveLayout` y `schemaZones`, dentro del nodo transformado y sin que ninguna lea `pan` ni `zoom` (FR-023, research.md R19)
-- [ ] T059 [US3] Implementar el arrastre de una zona en `CanvasSurface` con Pointer Events y `setPointerCapture`: durante el gesto, el grupo se mueve por referencia y `isGesturing` queda en `true`; al soltar, una sola llamada a `moveSchema` (FR-026, research.md R3)
-- [ ] T060 [US3] Seleccionar el esquema al pulsar su zona, para que el inspector lo muestre, y abrir su menú contextual con el botón derecho y con ⇧F10 (FR-003, FR-033, FR-038)
-- [ ] T061 [US3] Comprobar que las posiciones nuevas llegan al archivo al guardar y que reabrir el modelo deja la zona donde se dejó, también la de un esquema vacío (FR-026, FR-026a, SC-007)
+- [X] T056 [US3] Crear `src/components/features/canvas/TableCard.tsx`: tarjeta compacta de 200 × 64 con el nombre de la tabla, el chip de su esquema y el número de campos, solo dibujo —ni crear, ni editar, ni mover una tabla sola, que son del Incremento 3 (Clarifications)
+- [X] T057 [US3] Crear `src/components/features/canvas/SchemaZone.tsx`: el rectángulo con el relleno y el borde del color del esquema, punteado cuando está vacía, y el rótulo con abreviatura, nombre y número de tablas (FR-023 a FR-025)
+- [X] T058 [US3] Dibujar zonas y tarjetas en `CanvasSurface` a partir de `resolveLayout` y `schemaZones`, dentro del nodo transformado y sin que ninguna lea `pan` ni `zoom` (FR-023, research.md R19)
+- [X] T059 [US3] Implementar el arrastre de una zona en `CanvasSurface` con Pointer Events y `setPointerCapture`: durante el gesto, el grupo se mueve por referencia y `isGesturing` queda en `true`; al soltar, una sola llamada a `moveSchema` (FR-026, research.md R3)
+- [X] T060 [US3] Seleccionar el esquema al pulsar su zona, para que el inspector lo muestre, y abrir su menú contextual con el botón derecho y con ⇧F10 (FR-003, FR-033, FR-038)
+- [X] T061 [US3] Comprobar que las posiciones nuevas llegan al archivo al guardar y que reabrir el modelo deja la zona donde se dejó, también la de un esquema vacío (FR-026, FR-026a, SC-007)
 
 **Checkpoint**: las zonas rodean sus tablas, se mueven con ellas y lo que se
 mueve se queda donde se dejó después de guardar y reabrir.

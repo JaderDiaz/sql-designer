@@ -91,6 +91,7 @@ export function resetStore(
     missingTarget: null,
     trashTarget: null,
     renameTarget: null,
+    schemaTarget: null,
     // Lienzo
     pan: { x: 0, y: 0 },
     zoom: 1,

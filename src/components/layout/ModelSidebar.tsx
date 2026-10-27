@@ -1,3 +1,4 @@
+import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMenu'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
@@ -32,7 +33,7 @@ export function ModelSidebar() {
   const model = useAppStore((state) => state.model)
   const selectedSchema = useAppStore((state) => state.selectedSchema)
   const selectSchema = useAppStore((state) => state.selectSchema)
-  const openDialog = useAppStore((state) => state.openDialog)
+  const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
 
   if (model === null) return null
 
@@ -55,7 +56,7 @@ export function ModelSidebar() {
             icon="plus"
             aria-label="Nuevo esquema"
             title="Nuevo esquema"
-            onClick={() => openDialog('schema')}
+            onClick={() => openSchemaDialog(null)}
           />
         </div>
 
@@ -79,26 +80,28 @@ export function ModelSidebar() {
             const count = counts.get(schema.name) ?? 0
             return (
               <li key={schema.name}>
-                <button
-                  type="button"
-                  role="option"
-                  aria-selected={selectedSchema === schema.name}
-                  aria-current={selectedSchema === schema.name}
-                  aria-label={`${schema.name}, ${tableCountLabel(count)}`}
-                  className="au-side-item w-full"
-                  onClick={() => selectSchema(schema.name)}
-                >
-                  <span
-                    aria-hidden="true"
-                    className="h-2 w-2 flex-none rounded-full"
-                    style={{ background: `var(--${resolveSchemaColor(schema.color)})` }}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-left">{schema.name}</span>
-                  <span className="font-mono text-[10px] tracking-[0.04em] text-label-tertiary">
-                    {schema.abbreviation}
-                  </span>
-                  <span className="text-[11px] text-label-tertiary">{count}</span>
-                </button>
+                <SchemaContextMenu schema={schema} tableCount={count}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={selectedSchema === schema.name}
+                    aria-current={selectedSchema === schema.name}
+                    aria-label={`${schema.name}, ${tableCountLabel(count)}`}
+                    className="au-side-item w-full"
+                    onClick={() => selectSchema(schema.name)}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-2 w-2 flex-none rounded-full"
+                      style={{ background: `var(--${resolveSchemaColor(schema.color)})` }}
+                    />
+                    <span className="min-w-0 flex-1 truncate text-left">{schema.name}</span>
+                    <span className="font-mono text-[10px] tracking-[0.04em] text-label-tertiary">
+                      {schema.abbreviation}
+                    </span>
+                    <span className="text-[11px] text-label-tertiary">{count}</span>
+                  </button>
+                </SchemaContextMenu>
               </li>
             )
           })}
