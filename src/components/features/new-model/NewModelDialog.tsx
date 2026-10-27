@@ -13,6 +13,7 @@ import {
   toFileStem,
 } from '@/lib/model/slug'
 import { ENGINE_LABELS, type Engine } from '@/lib/model/types'
+import { pathSeparator } from '@/lib/platform'
 import { CommandError, pathBuildModel } from '@/lib/tauri/commands'
 import { useAppStore } from '@/store'
 import { EMPTY_NAME_ERROR } from '@/store/model'
@@ -63,6 +64,7 @@ export function takenMessage(fileName: string): string {
 
 export function NewModelDialog() {
   const dialog = useAppStore((state) => state.dialog)
+  const platform = useAppStore((state) => state.platform)
   const closeDialog = useAppStore((state) => state.closeDialog)
   const openChooseFolder = useAppStore((state) => state.openChooseFolder)
   const draftName = useAppStore((state) => state.draftName)
@@ -234,7 +236,7 @@ export function NewModelDialog() {
           <span className="truncate font-mono text-[11px] leading-[14px] text-label-secondary">
             {draftFolder === null
               ? 'Elige la carpeta donde se creará el archivo.'
-              : `Se creará ${draftFolder}/${fileName}`}
+              : `Se creará ${draftFolder}${pathSeparator(platform)}${fileName}`}
           </span>
         </div>
       </div>
