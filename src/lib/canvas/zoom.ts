@@ -79,6 +79,34 @@ export function fitToContent(bounds: Rect | null, viewport: Rect): View {
 }
 
 /**
+ * Vista que centra un rectángulo sin tocar el zoom (FR-014, FR-029).
+ *
+ * Es lo que se usa al abrir un modelo y al enfocar un esquema: acercar o
+ * alejar por cuenta propia desorienta, porque la escala es del usuario. Solo
+ * «Ajustar» cambia el porcentaje.
+ *
+ * @param bounds Rectángulo que se quiere ver centrado, o `null` si no hay nada.
+ * @param viewport Caja del lienzo en pantalla.
+ * @param zoom Zoom actual, que se conserva.
+ * @returns La vista centrada; con `bounds` nulo, el origen sin desplazar.
+ */
+export function centerOnContent(bounds: Rect | null, viewport: Rect, zoom: number): View {
+  if (bounds === null || bounds.width <= 0 || bounds.height <= 0) {
+    return { pan: { x: 0, y: 0 }, zoom }
+  }
+
+  const centerX = bounds.x + bounds.width / 2
+  const centerY = bounds.y + bounds.height / 2
+  return {
+    pan: {
+      x: viewport.x + viewport.width / 2 - centerX * zoom,
+      y: viewport.y + viewport.height / 2 - centerY * zoom,
+    },
+    zoom,
+  }
+}
+
+/**
  * Pasa un punto de la pantalla a coordenadas del modelo.
  *
  * @param view Vista actual.

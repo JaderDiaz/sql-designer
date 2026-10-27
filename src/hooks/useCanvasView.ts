@@ -26,6 +26,9 @@ const ARROW_STEP = 60
 /** Cuánto zoom da cada unidad de rueda con ⌘ o con el pellizco. */
 const WHEEL_ZOOM = 0.002
 
+/** Hasta cuántos píxeles de recorrido un gesto sobre el fondo sigue siendo un clic. */
+const CLICK_SLOP = 3
+
 /** Nodos del lienzo que el gesto escribe directamente. */
 export interface CanvasNodes {
   /** El nodo que recorta y recibe el foco. */
@@ -59,8 +62,21 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   /** Barra espaciadora mantenida (FR-007). */
   const space = useRef(false)
-  /** Arrastre que mueve la vista, con el puntero que lo lleva. */
-  const drag = useRef<{ pointerId: number; x: number; y: number } | null>(null)
+  /**
+   * Arrastre que mueve la vista, con el puntero que lo lleva.
+   *
+   * Guarda también desde dónde salió: un toque en el fondo que no llega a
+   * moverse no es un arrastre, es el clic que suelta el foco (FR-031).
+   */
+  const drag = useRef<{
+    pointerId: number
+    x: number
+    y: number
+    /** De dónde salió el gesto, para saber si llegó a moverse. */
+    startX: number
+    startY: number
+    onBackground: boolean
+  } | null>(null)
 
   /** La vista que vale ahora mismo: la del gesto si hay uno. */
   const currentView = useCallback((): View => {
@@ -277,7 +293,14 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
       if (!wheelButton && !space.current && !(event.button === 0 && onBackground)) return
 
       capturePointer(event.currentTarget, event.pointerId)
-      drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY }
+      drag.current = {
+        pointerId: event.pointerId,
+        x: event.clientX,
+        y: event.clientY,
+        startX: event.clientX,
+        startY: event.clientY,
+        onBackground: onBackground && event.button === 0,
+      }
       setGesturing(true)
     },
 
@@ -301,6 +324,13 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
       if (current === null || event.pointerId !== current.pointerId) return
       drag.current = null
       commit()
+      // Pulsar el fondo sin arrastrarlo suelta el foco del esquema y deja el
+      // lienzo como estaba al abrir el modelo (FR-031). Un clic real casi
+      // siempre mueve el puntero un pelo, así que lo que decide es cuánto.
+      const quieto =
+        Math.abs(event.clientX - current.startX) <= CLICK_SLOP &&
+        Math.abs(event.clientY - current.startY) <= CLICK_SLOP
+      if (current.onBackground && quieto) focusSchema(null)
     },
   }
 }

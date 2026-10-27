@@ -10,6 +10,7 @@ import { EditorLayout } from '@/components/layout/EditorLayout'
 import { Inspector } from '@/components/layout/Inspector'
 import { ModelSidebar } from '@/components/layout/ModelSidebar'
 import { StatusBar } from '@/components/layout/StatusBar'
+import { isBlankModel } from '@/lib/model/defaults'
 import { screenIn } from '@/lib/motion'
 import { measureModelOpened } from '@/lib/tauri/commands'
 import { useAppStore } from '@/store'
@@ -34,6 +35,9 @@ export function EditorScreen() {
   const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
 
   const tables = model?.tables?.length ?? 0
+  // La tarjeta de empezar solo sale con el modelo en blanco: con una tabla o
+  // un esquema propio ya hay algo que mirar en el lienzo (FR-005a).
+  const isBlank = isBlankModel(model)
 
   useEffect(() => {
     if (openStartedMs === null) return undefined
@@ -76,7 +80,7 @@ export function EditorScreen() {
                 {/* La tarjeta va centrada, así que no se pone hasta que la
                     ventana está en su sitio: mientras crece, su centro se
                     mueve en cada paso y la tarjeta temblaba persiguiéndolo. */}
-                {tables === 0 && !isWindowSettling ? (
+                {isBlank && !isWindowSettling ? (
                   <div className="pointer-events-none absolute inset-0 grid place-items-center p-6">
                     <EmptyModelCard />
                   </div>

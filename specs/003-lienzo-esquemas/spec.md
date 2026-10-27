@@ -55,10 +55,12 @@ y el inspector devuelve ese espacio al lienzo y lo recupera.
 6. **Dado** el Editor, **entonces** la barra de estado dice el motor del modelo,
    el estado del archivo del Incremento 1 («Guardado · <motor>» o «Editado»), el
    porcentaje de zoom y cuántos esquemas y tablas tiene el modelo.
-7. **Dado** el Editor sin nada seleccionado, **entonces** el inspector dice que
-   no hay selección en lugar de quedarse vacío.
+7. **Dado** el Editor, **entonces** el inspector muestra la ficha del modelo
+   —nombre, estado del archivo, ruta, motor y cuánto tiene dentro— en lugar de
+   quedarse vacío.
 8. **Dado** la lista de esquemas de la barra lateral, **cuando** pulso la fila de
-   un esquema, **entonces** el inspector muestra sus datos.
+   un esquema, **entonces** el lienzo se centra en su zona y el inspector sigue
+   mostrando la ficha del modelo.
 
 ---
 
@@ -333,19 +335,23 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **FR-002**: La barra lateral MUST listar los esquemas del modelo con su color,
   su abreviatura y su número de tablas, y las tablas del modelo o las del
   esquema enfocado.
-- **FR-003**: El inspector MUST mostrar los datos del objeto seleccionado y, sin
-  selección, MUST decir que no hay nada seleccionado. En este incremento el
-  objeto seleccionable es el esquema: nombre, nombre técnico, abreviatura, color,
-  descripción y número de tablas. Un esquema MUST poder seleccionarse pulsando su
-  fila en la barra lateral o su zona en el lienzo, y enfocarlo MUST seleccionarlo
-  también (FR-029).
+- **FR-003**: El inspector MUST mostrar los datos de la tabla seleccionada. Las
+  tablas llegan con el Incremento 3, así que en este incremento el inspector
+  MUST mostrar siempre la ficha del modelo: nombre, estado del archivo, ruta,
+  motor y cuántos esquemas y tablas tiene. Enfocar o pulsar un esquema MUST NOT
+  cambiar el inspector; los datos del esquema se editan en su diálogo
+  (FR-020).
 - **FR-004**: La barra de estado MUST mostrar el motor del modelo, el estado del
   archivo definido en el Incremento 1, el porcentaje de zoom y el número de
   esquemas y de tablas.
-- **FR-005**: Con un modelo sin tablas, el lienzo MUST mostrar la tarjeta
-  «Empieza a diseñar tu modelo» con las filas «Crear la primera tabla»,
-  «Agregar un esquema» y «Definir un enum»; «Agregar un esquema» MUST abrir el
-  diálogo Nuevo esquema.
+- **FR-005**: Con el modelo en blanco —sin esquemas y sin tablas—, el lienzo
+  MUST mostrar la tarjeta «Empieza a diseñar tu modelo» con las filas «Crear la
+  primera tabla», «Agregar un esquema» y «Definir un enum»; «Agregar un
+  esquema» MUST abrir el diálogo Nuevo esquema.
+- **FR-005a**: Un modelo recién creado MUST llegar en blanco: sin ningún
+  esquema, tampoco uno por defecto del motor. Con el modelo en blanco el lienzo
+  MUST NOT dibujar ninguna zona, y en cuanto haya un esquema o una tabla la
+  tarjeta MUST desaparecer y el lienzo MUST dibujar lo que haya.
 - **FR-006**: El sistema MUST permitir esconder y volver a mostrar la barra
   lateral y el inspector, con el lienzo ocupando el espacio liberado, y MUST
   recordar esa elección entre modelos y entre sesiones como preferencia de la
@@ -374,8 +380,9 @@ un modelo de un solo esquema la opción está deshabilitada.
   que el archivo no trae con posición, agrupadas por su esquema, y MUST NOT
   marcar el modelo como «Editado» por esa colocación.
 - **FR-014**: La vista del lienzo (desplazamiento y zoom) MUST ser estado de la
-  sesión: MUST NOT escribirse en el archivo del modelo y MUST arrancar ajustada
-  al modelo al abrirlo.
+  sesión: MUST NOT escribirse en el archivo del modelo. Al abrir un modelo la
+  vista MUST arrancar al 100 % centrada en su contenido; solo «Ajustar» MUST
+  cambiar el porcentaje.
 
 **Crear y editar un esquema**
 
@@ -431,14 +438,13 @@ un modelo de un solo esquema la opción está deshabilitada.
 **Enfocar un esquema**
 
 - **FR-029**: El sistema MUST permitir enfocar un esquema desde su nombre en la
-  barra lateral, centrando el lienzo en su zona con el zoom necesario para que
-  quepa, y MUST dejarlo seleccionado para que el inspector muestre sus datos
-  (FR-003).
+  barra lateral, centrando el lienzo en su zona sin cambiar el porcentaje de
+  zoom (FR-014).
 - **FR-030**: Con un esquema enfocado, el sistema MUST atenuar las demás zonas y
   sus tablas, MUST filtrar la lista de tablas de la barra lateral a las de ese
   esquema y MUST decir en la interfaz cuál está enfocado.
-- **FR-031**: El sistema MUST permitir quitar el foco con «Todos los esquemas» y
-  con Esc en el lienzo.
+- **FR-031**: El sistema MUST permitir quitar el foco con «Todos los esquemas»,
+  con Esc en el lienzo y pulsando el fondo del lienzo sin arrastrarlo.
 - **FR-032**: El foco MUST ser estado de la sesión: MUST NOT guardarse en el
   archivo, y MUST quitarse solo cuando el esquema enfocado desaparece o se cambia
   de modelo.

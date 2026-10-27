@@ -284,12 +284,30 @@ describe('zoom en el puntero y encuadre (FR-008 a FR-011, FR-014)', () => {
     expect(text).not.toContain('focus')
   })
 
-  it('abrir un modelo pide el encuadre y «Ajustar» lo consume (FR-014)', () => {
-    useAppStore.getState().requestFit()
-    expect(useAppStore.getState().needsFit).toBe(true)
+  it('abrir un modelo pide el centrado y el lienzo lo consume (FR-014)', () => {
+    useAppStore.getState().requestCenter()
+    expect(useAppStore.getState().needsCenter).toBe(true)
 
-    useAppStore.getState().fitToModel()
+    useAppStore.getState().centerOnModel()
 
-    expect(useAppStore.getState().needsFit).toBe(false)
+    expect(useAppStore.getState().needsCenter).toBe(false)
+  })
+
+  it('centrar el modelo no cambia el porcentaje (FR-014)', () => {
+    useAppStore.getState().zoomTo(1.5)
+
+    useAppStore.getState().centerOnModel()
+
+    expect(useAppStore.getState().zoom).toBe(1.5)
+  })
+
+  it('enfocar un esquema centra su zona sin tocar el zoom (FR-029)', () => {
+    useAppStore.getState().zoomTo(0.8)
+    const antes = useAppStore.getState().pan
+
+    useAppStore.getState().focusSchema('ventas')
+
+    expect(useAppStore.getState().zoom).toBe(0.8)
+    expect(useAppStore.getState().pan).not.toEqual(antes)
   })
 })

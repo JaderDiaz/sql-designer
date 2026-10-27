@@ -638,6 +638,40 @@ export async function vistaDelLienzo() {
 }
 
 /**
+ * Pulsa el fondo del lienzo, sin arrastrarlo.
+ *
+ * Es el gesto que suelta el foco del esquema (FR-031): el puntero baja y sube
+ * en el mismo punto, que es lo que distingue un clic de un arrastre.
+ */
+export async function pulsarElFondo() {
+  await esperar(
+    `() => {
+      const el = document.querySelector('.sm-canvas')
+      if (!el) return null
+      const caja = el.getBoundingClientRect()
+      const x = caja.left + 8
+      const y = caja.bottom - 8
+      const comun = (botones) => ({
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+        button: 0,
+        buttons: botones,
+        clientX: x,
+        clientY: y,
+      })
+      el.dispatchEvent(new PointerEvent('pointerdown', comun(1)))
+      el.dispatchEvent(new PointerEvent('pointerup', comun(0)))
+      return true
+    }`,
+    'No se encontró el fondo del lienzo.',
+  )
+}
+
+/**
  * Las zonas del lienzo, por su nombre accesible.
  *
  * Cada zona viene medida dos veces: en píxeles de pantalla, que es lo que se

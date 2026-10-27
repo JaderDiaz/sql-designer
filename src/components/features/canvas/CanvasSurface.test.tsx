@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { CanvasSurface } from '@/components/features/canvas/CanvasSurface'
 import { readFixture } from '@/lib/model/__fixtures__'
+import { emptyModel } from '@/lib/model/defaults'
 import { parseModel } from '@/lib/model/parse'
 import { useAppStore } from '@/store'
 import { resetStore } from '@/test/helpers'
@@ -42,6 +43,18 @@ async function dragZone(name: string, from: [number, number], to: [number, numbe
     { keys: '[/MouseLeft]', target: zone, coords: { clientX: to[0], clientY: to[1] } },
   ])
 }
+
+describe('CanvasSurface con el modelo en blanco', () => {
+  it('un modelo sin esquemas ni tablas no dibuja nada (FR-005a)', () => {
+    resetStore()
+    act(() => {
+      useAppStore.setState({ screen: 'editor', model: emptyModel('Livy', 'postgres') })
+    })
+    render(<CanvasSurface />)
+
+    expect(screen.queryAllByRole('button', { name: /^Esquema / })).toHaveLength(0)
+  })
+})
 
 describe('CanvasSurface', () => {
   beforeEach(() => renderCanvas())

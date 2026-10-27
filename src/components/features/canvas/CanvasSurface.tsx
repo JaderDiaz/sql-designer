@@ -4,6 +4,7 @@ import { SchemaZone } from '@/components/features/canvas/SchemaZone'
 import { TableCard } from '@/components/features/canvas/TableCard'
 import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMenu'
 import { schemaZones } from '@/lib/canvas/geometry'
+import { isBlankModel } from '@/lib/model/defaults'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { cn } from '@/lib/cn'
 import { capturePointer } from '@/lib/pointer'
@@ -64,8 +65,8 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   const selectedSchema = useAppStore((state) => state.selectedSchema)
   const selectSchema = useAppStore((state) => state.selectSchema)
   const setViewport = useAppStore((state) => state.setViewport)
-  const needsFit = useAppStore((state) => state.needsFit)
-  const fitToModel = useAppStore((state) => state.fitToModel)
+  const needsCenter = useAppStore((state) => state.needsCenter)
+  const centerOnModel = useAppStore((state) => state.centerOnModel)
   const setGesturing = useAppStore((state) => state.setGesturing)
   const moveSchema = useAppStore((state) => state.moveSchema)
 
@@ -103,13 +104,17 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   // Abrir un modelo lo deja entero a la vista, pero solo se puede encuadrar
   // cuando la caja del lienzo ya está medida (FR-014).
   useEffect(() => {
-    if (needsFit) fitToModel()
-  }, [fitToModel, needsFit])
+    if (needsCenter) centerOnModel()
+  }, [centerOnModel, needsCenter])
 
   // La geometría se recalcula solo cuando el modelo cambia: mover la vista no
   // la toca, porque no depende de ella.
   const { layout, zones } = useMemo(() => {
-    if (model === null) return { layout: new Map<string, { x: number; y: number }>(), zones: [] }
+    const vacio = { layout: new Map<string, { x: number; y: number }>(), zones: [] }
+    // Un modelo recién creado llega en blanco: ni siquiera se dibuja la zona
+    // de su esquema por defecto, porque lo que ocupa el lienzo entonces es la
+    // tarjeta que dice por dónde empezar (FR-005a).
+    if (model === null || isBlankModel(model)) return vacio
     const resolved = resolveLayout(model)
     return { layout: resolved, zones: schemaZones(model, resolved) }
   }, [model])

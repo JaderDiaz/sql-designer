@@ -1,5 +1,5 @@
 import { TECHNICAL_NAME_MAX_LENGTH, FORMAT_VERSION } from '@/lib/model/types'
-import type { Engine, Model, Schema } from '@/lib/model/types'
+import type { Engine, Model } from '@/lib/model/types'
 import { toFileStem } from '@/lib/model/slug'
 
 /**
@@ -44,23 +44,12 @@ export function toAbbreviation(technicalName: string): string {
 }
 
 /**
- * Esquema por defecto de un modelo nuevo, según su motor (FR-005).
+ * Modelo vacío, listo para escribir al disco.
  *
- * @param name Nombre legible del modelo.
- * @param engine Motor elegido.
- */
-export function defaultSchema(name: string, engine: Engine): Schema {
-  if (engine === 'postgres') return { name: 'public', abbreviation: 'PUB' }
-  if (engine === 'sqlite') return { name: 'main', abbreviation: 'MAI' }
-  const technicalName = toTechnicalName(name)
-  return { name: technicalName, abbreviation: toAbbreviation(technicalName) }
-}
-
-/**
- * Modelo vacío con su esquema por defecto, listo para escribir al disco.
- *
- * No trae tablas, relaciones, enums ni vistas: esas colecciones se omiten del
- * archivo mientras estén vacías, para que un modelo nuevo se lea a ojo.
+ * No trae nada: ni esquemas, ni tablas, ni relaciones, enums o vistas. Un
+ * modelo nuevo llega en blanco y el primer esquema lo crea quien modela, con
+ * el nombre y el color que quiera; proponer uno por el motor obligaba a
+ * borrarlo o a convivir con un «public» que nadie pidió.
  *
  * @param name Nombre legible del modelo.
  * @param engine Motor elegido.
@@ -70,6 +59,22 @@ export function emptyModel(name: string, engine: Engine): Model {
     formatVersion: FORMAT_VERSION,
     name,
     engine,
-    schemas: [defaultSchema(name, engine)],
+    schemas: [],
   }
+}
+
+/**
+ * Si el modelo sigue como salió de {@link emptyModel}: sin esquemas y sin
+ * tablas.
+ *
+ * El lienzo de un modelo así llega en blanco y en su lugar se pone la tarjeta
+ * «Empieza a diseñar tu modelo», que dice por dónde empezar. En cuanto hay un
+ * elemento, un esquema o una tabla, el modelo deja de estar en blanco: la
+ * tarjeta se quita y el lienzo dibuja lo que ya hay.
+ *
+ * @param model Modelo abierto, o `null` si no hay ninguno.
+ */
+export function isBlankModel(model: Model | null): boolean {
+  if (model === null) return false
+  return (model.tables ?? []).length === 0 && model.schemas.length === 0
 }

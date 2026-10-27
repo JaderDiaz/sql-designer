@@ -17,6 +17,7 @@ import {
   filas,
   menuDeZona,
   pulsar,
+  pulsarElFondo,
   pulsarEn,
   rueda,
   seleccionar,
@@ -93,9 +94,9 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
 
     // Y con los botones de la barra superior, que es la otra vía.
     await pulsar('Ocultar inspector')
-    await esperarSinTexto('No hay nada seleccionado')
+    await esperarSinTexto('Motor')
     await pulsar('Mostrar inspector')
-    await esperarTexto('No hay nada seleccionado')
+    await esperarTexto('Motor')
   })
 
   it('3 · la vista se mueve de las tres formas (FR-007)', async () => {
@@ -245,16 +246,27 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     expect(esquemas.split('position:').length - 1).toBe(1)
   })
 
-  it('8 · enfocar un esquema y las dos formas de soltarlo (FR-029 a FR-031)', async () => {
+  it('8 · enfocar un esquema y las tres formas de soltarlo (FR-029 a FR-031)', async () => {
+    const escalaAntes = escalaDe(await vistaDelLienzo())
+
     await seleccionar('ventas')
     await esperarTexto('Enfocado: ventas')
     await esperarTexto('Tablas de ventas')
+
+    // Enfocar centra la zona, pero no toca el porcentaje (FR-029).
+    expect(escalaDe(await vistaDelLienzo())).toBe(escalaAntes)
 
     // La lista de tablas trae solo las suyas y el resto se atenúa.
     const atenuadas = (await zonas()).filter((zona) => zona.atenuada)
     expect(atenuadas).toHaveLength(3)
 
     await tecla(LIENZO, 'keydown', { key: 'Escape' })
+    await esperarSinTexto('Enfocado: ventas')
+
+    // Pulsar el fondo del lienzo también lo suelta (FR-031).
+    await seleccionar('ventas')
+    await esperarTexto('Enfocado: ventas')
+    await pulsarElFondo()
     await esperarSinTexto('Enfocado: ventas')
 
     await seleccionar('inventario')
@@ -306,7 +318,14 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     await pulsarEn('Nuevo modelo', 'Crear modelo')
     await esperarTexto('Empieza a diseñar tu modelo')
 
-    await menuDeZona('public')
+    // El modelo nace en blanco, así que el único esquema hay que crearlo.
+    await pulsar('Agregar un esquema')
+    await esperarDialogo('Nuevo esquema')
+    await escribir('Nombre', 'ventas')
+    await pulsarEn('Nuevo esquema', 'Crear esquema')
+    await esperarSinDialogo('Nuevo esquema')
+
+    await menuDeZona('ventas')
     const visible = await texto()
     expect(visible).toContain('es el único del modelo')
     await browser.keys('Escape')

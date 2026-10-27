@@ -1,7 +1,7 @@
 import type { Rect } from '@/lib/canvas/constants'
 import { contentBounds, schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
-import { clampZoom, fitToContent, zoomAt } from '@/lib/canvas/zoom'
+import { centerOnContent, clampZoom, fitToContent, zoomAt } from '@/lib/canvas/zoom'
 import type { Position } from '@/lib/model/types'
 import { CommandError, preferencesUpdate } from '@/lib/tauri/commands'
 import type { AppSlice } from '@/store/types'
@@ -43,25 +43,26 @@ export interface CanvasSlice {
   /** Si hay un gesto en curso; el lienzo pinta sin sombras (research R19). */
   isGesturing: boolean
   /**
-   * Si la vista está esperando su encuadre inicial (FR-014).
+   * Si la vista está esperando su centrado inicial (FR-014).
    *
-   * Abrir un modelo no puede encuadrarlo todavía: la caja del lienzo no está
+   * Abrir un modelo no puede centrarlo todavía: la caja del lienzo no está
    * medida hasta que el componente monta. Así que el modelo lo pide y el
    * lienzo lo cumple con la primera medida.
    */
-  needsFit: boolean
+  needsCenter: boolean
   /** La barra lateral está escondida (FR-006). */
   isSidebarHidden: boolean
   /** El inspector está escondido (FR-006). */
   isInspectorHidden: boolean
   setViewport: (viewport: Rect) => void
-  requestFit: () => void
+  requestCenter: () => void
   setView: (view: { pan: Position; zoom: number }) => void
   panBy: (delta: Position) => void
   centerOn: (point: Position) => void
   zoomBy: (delta: number, pointer?: Position) => void
   zoomTo: (zoom: number, pointer?: Position) => void
   fitToModel: () => void
+  centerOnModel: () => void
   focusSchema: (name: string | null) => void
   selectSchema: (name: string | null) => void
   setGesturing: (gesturing: boolean) => void
@@ -88,7 +89,7 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
   focusedSchema: null,
   selectedSchema: null,
   isGesturing: false,
-  needsFit: false,
+  needsCenter: false,
   isSidebarHidden: false,
   isInspectorHidden: false,
 
@@ -101,9 +102,9 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
     set({ viewport })
   },
 
-  /** Pide que la vista se encuadre con la primera medida del lienzo (FR-014). */
-  requestFit() {
-    set({ needsFit: true })
+  /** Pide que la vista se centre con la primera medida del lienzo (FR-014). */
+  requestCenter() {
+    set({ needsCenter: true })
   },
 
   /**
@@ -170,15 +171,30 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
     const bounds =
       model === null ? null : contentBounds(schemaZones(model, resolveLayout(model)))
     const next = fitToContent(bounds, viewport)
-    set({ pan: next.pan, zoom: next.zoom, needsFit: false })
+    set({ pan: next.pan, zoom: next.zoom, needsCenter: false })
+  },
+
+  /**
+   * Centra el modelo sin tocar el zoom, que es como abre un modelo (FR-014).
+   *
+   * El porcentaje es del usuario: un modelo recién abierto se ve al 100 % y
+   * solo «Ajustar» cambia la escala.
+   */
+  centerOnModel() {
+    const { model, viewport, zoom } = get()
+    const bounds =
+      model === null ? null : contentBounds(schemaZones(model, resolveLayout(model)))
+    const next = centerOnContent(bounds, viewport, zoom)
+    set({ pan: next.pan, zoom: next.zoom, needsCenter: false })
   },
 
   /**
    * Enfoca un esquema y centra el lienzo en su zona (FR-029, FR-031).
    *
-   * El foco no filtra el modelo: filtra lo que se muestra. Quitarlo con `null`
-   * deja la vista donde está, porque mover el lienzo sin que nadie lo pida
-   * desorienta.
+   * Centrar no es acercar: la zona se trae al medio con el zoom que haya,
+   * porque cambiar la escala sin que nadie la pida desorienta. El foco tampoco
+   * filtra el modelo: filtra lo que se muestra. Quitarlo con `null` deja la
+   * vista donde está.
    *
    * @param name Nombre técnico del esquema, o `null` para quitar el foco.
    */
@@ -198,7 +214,7 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
       return
     }
 
-    const next = fitToContent(zone.rect, viewport)
+    const next = centerOnContent(zone.rect, viewport, get().zoom)
     set({ focusedSchema: name, selectedSchema: name, pan: next.pan, zoom: next.zoom })
   },
 

@@ -554,7 +554,8 @@ export function validateModel(value: unknown, locate: Locate): ValidationIssue[]
   }
 
   const schemaNames = new Set<string>()
-  const schemas = requireList(report, root['schemas'], ['schemas'], 'Un modelo necesita un esquema')
+  // Un modelo puede no tener ningún esquema: así nace uno nuevo, en blanco.
+  const schemas = requireList(report, root['schemas'], ['schemas'], 'Los esquemas', 0)
   if (schemas !== null) {
     const names = schemas.map((schema, index) => validateSchema(report, schema, ['schemas', index]))
     rejectDuplicates(report, names, ['schemas'], 'un esquema', schemaNames)

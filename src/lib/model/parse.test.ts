@@ -70,18 +70,16 @@ describe('parseModel', () => {
     expect(result.errors[0]?.line).toBe(1)
   })
 
-  it('exige al menos un esquema (RS-02)', () => {
+  it('acepta un modelo sin esquemas, que es como nace uno nuevo (FR-005)', () => {
     const text = ['formatVersion: 1', 'name: Sin esquemas', 'engine: sqlite', 'schemas: []'].join(
       '\n',
     )
 
     const result = parseModel(text)
 
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.errors[0]?.path).toBe('schemas')
-    expect(result.errors[0]?.message).toContain('al menos 1 elemento')
-    expect(result.errors[0]?.line).toBe(4)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.model.schemas).toEqual([])
   })
 
   it('exige que el esquema de una tabla exista', () => {
