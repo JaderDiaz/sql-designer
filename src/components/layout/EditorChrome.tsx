@@ -2,6 +2,7 @@ import { Titlebar } from '@/components/layout/Titlebar'
 import { Button } from '@/components/ui/Button'
 import { formatTime } from '@/lib/format'
 import { ENGINE_LABELS } from '@/lib/model/types'
+import type { PlatformInfo } from '@/lib/tauri/types'
 import { shortcutLabel } from '@/lib/platform'
 import { useAppStore } from '@/store'
 
@@ -9,12 +10,25 @@ import { useAppStore } from '@/store'
  * Cabecera del Editor, según `project/Editor.dc.html` del lienzo (FR-018 a
  * FR-021, RS-07).
  *
- * Trae lo que este incremento necesita: los controles de ventana, con el
- * círculo rojo cerrando el modelo y su punto de cambios sin guardar; el
- * nombre del modelo con «Guardado · <motor>» o «Editado · <motor>»; la hora
- * del último guardado; deshacer y rehacer; y renombrar. El lienzo de tablas y
- * el resto de la barra llegan en el Incremento 2.
+ * Trae los controles de ventana, con el círculo rojo cerrando el modelo y su
+ * punto de cambios sin guardar; el nombre del modelo con «Guardado · <motor>»
+ * o «Editado · <motor>»; la hora del último guardado; deshacer y rehacer;
+ * renombrar; y los dos botones que esconden y muestran la barra lateral y el
+ * inspector (FR-006, FR-038).
  */
+
+/**
+ * Atajo de las dos zonas escondibles, con ⌥ delante de ⌘ (FR-006).
+ *
+ * @param platform Sistema en ejecución.
+ * @param key Tecla del atajo, en mayúscula.
+ */
+export function layoutShortcut(platform: PlatformInfo, key: string): string {
+  const { alt } = platform.modifierSymbols
+  return platform.os === 'macos'
+    ? `${alt}${shortcutLabel(platform, key)}`
+    : `${alt}+${shortcutLabel(platform, key)}`
+}
 
 /** Texto del estado de guardado, con la hora del último guardado (FR-018). */
 export function saveStatusText(isDirty: boolean, savedAtMs: number | null): string {
@@ -34,6 +48,10 @@ export function EditorChrome() {
   const redo = useAppStore((state) => state.redo)
   const requestClose = useAppStore((state) => state.requestClose)
   const openDialog = useAppStore((state) => state.openDialog)
+  const isSidebarHidden = useAppStore((state) => state.isSidebarHidden)
+  const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
+  const toggleSidebar = useAppStore((state) => state.toggleSidebar)
+  const toggleInspector = useAppStore((state) => state.toggleInspector)
 
   if (model === null) return null
 
@@ -68,7 +86,36 @@ export function EditorChrome() {
         onClick={() => openDialog('rename')}
       />
 
+      <span aria-hidden="true" className="mx-1 h-[18px] w-[0.5px] bg-separator" />
+
+      <Button
+        variant="plain"
+        icon="plus"
+        aria-label="Nuevo esquema"
+        title="Nuevo esquema"
+        onClick={() => openDialog('schema')}
+      />
+
       <div className="flex-1" />
+
+      <Button
+        variant="plain"
+        icon="panel-left"
+        aria-label="Barra lateral"
+        aria-pressed={!isSidebarHidden}
+        title={`Barra lateral (${layoutShortcut(platform, 'S')})`}
+        onClick={() => void toggleSidebar()}
+      />
+      <Button
+        variant="plain"
+        icon="panel-right"
+        aria-label="Inspector"
+        aria-pressed={!isInspectorHidden}
+        title={`Inspector (${layoutShortcut(platform, 'I')})`}
+        onClick={() => void toggleInspector()}
+      />
+
+      <span aria-hidden="true" className="mx-1 h-[18px] w-[0.5px] bg-separator" />
 
       <span
         aria-live="polite"

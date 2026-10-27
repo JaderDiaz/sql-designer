@@ -12,6 +12,8 @@ export interface Shortcut {
   meta?: boolean
   /** Si exige ⇧; `false` exige que **no** esté pulsada. */
   shift?: boolean
+  /** Si exige ⌥ en macOS o Alt en Windows. Sin declarar, exige que no esté. */
+  alt?: boolean
 }
 
 /**
@@ -29,19 +31,38 @@ export function useShortcut(shortcut: Shortcut, handler: () => void, enabled = t
     const mac = isMacOS(platform)
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() !== shortcut.key.toLowerCase()) return
+      if (!matches(event, shortcut.key)) return
       if (shortcut.meta) {
         const pressed = mac ? event.metaKey : event.ctrlKey
         if (!pressed) return
       }
       if (shortcut.shift !== undefined && event.shiftKey !== shortcut.shift) return
+      // ⌥ sin declarar es ⌥ sin pulsar: si no, ⌥⌘S guardaría el modelo además
+      // de esconder la barra lateral.
+      if (event.altKey !== (shortcut.alt ?? false)) return
       event.preventDefault()
       handler()
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [enabled, handler, platform, shortcut.key, shortcut.meta, shortcut.shift])
+  }, [enabled, handler, platform, shortcut.alt, shortcut.key, shortcut.meta, shortcut.shift])
+}
+
+/**
+ * ¿Esta pulsación es la tecla del atajo?
+ *
+ * Se mira `event.key` y también `event.code`: con ⌥ pulsado macOS cambia el
+ * carácter que produce la tecla —⌥S escribe «ß»—, así que un atajo con ⌥ solo
+ * se reconoce por la posición física de la tecla.
+ *
+ * @param event Pulsación del teclado.
+ * @param key Tecla declarada en el atajo.
+ */
+function matches(event: KeyboardEvent, key: string): boolean {
+  if (event.key.toLowerCase() === key.toLowerCase()) return true
+  const code = /^[a-z]$/i.test(key) ? `Key${key.toUpperCase()}` : null
+  return code !== null && event.code === code
 }
 
 /**
@@ -55,6 +76,9 @@ export function useShortcut(shortcut: Shortcut, handler: () => void, enabled = t
  * `⌘S`, `⌘W`, `⌘Z` y `⇧⌘Z` (`Ctrl+S`, `Ctrl+W`, `Ctrl+Z` y `Ctrl+Y`) solo
  * escuchan con el Editor delante, para que en la Bienvenida no hagan nada
  * (FR-021, FR-027, FR-044, RS-12).
+ *
+ * ⌥⌘S y ⌥⌘I (Alt+Ctrl+S y Alt+Ctrl+I) esconden y muestran la barra lateral y
+ * el inspector, también solo en el Editor (FR-006).
  */
 export function useAppShortcuts(): void {
   const openPreferences = useAppStore((state) => state.openPreferences)
@@ -64,6 +88,8 @@ export function useAppShortcuts(): void {
   const undo = useAppStore((state) => state.undo)
   const redo = useAppStore((state) => state.redo)
   const screen = useAppStore((state) => state.screen)
+  const toggleSidebar = useAppStore((state) => state.toggleSidebar)
+  const toggleInspector = useAppStore((state) => state.toggleInspector)
 
   const inEditor = screen === 'editor'
 
@@ -77,4 +103,7 @@ export function useAppShortcuts(): void {
   useShortcut({ key: 'z', meta: true, shift: true }, redo, inEditor)
   // Windows usa Ctrl+Y para rehacer, además de Ctrl+⇧+Z (RS-12).
   useShortcut({ key: 'y', meta: true }, redo, inEditor)
+
+  useShortcut({ key: 's', meta: true, alt: true }, () => void toggleSidebar(), inEditor)
+  useShortcut({ key: 'i', meta: true, alt: true }, () => void toggleInspector(), inEditor)
 }

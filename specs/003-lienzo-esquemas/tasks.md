@@ -128,23 +128,23 @@ espacio al lienzo y lo recupera, también tras cerrar y abrir otro modelo.
 
 ### Tests for User Story 1
 
-- [ ] T032 [P] [US1] Crear `src/store/canvas.test.ts`: la vista arranca ajustada al modelo, esconder la barra lateral y el inspector escribe la preferencia con `preferencesUpdate`, y el foco se quita al cerrar el modelo (FR-006, FR-014)
-- [ ] T033 [P] [US1] Crear `src/components/layout/EditorLayout.test.tsx`: las cinco zonas están con su nombre accesible, esconder una la saca del árbol y el botón de la barra superior la devuelve (FR-001, FR-006)
-- [ ] T034 [P] [US1] Crear `src/components/layout/StatusBar.test.tsx`: dice el motor, el estado del archivo del Incremento 1, el porcentaje de zoom y el número de esquemas y de tablas (FR-004)
-- [ ] T035 [P] [US1] Crear `src/components/layout/Inspector.test.tsx`: sin selección dice que no hay nada seleccionado; al pulsar la fila de un esquema en la barra lateral muestra su nombre, nombre técnico, abreviatura, color, descripción y número de tablas (FR-003)
+- [X] T032 [P] [US1] Crear `src/store/canvas.test.ts`: la vista arranca ajustada al modelo, esconder la barra lateral y el inspector escribe la preferencia con `preferencesUpdate`, y el foco se quita al cerrar el modelo (FR-006, FR-014)
+- [X] T033 [P] [US1] Crear `src/components/layout/EditorLayout.test.tsx`: las cinco zonas están con su nombre accesible, esconder una la saca del árbol y el botón de la barra superior la devuelve (FR-001, FR-006)
+- [X] T034 [P] [US1] Crear `src/components/layout/StatusBar.test.tsx`: dice el motor, el estado del archivo del Incremento 1, el porcentaje de zoom y el número de esquemas y de tablas (FR-004)
+- [X] T035 [P] [US1] Crear `src/components/layout/Inspector.test.tsx`: sin selección dice que no hay nada seleccionado; al pulsar la fila de un esquema en la barra lateral muestra su nombre, nombre técnico, abreviatura, color, descripción y número de tablas (FR-003)
 
 ### Implementation for User Story 1
 
-- [ ] T036 [US1] Crear `src/components/layout/EditorLayout.tsx`: las cinco zonas de P-05 —barra lateral de 248 px, barra superior, lienzo, inspector de 300 px y barra de estado de 28 px—, con la barra lateral y el inspector escondibles y el lienzo ocupando el espacio liberado (FR-001, FR-006)
-- [ ] T037 [US1] Crear `src/components/layout/ModelSidebar.tsx`: sección «Esquemas» con «Todos los esquemas», la fila de cada esquema con su punto de color, su nombre y su número de tablas, y el botón «+» de Nuevo esquema; sección «Tablas» con las del modelo. Pulsar la fila de un esquema lo selecciona, de modo que el inspector muestre sus datos (FR-002, FR-003)
-- [ ] T038 [P] [US1] Crear `src/components/layout/Inspector.tsx`: datos del esquema seleccionado y, sin selección, el mensaje de que no hay nada seleccionado (FR-003)
-- [ ] T039 [P] [US1] Crear `src/components/layout/StatusBar.tsx` con el motor, el estado del archivo, el porcentaje de zoom y los contadores de esquemas y tablas, con `aria-live="polite"` en el estado del archivo (FR-004)
-- [ ] T040 [US1] Ampliar `src/components/layout/EditorChrome.tsx` con los dos botones de disposición (`panel-left`, `panel-right`), su `aria-pressed` y sus atajos ⌥⌘S / ⌥⌘I, además de lo que ya trae del Incremento 1 (FR-006, FR-038)
-- [ ] T041 [US1] Extraer la tarjeta del modelo vacío a `src/components/features/canvas/EmptyModelCard.tsx` desde `src/components/features/editor/EditorScreen.tsx`, cambiando la nota «El lienzo de tablas llega en el Incremento 2» y dejando «Agregar un esquema» como la única fila que actúa: abre el diálogo Nuevo esquema (FR-005, SC-009)
-- [ ] T042 [US1] Crear `src/components/features/canvas/CanvasSurface.tsx` con el nodo que recorta y el nodo interior transformado por `pan` y `zoom` del almacén, con `will-change: transform` y la rejilla de fondo. Sin gestos todavía: los trae la US4 (research.md R1)
-- [ ] T043 [US1] Reescribir `src/components/features/editor/EditorScreen.tsx` para que orqueste `EditorLayout` con la barra lateral, el chrome, el lienzo, el inspector y la barra de estado, conservando la medida de SC-002 y la espera de `isWindowSettling` que ya tenía
-- [ ] T044 [US1] Cargar la disposición al arrancar y escribirla al cambiarla: `src/store/preferences.ts` lleva `sidebarHidden` e `inspectorHidden` al almacén del lienzo al cargar, y `toggleSidebar`/`toggleInspector` llaman a `preferencesUpdate` (FR-006)
-- [ ] T045 [US1] Ampliar `src/components/features/editor/EditorScreen.test.tsx` para la estructura nueva, sustituyendo las aserciones que esperaban solo la tarjeta informativa
+- [X] T036 [US1] Crear `src/components/layout/EditorLayout.tsx`: las cinco zonas de P-05 —barra lateral de 248 px, barra superior, lienzo, inspector de 300 px y barra de estado de 28 px—, con la barra lateral y el inspector escondibles y el lienzo ocupando el espacio liberado (FR-001, FR-006)
+- [X] T037 [US1] Crear `src/components/layout/ModelSidebar.tsx`: sección «Esquemas» con «Todos los esquemas», la fila de cada esquema con su punto de color, su nombre y su número de tablas, y el botón «+» de Nuevo esquema; sección «Tablas» con las del modelo. Pulsar la fila de un esquema lo selecciona, de modo que el inspector muestre sus datos (FR-002, FR-003)
+- [X] T038 [P] [US1] Crear `src/components/layout/Inspector.tsx`: datos del esquema seleccionado y, sin selección, el mensaje de que no hay nada seleccionado (FR-003)
+- [X] T039 [P] [US1] Crear `src/components/layout/StatusBar.tsx` con el motor, el estado del archivo, el porcentaje de zoom y los contadores de esquemas y tablas, con `aria-live="polite"` en el estado del archivo (FR-004)
+- [X] T040 [US1] Ampliar `src/components/layout/EditorChrome.tsx` con los dos botones de disposición (`panel-left`, `panel-right`), su `aria-pressed` y sus atajos ⌥⌘S / ⌥⌘I, además de lo que ya trae del Incremento 1 (FR-006, FR-038)
+- [X] T041 [US1] Extraer la tarjeta del modelo vacío a `src/components/features/canvas/EmptyModelCard.tsx` desde `src/components/features/editor/EditorScreen.tsx`, cambiando la nota «El lienzo de tablas llega en el Incremento 2» y dejando «Agregar un esquema» como la única fila que actúa: abre el diálogo Nuevo esquema (FR-005, SC-009)
+- [X] T042 [US1] Crear `src/components/features/canvas/CanvasSurface.tsx` con el nodo que recorta y el nodo interior transformado por `pan` y `zoom` del almacén, con `will-change: transform` y la rejilla de fondo. Sin gestos todavía: los trae la US4 (research.md R1)
+- [X] T043 [US1] Reescribir `src/components/features/editor/EditorScreen.tsx` para que orqueste `EditorLayout` con la barra lateral, el chrome, el lienzo, el inspector y la barra de estado, conservando la medida de SC-002 y la espera de `isWindowSettling` que ya tenía
+- [X] T044 [US1] Cargar la disposición al arrancar y escribirla al cambiarla: `src/store/preferences.ts` lleva `sidebarHidden` e `inspectorHidden` al almacén del lienzo al cargar, y `toggleSidebar`/`toggleInspector` llaman a `preferencesUpdate` (FR-006)
+- [X] T045 [US1] Ampliar `src/components/features/editor/EditorScreen.test.tsx` para la estructura nueva, sustituyendo las aserciones que esperaban solo la tarjeta informativa
 
 **Checkpoint**: el Editor tiene sus cinco zonas, el modelo vacío explica por
 dónde empezar y la disposición sobrevive al cambio de modelo y al reinicio.

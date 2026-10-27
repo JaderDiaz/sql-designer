@@ -29,7 +29,10 @@ import {
   Layers,
   Monitor,
   Moon,
+  Maximize,
   MousePointerClick,
+  PanelLeft,
+  PanelRight,
   Pencil,
   Redo2,
   Plus,
@@ -88,7 +91,10 @@ export type IconName =
   | 'history'
   | 'info'
   | 'layers'
+  | 'maximize'
   | 'mouse-pointer-click'
+  | 'panel-left'
+  | 'panel-right'
   | 'pencil'
   | 'redo-2'
   | 'rotate-ccw'
@@ -147,7 +153,10 @@ const ICONS: Record<IconName, LucideIcon> = {
   history: History,
   info: Info,
   layers: Layers,
+  maximize: Maximize,
   'mouse-pointer-click': MousePointerClick,
+  'panel-left': PanelLeft,
+  'panel-right': PanelRight,
   pencil: Pencil,
   'redo-2': Redo2,
   'rotate-ccw': RotateCcw,

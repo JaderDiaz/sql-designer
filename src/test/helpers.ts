@@ -1,5 +1,6 @@
 import type { AppIdentity, PlatformInfo, Preferences } from '@/lib/tauri/types'
 import { useAppStore } from '@/store'
+import { DEFAULT_VIEWPORT } from '@/store/canvas'
 import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 /**
@@ -90,5 +91,14 @@ export function resetStore(
     missingTarget: null,
     trashTarget: null,
     renameTarget: null,
+    // Lienzo
+    pan: { x: 0, y: 0 },
+    zoom: 1,
+    viewport: DEFAULT_VIEWPORT,
+    focusedSchema: null,
+    selectedSchema: null,
+    isGesturing: false,
+    isSidebarHidden: false,
+    isInspectorHidden: false,
   })
 }

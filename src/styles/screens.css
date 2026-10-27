@@ -388,6 +388,25 @@
   padding: 8px 10px;
   border-radius: 10px;
 }
+/* La fila que sí actúa en este incremento se nota al pasar por encima; las
+ * otras dos anuncian lo que viene y no son botones (FR-005). */
+.sm-start-row-action {
+  border: 0;
+  background: transparent;
+  cursor: default;
+  transition: background-color var(--duration-fast) var(--easing-standard);
+}
+.sm-start-row-action:hover {
+  background: var(--fill-hover);
+}
+.sm-start-row-action:active {
+  background: var(--fill-pressed);
+}
+.sm-start-row-action:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  animation: au-ring-in var(--duration-fast) var(--easing-out);
+}
 
 .sm-tint-indigo {
   background: color-mix(in srgb, var(--indigo) 14%, transparent);
@@ -503,8 +522,8 @@
 }
 /* Mientras un gesto está en curso no se pintan sombras ni transiciones
  * (SC-003, research R19). */
-.sm-canvas.is-gesturing .sm-table,
-.sm-canvas.is-gesturing .sm-zone {
+.sm-canvas[data-gesturing] .sm-table,
+.sm-canvas[data-gesturing] .sm-zone {
   box-shadow: none;
   transition: none;
 }
