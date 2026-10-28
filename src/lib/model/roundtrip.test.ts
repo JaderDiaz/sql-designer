@@ -19,6 +19,7 @@ const FIXTURES: FixtureName[] = [
   'modelo-50-tablas',
   'modelo-posiciones',
   'modelo-posiciones-extremas',
+  'modelo-tipos-ajenos',
 ]
 
 describe('ida y vuelta del modelo', () => {
@@ -41,6 +42,39 @@ describe('ida y vuelta del modelo', () => {
     const result = parseModel(file)
     expect(result.ok).toBe(true)
     if (!result.ok) return
+
+    expect(serializeModel(result.model)).toBe(file)
+  })
+
+  it('conserva la longitud, la escala, las llaves y las posiciones de las tablas', () => {
+    // La puerta 3 con los campos que estrena el Incremento 3: `length` y
+    // `scale` viajan aparte del tipo, la llave primaria de dos campos no se
+    // reordena y ninguna posición se pierde (FR-051, FR-051a).
+    const file = readFixture('modelo-postgres')
+    const result = parseModel(file)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const tables = result.model.tables ?? []
+    const importe = tables
+      .find((table) => table.name === 'pagos')
+      ?.fields.find((field) => field.name === 'importe')
+    expect(importe).toMatchObject({ type: 'numeric', length: 10, scale: 2 })
+    expect(
+      tables.find((table) => table.name === 'hoteles')?.fields.find((f) => f.name === 'nombre'),
+    ).toMatchObject({ type: 'varchar', length: 120 })
+    expect(tables.find((table) => table.name === 'resenas')?.primaryKey).toEqual([
+      'reserva_id',
+      'cliente_id',
+    ])
+    expect(tables.map((table) => table.position)).toEqual([
+      { x: 120, y: 160 },
+      { x: 384, y: 160 },
+      { x: 648, y: 160 },
+      { x: 120, y: 408 },
+      { x: 384, y: 408 },
+      { x: 648, y: 408 },
+    ])
 
     expect(serializeModel(result.model)).toBe(file)
   })

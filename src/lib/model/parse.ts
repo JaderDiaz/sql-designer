@@ -131,11 +131,19 @@ function toSchema(source: Record<string, unknown>, hasTables: boolean): Schema {
   }
 }
 
-/** Rearma un campo validado. */
+/**
+ * Rearma un campo validado.
+ *
+ * `length` y `scale` se copian tal como vinieron: el validador ya comprobó su
+ * forma, y aquí no se transforman ni se completan con el catálogo del motor
+ * (FR-018a, FR-051a).
+ */
 function toField(source: Record<string, unknown>): Field {
   return {
     name: source['name'] as string,
     type: source['type'] as string,
+    ...(typeof source['length'] === 'number' ? { length: source['length'] } : {}),
+    ...(typeof source['scale'] === 'number' ? { scale: source['scale'] } : {}),
     ...(typeof source['nullable'] === 'boolean' ? { nullable: source['nullable'] } : {}),
     ...withText(source, 'default'),
     ...withText(source, 'comment'),

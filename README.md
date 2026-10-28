@@ -9,7 +9,7 @@ diagrama. No se conecta a ninguna base de datos ni la administra.
 
 ## Estado
 
-Versión 1.2.0, Incremento 2 «Lienzo y esquemas» cerrado. Lo que ya hace:
+Versión 1.3.0, Incremento 3 «Tablas y campos» cerrado. Lo que ya hace:
 
 - Arranca con la Bienvenida y su identidad, sigue el tema del sistema o el
   elegido en Ajustes y recuerda el tamaño y la posición de la ventana
@@ -35,9 +35,24 @@ Versión 1.2.0, Incremento 2 «Lienzo y esquemas» cerrado. Lo que ya hace:
   afectado.
 - Enfoca un esquema para trabajar solo con sus tablas: el lienzo se centra en
   su zona, el resto se atenúa y la lista de tablas se filtra.
+- Crea tablas con «+ Tabla», con la tecla `T` o con doble clic en el lienzo
+  —ahí mismo nace la tabla—, con su esquema, su descripción y las opciones
+  «Llave primaria id» y «Campos de auditoría», y con el nombre técnico a la
+  vista mientras se escribe (Incremento 3).
+- Define los campos en el panel inferior: llave, nombre, tipo del motor,
+  longitud, escala, no nulo, valor por defecto, comentario y orden, con las
+  flechas para reordenar, plantillas de campos comunes y el alto del panel
+  entre 200 y 560 px, que se recuerda.
+- Marca llaves primarias y únicas, y las ve en la tarjeta del lienzo.
+- Acomoda el diagrama arrastrando las tablas, que cambian de esquema al caer en
+  otra zona y se alinean a la cuadrícula si el ajuste está puesto.
+- Renombra, duplica y elimina tablas diciendo antes cuántas relaciones se van,
+  y lo deshace todo en un paso con ⌘Z, también lo que se escribe celda a celda.
+- Ve y cambia lo principal de la tabla seleccionada en el inspector: nombre,
+  descripción, esquema, un resumen de ocho campos y sus relaciones.
 
-Crear y editar tablas, columnas y relaciones llega en el Incremento 3, que
-todavía no ha empezado.
+Las relaciones entre tablas llegan en el Incremento 4, que todavía no ha
+empezado.
 
 ## Requisitos
 

@@ -35,6 +35,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   lastFolder: null,
   sidebarHidden: false,
   inspectorHidden: false,
+  snapToGrid: false,
+  fieldsPanelHeight: 320,
 }
 
 /**
@@ -84,6 +86,7 @@ export interface PreferencesSlice {
   load: () => Promise<void>
   setTheme: (theme: ThemePreference) => Promise<void>
   setShowWelcomeOnStart: (value: boolean) => Promise<void>
+  setSnapToGrid: (value: boolean) => Promise<void>
   setSystemPrefersDark: (value: boolean) => void
   openPreferences: () => void
   closePreferences: () => void
@@ -138,6 +141,9 @@ export const createPreferencesSlice: AppSlice<PreferencesSlice> = (set, get) => 
         sidebar: loaded.preferences.sidebarHidden,
         inspector: loaded.preferences.inspectorHidden,
       })
+      // El alto del editor de campos también es preferencia, y el panel lo
+      // necesita antes de abrirse por primera vez (FR-022).
+      get().setFieldsPanelHeight(loaded.preferences.fieldsPanelHeight)
     } catch (error) {
       set({
         loadError:
@@ -177,6 +183,28 @@ export const createPreferencesSlice: AppSlice<PreferencesSlice> = (set, get) => 
           error instanceof CommandError
             ? `No se pudo guardar el tema: ${error.message}`
             : 'No se pudo guardar el tema.',
+      })
+    }
+  },
+
+  /**
+   * Cambia «Ajustar a la cuadrícula» y lo persiste (FR-032).
+   *
+   * @param value Nuevo estado de la casilla.
+   */
+  async setSnapToGrid(value) {
+    const previous = get().preferences
+    set({ preferences: { ...previous, snapToGrid: value }, writeError: null })
+    try {
+      const saved = await preferencesUpdate({ snapToGrid: value })
+      set({ preferences: saved })
+    } catch (error) {
+      set({
+        preferences: previous,
+        writeError:
+          error instanceof CommandError
+            ? `No se pudo guardar la preferencia: ${error.message}`
+            : 'No se pudo guardar la preferencia.',
       })
     }
   },

@@ -32,6 +32,10 @@ export function useShortcut(shortcut: Shortcut, handler: () => void, enabled = t
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (!matches(event, shortcut.key)) return
+      // Un atajo sin modificador no puede robarle la tecla a quien escribe:
+      // `T` crea una tabla en el lienzo, pero dentro de una celda del editor
+      // de campos escribe una «t» (FR-001, research R16).
+      if (!shortcut.meta && isTypingTarget(event.target)) return
       if (shortcut.meta) {
         const pressed = mac ? event.metaKey : event.ctrlKey
         if (!pressed) return
@@ -47,6 +51,18 @@ export function useShortcut(shortcut: Shortcut, handler: () => void, enabled = t
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [enabled, handler, platform, shortcut.alt, shortcut.key, shortcut.meta, shortcut.shift])
+}
+
+/**
+ * ¿El foco está en algo donde se escribe?
+ *
+ * @param target Destino de la pulsación.
+ */
+function isTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  if (target.isContentEditable) return true
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
 }
 
 /**
@@ -90,6 +106,11 @@ export function useAppShortcuts(): void {
   const screen = useAppStore((state) => state.screen)
   const toggleSidebar = useAppStore((state) => state.toggleSidebar)
   const toggleInspector = useAppStore((state) => state.toggleInspector)
+  const openTableDialog = useAppStore((state) => state.openTableDialog)
+  const duplicateTable = useAppStore((state) => state.duplicateTable)
+  const openDeleteTableDialog = useAppStore((state) => state.openDeleteTableDialog)
+  const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
+  const closeFieldsPanel = useAppStore((state) => state.closeFieldsPanel)
 
   const inEditor = screen === 'editor'
 
@@ -106,4 +127,42 @@ export function useAppShortcuts(): void {
 
   useShortcut({ key: 's', meta: true, alt: true }, () => void toggleSidebar(), inEditor)
   useShortcut({ key: 'i', meta: true, alt: true }, () => void toggleInspector(), inEditor)
+
+  // Atajos del Incremento 3 (research R16): `T` crea una tabla, ⌘D duplica la
+  // seleccionada, ⌫ pide confirmación para eliminarla y ⌥⌘E abre su editor de
+  // campos. Los tres últimos solo hacen algo con una tabla seleccionada.
+  useShortcut({ key: 't' }, () => openTableDialog(), inEditor)
+  useShortcut(
+    { key: 'd', meta: true },
+    () => {
+      const name = useAppStore.getState().selectedTable
+      if (name !== null) duplicateTable(name)
+    },
+    inEditor,
+  )
+  useShortcut(
+    { key: 'Backspace' },
+    () => {
+      const name = useAppStore.getState().selectedTable
+      if (name !== null) openDeleteTableDialog(name)
+    },
+    inEditor,
+  )
+  useShortcut(
+    { key: 'Delete' },
+    () => {
+      const name = useAppStore.getState().selectedTable
+      if (name !== null) openDeleteTableDialog(name)
+    },
+    inEditor,
+  )
+  useShortcut(
+    { key: 'e', meta: true, alt: true },
+    () => {
+      const { selectedTable, isFieldsPanelOpen } = useAppStore.getState()
+      if (isFieldsPanelOpen) closeFieldsPanel()
+      else if (selectedTable !== null) openFieldsPanel(selectedTable)
+    },
+    inEditor,
+  )
 }

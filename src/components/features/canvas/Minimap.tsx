@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 
-import { TABLE_HEIGHT, TABLE_WIDTH, type Rect } from '@/lib/canvas/constants'
+import { TABLE_WIDTH, tableHeight, type Rect } from '@/lib/canvas/constants'
 import { contentBounds, schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { resolveSchemaColor } from '@/lib/model/colors'
@@ -89,7 +89,7 @@ export function Minimap() {
           {
             name: table.name,
             color: colors.get(table.schema) ?? 'gray',
-            rect: { ...position, width: TABLE_WIDTH, height: TABLE_HEIGHT },
+            rect: { ...position, width: TABLE_WIDTH, height: tableHeight(table.fields.length) },
           },
         ]
       }),

@@ -35,6 +35,10 @@ export type Dialog =
   | 'stale'
   | 'schema'
   | 'delete-schema'
+  | 'table'
+  | 'rename-table'
+  | 'delete-table'
+  | 'delete-field'
 
 /**
  * Qué se quería hacer cuando se preguntó por los cambios sin guardar, para

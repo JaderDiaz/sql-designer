@@ -1,0 +1,27 @@
+formatVersion: 1
+name: Tipos de otro motor
+engine: sqlite
+schemas:
+  - name: main
+    abbreviation: MAI
+tables:
+  - name: eventos
+    schema: main
+    comment: Tabla guardada antes de cambiar el motor del modelo
+    fields:
+      - name: id
+        type: text
+      - name: nombre
+        type: varchar
+        length: 120
+      - name: ocurrido_el
+        type: timestamptz
+      - name: importe
+        type: numeric
+        length: 12
+        scale: 2
+    primaryKey:
+      - id
+    position:
+      x: 120
+      y: 160

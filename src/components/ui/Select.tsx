@@ -18,6 +18,8 @@ export interface SelectProps {
   /** Texto accesible del disparador. */
   label: string
   disabled?: boolean
+  /** Parada de tabulador; `-1` en las rejillas de tabindex rotatorio. */
+  tabIndex?: number
   className?: string
 }
 
@@ -34,11 +36,16 @@ export function Select({
   options,
   label,
   disabled = false,
+  tabIndex,
   className,
 }: SelectProps) {
   return (
     <RadixSelect.Root value={value} onValueChange={onValueChange} disabled={disabled}>
-      <RadixSelect.Trigger className={cn('au-select-trigger', className)} aria-label={label}>
+      <RadixSelect.Trigger
+        className={cn('au-select-trigger', className)}
+        aria-label={label}
+        tabIndex={tabIndex}
+      >
         <RadixSelect.Value className="au-select-value" />
         <RadixSelect.Icon className="au-select-chev">
           <Icon name="chevrons-up-down" size={14} />

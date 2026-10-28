@@ -7,6 +7,7 @@ import { OpenModelDialog } from '@/components/features/open-model/OpenModelDialo
 import { readFixture } from '@/lib/model/__fixtures__'
 import type { DirectoryEntry, Place } from '@/lib/tauri/types'
 import { useAppStore } from '@/store'
+import { DEFAULT_PREFERENCES } from '@/store/preferences'
 import { resetStore } from '@/test/helpers'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
@@ -91,6 +92,7 @@ describe('Abrir modelo (FR-012 a FR-017)', () => {
     })
     vi.mocked(recentsTouch).mockResolvedValue([])
     vi.mocked(preferencesUpdate).mockResolvedValue({
+      ...DEFAULT_PREFERENCES,
       formatVersion: 1,
       theme: 'system',
       showWelcomeOnStart: true,

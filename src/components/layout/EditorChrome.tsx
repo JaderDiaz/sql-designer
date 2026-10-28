@@ -53,6 +53,11 @@ export function EditorChrome() {
   const requestClose = useAppStore((state) => state.requestClose)
   const openDialog = useAppStore((state) => state.openDialog)
   const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
+  const openTableDialog = useAppStore((state) => state.openTableDialog)
+  const selectedTable = useAppStore((state) => state.selectedTable)
+  const isFieldsPanelOpen = useAppStore((state) => state.isFieldsPanelOpen)
+  const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
+  const closeFieldsPanel = useAppStore((state) => state.closeFieldsPanel)
   const isSidebarHidden = useAppStore((state) => state.isSidebarHidden)
   const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
   const toggleSidebar = useAppStore((state) => state.toggleSidebar)
@@ -120,11 +125,31 @@ export function EditorChrome() {
         <span aria-hidden="true" className="mx-1 h-[18px] w-[var(--hairline)] bg-separator" />
 
         <Button
-          variant="plain"
           icon="plus"
+          aria-label="Nueva tabla"
+          title={`Nueva tabla (${shortcutLabel(platform, 'T')})`}
+          onClick={() => openTableDialog()}
+        >
+          Tabla
+        </Button>
+        <Button
+          variant="plain"
+          icon="layers"
           aria-label="Nuevo esquema"
           title="Nuevo esquema"
           onClick={() => openSchemaDialog(null)}
+        />
+        <Button
+          variant="plain"
+          icon="table-properties"
+          aria-label={isFieldsPanelOpen ? 'Cerrar el editor de campos' : 'Editar campos'}
+          aria-pressed={isFieldsPanelOpen}
+          title={`Editar campos (${layoutShortcut(platform, 'E')})`}
+          disabled={selectedTable === null && !isFieldsPanelOpen}
+          onClick={() => {
+            if (isFieldsPanelOpen) closeFieldsPanel()
+            else openFieldsPanel()
+          }}
         />
         <Button
           variant="plain"

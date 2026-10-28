@@ -3,7 +3,10 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { SchemaZone } from '@/components/features/canvas/SchemaZone'
 import { TableCard } from '@/components/features/canvas/TableCard'
 import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMenu'
-import { schemaZones } from '@/lib/canvas/geometry'
+import { TableContextMenu } from '@/components/features/table/TableContextMenu'
+import { GRID_SNAP, TABLE_WIDTH, tableHeight } from '@/lib/canvas/constants'
+import { schemaZones, zoneAt } from '@/lib/canvas/geometry'
+import { toModelPoint } from '@/lib/canvas/zoom'
 import { isBlankModel } from '@/lib/model/defaults'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { cn } from '@/lib/cn'
@@ -42,9 +45,14 @@ export interface CanvasSurfaceProps {
 /** Desde cuántos píxeles de recorrido el gesto cuenta como arrastre. */
 const DRAG_THRESHOLD = 3
 
+/** Qué se está arrastrando: la zona de un esquema o una tarjeta de tabla. */
+interface DragTarget {
+  kind: 'schema' | 'table'
+  name: string
+}
+
 /** Lo que hace falta recordar del gesto en curso. */
-interface DragState {
-  schema: string
+interface DragState extends DragTarget {
   pointerId: number
   /** Punto de partida del puntero, en coordenadas de la ventana. */
   originX: number
@@ -63,21 +71,26 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   const isGesturing = useAppStore((state) => state.isGesturing)
   const focusedSchema = useAppStore((state) => state.focusedSchema)
   const selectedSchema = useAppStore((state) => state.selectedSchema)
+  const selectedTable = useAppStore((state) => state.selectedTable)
   const selectSchema = useAppStore((state) => state.selectSchema)
+  const selectTable = useAppStore((state) => state.selectTable)
+  const openTableDialog = useAppStore((state) => state.openTableDialog)
+  const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
   const setViewport = useAppStore((state) => state.setViewport)
   const needsCenter = useAppStore((state) => state.needsCenter)
   const centerOnModel = useAppStore((state) => state.centerOnModel)
   const setGesturing = useAppStore((state) => state.setGesturing)
   const moveSchema = useAppStore((state) => state.moveSchema)
+  const moveTable = useAppStore((state) => state.moveTable)
 
   const surface = useRef<HTMLDivElement>(null)
   const frame = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const grid = useRef<HTMLDivElement>(null)
   const drag = useRef<DragState | null>(null)
-  // Qué esquema se arrastra es lo único del gesto que el árbol necesita saber,
-  // y solo cambia dos veces: al empezar y al terminar.
-  const [dragging, setDragging] = useState<string | null>(null)
+  // Qué se arrastra es lo único del gesto que el árbol necesita saber, y solo
+  // cambia dos veces: al empezar y al terminar.
+  const [dragging, setDragging] = useState<DragTarget | null>(null)
 
   // Mover la vista y hacer zoom son del gesto, no de este componente: el
   // lienzo solo le presta sus tres nodos.
@@ -121,21 +134,51 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
 
   const tables = model?.tables ?? []
 
+  /**
+   * Pasa un punto de la ventana a coordenadas del modelo.
+   *
+   * @param event Gesto del puntero sobre el lienzo.
+   */
+  function pointOf(event: { clientX: number; clientY: number }): { x: number; y: number } {
+    const rect = surface.current?.getBoundingClientRect()
+    const x = event.clientX - (rect?.left ?? 0)
+    const y = event.clientY - (rect?.top ?? 0)
+    return toModelPoint({ pan, zoom }, { x, y })
+  }
+
+  /** Doble clic en el lienzo: abre Nueva tabla en ese punto (FR-006). */
+  function onDoubleClick(event: React.MouseEvent<HTMLDivElement>) {
+    // El doble clic sobre una tarjeta abre su editor de campos, no un diálogo
+    // (FR-023): aquí solo cuentan el fondo y las zonas.
+    if ((event.target as HTMLElement).closest('.sm-table') !== null) return
+    const point = pointOf(event)
+    openTableDialog({ x: Math.round(point.x), y: Math.round(point.y) })
+  }
+
   /** Escribe el desplazamiento del gesto en las variables del grupo. */
   function paintDrag(x: number, y: number) {
     stage.current?.style.setProperty('--drag-x', `${x}px`)
     stage.current?.style.setProperty('--drag-y', `${y}px`)
   }
 
-  /** Empieza a arrastrar la zona de un esquema (FR-026). */
-  function startDrag(event: React.PointerEvent<HTMLButtonElement>, schema: string) {
+  /**
+   * Empieza a arrastrar una tarjeta o la zona de un esquema (FR-026, FR-030).
+   *
+   * La tarjeta manda sobre la zona que tiene debajo: pulsar una tabla mueve la
+   * tabla, no su esquema, porque el `pointerdown` de la tarjeta no llega al
+   * nodo de la zona.
+   *
+   * @param event Gesto del puntero.
+   * @param target Qué se arrastra.
+   */
+  function startDrag(event: React.PointerEvent<HTMLButtonElement>, target: DragTarget) {
     // Solo el botón principal arrastra: el derecho abre el menú contextual y
     // el central mueve la vista (FR-007, FR-038). Con la barra espaciadora
     // mantenida, arrastrar encima de una zona mueve la vista, no el esquema.
     if (event.button !== 0 || view.isPanning() || drag.current !== null) return
     capturePointer(event.currentTarget, event.pointerId)
     drag.current = {
-      schema,
+      ...target,
       pointerId: event.pointerId,
       originX: event.clientX,
       originY: event.clientY,
@@ -155,7 +198,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     if (!current.moved) {
       if (Math.abs(screenX) < DRAG_THRESHOLD && Math.abs(screenY) < DRAG_THRESHOLD) return
       current.moved = true
-      setDragging(current.schema)
+      setDragging({ kind: current.kind, name: current.name })
       setGesturing(true)
     }
 
@@ -164,9 +207,20 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     current.deltaX = screenX / zoom
     current.deltaY = screenY / zoom
     paintDrag(current.deltaX, current.deltaY)
+    // Si el gesto llega al borde, la vista sigue a lo que se arrastra, para
+    // poder dejarlo fuera de lo que se ve al empezar (US4, escenario 7).
+    view.edgeFollow(event.clientX, event.clientY)
   }
 
-  /** Suelta la zona y guarda el gesto entero en un solo paso (FR-027). */
+  /**
+   * Suelta lo que se arrastraba y guarda el gesto entero en un solo paso
+   * (FR-027, FR-030 a FR-032).
+   *
+   * Una tabla soltada dentro de la zona de otro esquema pasa a ese esquema; la
+   * zona la decide el punto del puntero, no la caja de la tarjeta, y fuera de
+   * toda zona la tabla se queda en el suyo (FR-031). El ajuste a la cuadrícula
+   * lo aplica `moveTable` al guardar, no el gesto (FR-032).
+   */
   function endDrag(event: React.PointerEvent<HTMLButtonElement>) {
     const current = drag.current
     if (current === null || event.pointerId !== current.pointerId) return
@@ -177,7 +231,41 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     setDragging(null)
     setGesturing(false)
     const delta = { x: Math.round(current.deltaX), y: Math.round(current.deltaY) }
-    if (delta.x !== 0 || delta.y !== 0) moveSchema(current.schema, delta)
+    if (current.kind === 'schema') {
+      if (delta.x !== 0 || delta.y !== 0) moveSchema(current.name, delta)
+      return
+    }
+    const zone = zoneAt(zones, pointOf(event))
+    moveTable(current.name, delta, zone === null ? {} : { schema: zone.schema })
+  }
+
+  /** Mueve la tabla seleccionada con las flechas del teclado (FR-034). */
+  function moveWithKeyboard(event: React.KeyboardEvent<HTMLDivElement>): boolean {
+    if (selectedTable === null) return false
+    const step = event.shiftKey ? GRID_SNAP : 1
+    const deltas: Record<string, { x: number; y: number }> = {
+      ArrowLeft: { x: -step, y: 0 },
+      ArrowRight: { x: step, y: 0 },
+      ArrowUp: { x: 0, y: -step },
+      ArrowDown: { x: 0, y: step },
+    }
+    const delta = deltas[event.key]
+    if (delta === undefined || event.metaKey || event.ctrlKey || event.altKey) return false
+    event.preventDefault()
+    const table = tables.find((item) => item.name === selectedTable)
+    const base = table?.position ?? layout.get(selectedTable)
+    // La zona de destino se decide por el centro de la tarjeta, que es lo que
+    // se está moviendo: con el teclado no hay puntero al que mirar (FR-031).
+    const center =
+      base === undefined
+        ? null
+        : {
+            x: base.x + delta.x + TABLE_WIDTH / 2,
+            y: base.y + delta.y + tableHeight(table?.fields.length ?? 1) / 2,
+          }
+    const zone = center === null ? null : zoneAt(zones, center)
+    moveTable(selectedTable, delta, zone === null ? {} : { schema: zone.schema })
+    return true
   }
 
   return (
@@ -190,10 +278,28 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
       tabIndex={0}
       className={cn('sm-canvas relative min-h-0 flex-1 overflow-hidden', className)}
       data-gesturing={isGesturing ? '' : undefined}
-      onPointerDown={view.onPointerDown}
+      onPointerDown={(event) => {
+        // Pulsar el fondo suelta la selección: el inspector vuelve a la ficha
+        // del modelo (FR-007a).
+        if (event.target === event.currentTarget) {
+          if (selectedTable !== null) selectTable(null)
+          if (selectedSchema !== null) selectSchema(null)
+        }
+        view.onPointerDown(event)
+      }}
       onPointerMove={view.onPointerMove}
       onPointerUp={view.onPointerUp}
       onPointerCancel={view.onPointerUp}
+      onDoubleClick={onDoubleClick}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          if (selectedTable === null) return
+          event.preventDefault()
+          selectTable(null)
+          return
+        }
+        moveWithKeyboard(event)
+      }}
     >
       <div
         ref={grid}
@@ -231,8 +337,8 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
                   schema={schema}
                   isSelected={selectedSchema === zone.schema}
                   isDim={focusedSchema !== null && focusedSchema !== zone.schema}
-                  isDragging={dragging === zone.schema}
-                  onPointerDown={(event) => startDrag(event, zone.schema)}
+                  isDragging={dragging?.kind === 'schema' && dragging.name === zone.schema}
+                  onPointerDown={(event) => startDrag(event, { kind: 'schema', name: zone.schema })}
                   onPointerMove={continueDrag}
                   onPointerUp={endDrag}
                   onPointerCancel={endDrag}
@@ -247,15 +353,31 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
             if (position === undefined) return null
             const schema = model?.schemas.find((candidate) => candidate.name === table.schema)
             return (
-              <TableCard
-                key={table.name}
-                table={table}
-                position={position}
-                schema={table.schema}
-                abbreviation={schema?.abbreviation ?? ''}
-                isDim={focusedSchema !== null && focusedSchema !== table.schema}
-                isDragging={dragging === table.schema}
-              />
+              <TableContextMenu key={table.name} table={table}>
+                <TableCard
+                  table={table}
+                  position={position}
+                  schema={table.schema}
+                  abbreviation={schema?.abbreviation ?? ''}
+                  relations={model?.relations ?? []}
+                  isSelected={selectedTable === table.name}
+                  isDim={focusedSchema !== null && focusedSchema !== table.schema}
+                  // La tarjeta acompaña al grupo cuando se arrastra su esquema
+                  // y se mueve sola cuando se arrastra ella (FR-026, FR-030).
+                  isDragging={
+                    dragging !== null &&
+                    (dragging.kind === 'schema'
+                      ? dragging.name === table.schema
+                      : dragging.name === table.name)
+                  }
+                  onSelect={() => selectTable(table.name)}
+                  onOpenFields={() => openFieldsPanel(table.name)}
+                  onPointerDown={(event) => startDrag(event, { kind: 'table', name: table.name })}
+                  onPointerMove={continueDrag}
+                  onPointerUp={endDrag}
+                  onPointerCancel={endDrag}
+                />
+              </TableContextMenu>
             )
           })}
         </div>

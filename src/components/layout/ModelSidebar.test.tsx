@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 
@@ -12,8 +12,9 @@ import { resetStore } from '@/test/helpers'
  * Pruebas de la barra lateral (FR-002, FR-003, FR-029, FR-030).
  *
  * Lo que se protege: que las dos secciones digan lo que hay, que pulsar un
- * esquema lo enfoque, y que con un esquema enfocado la lista de tablas sea la
- * de ese esquema y se diga de cuál.
+ * esquema lo enfoque, que con un esquema enfocado la lista de tablas sea la
+ * de ese esquema y se diga de cuál, y que pulsar una tabla la seleccione para
+ * el inspector.
  */
 
 /** Deja el modelo de tres esquemas abierto y dibuja la barra lateral. */
@@ -110,5 +111,43 @@ describe('ModelSidebar', () => {
 
     expect(useAppStore.getState().dialog).toBe('schema')
     expect(useAppStore.getState().schemaTarget).toBeNull()
+  })
+})
+
+describe('filas de tabla de la barra lateral (FR-036, FR-041)', () => {
+  beforeEach(renderSidebar)
+
+  it('pulsar una tabla la selecciona (FR-007a)', async () => {
+    await userEvent.click(
+      within(tablesSection()).getByRole('button', { name: /^Tabla facturas,/ }),
+    )
+
+    expect(useAppStore.getState().selectedTable).toBe('facturas')
+  })
+
+  it('su nombre accesible dice cuántos campos tiene', () => {
+    expect(
+      within(tablesSection()).getByRole('button', { name: 'Tabla facturas, 3 campos' }),
+    ).toBeInTheDocument()
+  })
+
+  it('doble clic abre el editor de campos (FR-023)', async () => {
+    await userEvent.dblClick(
+      within(tablesSection()).getByRole('button', { name: /^Tabla facturas,/ }),
+    )
+
+    const state = useAppStore.getState()
+    expect(state.isFieldsPanelOpen).toBe(true)
+    expect(state.fieldsPanelTable).toBe('facturas')
+  })
+
+  it('su menú contextual es el mismo de la tarjeta (FR-036)', async () => {
+    fireEvent.contextMenu(
+      within(tablesSection()).getByRole('button', { name: /^Tabla facturas,/ }),
+    )
+
+    expect(await screen.findByRole('menuitem', { name: /^Editar campos…/ })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Mover a esquema' })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: /^Eliminar tabla…/ })).toBeInTheDocument()
   })
 })

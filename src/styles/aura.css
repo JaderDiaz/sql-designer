@@ -348,6 +348,27 @@
   color: var(--label-secondary);
   opacity: 1;
 }
+.au-field-count {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--label-secondary);
+  font-variant-numeric: tabular-nums;
+}
+/* Área de texto: el envoltorio deja de ser una línea de 28 px y crece con
+   las filas que se le pidan, pero conserva el anillo de foco del campo. */
+.au-input-wrap:has(.au-textarea) {
+  height: auto;
+  align-items: stretch;
+  padding: var(--space-1\.5) var(--space-2);
+}
+.au-textarea {
+  height: auto;
+  min-height: 0;
+  padding: 0 2px;
+  line-height: 18px;
+  resize: none;
+}
+
 .au-field-search .au-input-wrap {
   border-radius: var(--radius-full);
   padding: 0 var(--space-3);
@@ -542,6 +563,27 @@
 .au-menu-item.is-danger .au-icon {
   color: var(--danger-text);
 }
+/*
+ * Segunda línea de una acción del menú, que dice qué hace.
+ *
+ * Con ella la acción deja de ser de una sola línea, así que el alto fijo de
+ * `.au-menu-item` se suelta y el contenido se alinea arriba.
+ */
+.au-menu-item:has(.au-menu-hint) {
+  height: auto;
+  align-items: flex-start;
+  padding: 5px var(--space-2);
+}
+.au-menu-item:has(.au-menu-hint) .au-icon {
+  margin-top: 1px;
+}
+.au-menu-hint {
+  display: block;
+  max-width: 260px;
+  color: var(--label-secondary);
+  font: 400 11px/15px var(--font-sans);
+  white-space: normal;
+}
 .au-menu-shortcut {
   margin-left: auto;
   padding-left: var(--space-6);
@@ -589,7 +631,13 @@
   outline: none;
 }
 .au-menu-item[data-highlighted] .au-icon,
+.au-menu-item[data-highlighted] .au-menu-hint,
 .au-menu-item[data-highlighted] .au-menu-shortcut,
+/* El atajo viene dentro de un `kbd` con su propio color, y un color puesto en
+   el elemento gana a lo que herede del contenedor: sin nombrarlo aquí, el
+   atajo de la fila marcada se quedaba gris sobre el acento, a 1,9:1 en claro y
+   1,76:1 en oscuro (SC-011). */
+.au-menu-item[data-highlighted] .au-menu-shortcut kbd,
 .au-option[data-highlighted] .au-option-check,
 .au-option[data-highlighted] .au-option-desc {
   color: var(--on-accent);
@@ -598,7 +646,9 @@
   background: var(--danger-solid);
   color: var(--on-danger);
 }
-.au-menu-item.is-danger[data-highlighted] .au-icon {
+.au-menu-item.is-danger[data-highlighted] .au-icon,
+.au-menu-item.is-danger[data-highlighted] .au-menu-shortcut,
+.au-menu-item.is-danger[data-highlighted] .au-menu-shortcut kbd {
   color: var(--on-danger);
 }
 .au-menu-item[data-disabled],

@@ -1,10 +1,14 @@
 import {
+  Archive,
+  ArrowDown,
+  ArrowUp,
   Bell,
   CaseSensitive,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   ChevronsUpDown,
   CircleArrowDown,
   CircleCheck,
@@ -14,6 +18,7 @@ import {
   Cloud,
   Copy,
   Database,
+  Ellipsis,
   File,
   FileCode,
   FilePlus2,
@@ -21,11 +26,15 @@ import {
   FileText,
   FileWarning,
   Folder,
+  FolderInput,
   FolderOpen,
   FolderPlus,
+  GitMerge,
   HardDrive,
   History,
   Info,
+  KeyRound,
+  LayoutTemplate,
   Minus,
   Layers,
   Monitor,
@@ -49,10 +58,14 @@ import {
   Square,
   Sun,
   Table2,
+  TableProperties,
   Tags,
+  TextCursorInput,
+  ToggleRight,
   Trash2,
   Undo2,
   TriangleAlert,
+  UserRound,
   X,
   type LucideIcon,
 } from 'lucide-react'
@@ -61,12 +74,16 @@ import { cn } from '@/lib/cn'
 
 /** Iconos Lucide que usan las pantallas y los diálogos de archivo. */
 export type IconName =
+  | 'archive'
+  | 'arrow-down'
+  | 'arrow-up'
   | 'bell'
   | 'plus'
   | 'folder-open'
   | 'settings'
   | 'case-sensitive'
   | 'database'
+  | 'ellipsis'
   | 'monitor'
   | 'sun'
   | 'moon'
@@ -77,6 +94,7 @@ export type IconName =
   | 'chevron-down'
   | 'chevron-left'
   | 'chevron-right'
+  | 'chevron-up'
   | 'chevrons-up-down'
   | 'circle-arrow-down'
   | 'circle-check'
@@ -92,11 +110,15 @@ export type IconName =
   | 'file-text'
   | 'file-warning'
   | 'folder'
+  | 'folder-input'
   | 'folder-plus'
+  | 'git-merge'
   | 'hard-drive'
   | 'history'
   | 'info'
+  | 'key-round'
   | 'layers'
+  | 'layout-template'
   | 'maximize'
   | 'mouse-pointer-click'
   | 'panel-left'
@@ -113,9 +135,13 @@ export type IconName =
   | 'search'
   | 'search-x'
   | 'table-2'
+  | 'table-properties'
   | 'tags'
+  | 'text-cursor-input'
+  | 'toggle-right'
   | 'trash-2'
   | 'triangle-alert'
+  | 'user-round'
 
 /** Props del icono. */
 export interface IconProps {
@@ -128,12 +154,16 @@ export interface IconProps {
 }
 
 const ICONS: Record<IconName, LucideIcon> = {
+  archive: Archive,
+  'arrow-down': ArrowDown,
+  'arrow-up': ArrowUp,
   bell: Bell,
   plus: Plus,
   'folder-open': FolderOpen,
   settings: Settings,
   'case-sensitive': CaseSensitive,
   database: Database,
+  ellipsis: Ellipsis,
   monitor: Monitor,
   sun: Sun,
   moon: Moon,
@@ -144,6 +174,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   'chevron-down': ChevronDown,
   'chevron-left': ChevronLeft,
   'chevron-right': ChevronRight,
+  'chevron-up': ChevronUp,
   'chevrons-up-down': ChevronsUpDown,
   'circle-arrow-down': CircleArrowDown,
   'circle-check': CircleCheck,
@@ -159,11 +190,15 @@ const ICONS: Record<IconName, LucideIcon> = {
   'file-text': FileText,
   'file-warning': FileWarning,
   folder: Folder,
+  'folder-input': FolderInput,
   'folder-plus': FolderPlus,
+  'git-merge': GitMerge,
   'hard-drive': HardDrive,
   history: History,
   info: Info,
+  'key-round': KeyRound,
   layers: Layers,
+  'layout-template': LayoutTemplate,
   maximize: Maximize,
   'mouse-pointer-click': MousePointerClick,
   'panel-left': PanelLeft,
@@ -180,9 +215,13 @@ const ICONS: Record<IconName, LucideIcon> = {
   search: Search,
   'search-x': SearchX,
   'table-2': Table2,
+  'table-properties': TableProperties,
   tags: Tags,
+  'text-cursor-input': TextCursorInput,
+  'toggle-right': ToggleRight,
   'trash-2': Trash2,
   'triangle-alert': TriangleAlert,
+  'user-round': UserRound,
 }
 
 /**

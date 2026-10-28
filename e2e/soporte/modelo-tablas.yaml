@@ -1,0 +1,246 @@
+formatVersion: 1
+name: Recorrido · Tablas y campos
+engine: postgres
+schemas:
+  - name: ventas
+    abbreviation: VEN
+    color: blue
+    comment: Facturación y cobros
+  - name: inventario
+    abbreviation: INV
+    color: green
+  - name: personas
+    abbreviation: PER
+    color: purple
+tables:
+  - name: facturas
+    schema: ventas
+    comment: Cabecera de la factura
+    fields:
+      - name: id
+        type: uuid
+        default: gen_random_uuid()
+      - name: numero
+        type: varchar
+        length: 24
+      - name: cliente_id
+        type: uuid
+      - name: total
+        type: numeric
+        length: 12
+        scale: 2
+      - name: emitida_el
+        type: timestamptz
+        default: now()
+    primaryKey:
+      - id
+    uniques:
+      - name: uq_facturas_numero
+        fields:
+          - numero
+    position:
+      x: 120
+      y: 160
+  - name: factura_lineas
+    schema: ventas
+    comment: Llave primaria de dos campos
+    fields:
+      - name: factura_id
+        type: uuid
+      - name: linea
+        type: smallint
+      - name: articulo_id
+        type: uuid
+      - name: cantidad
+        type: numeric
+        length: 10
+        scale: 3
+      - name: precio
+        type: numeric
+        length: 12
+        scale: 2
+    primaryKey:
+      - factura_id
+      - linea
+    position:
+      x: 432
+      y: 160
+  - name: articulos
+    schema: inventario
+    fields:
+      - name: id
+        type: uuid
+        default: gen_random_uuid()
+      - name: nombre
+        type: varchar
+        length: 120
+      - name: activo
+        type: boolean
+        default: 'true'
+    primaryKey:
+      - id
+    position:
+      x: 900
+      y: 160
+  - name: clientes
+    schema: personas
+    fields:
+      - name: id
+        type: uuid
+        default: gen_random_uuid()
+      - name: nombre
+        type: varchar
+        length: 120
+      - name: correo
+        type: varchar
+        length: 180
+    primaryKey:
+      - id
+    uniques:
+      - name: uq_clientes_correo
+        fields:
+          - correo
+    position:
+      x: 120
+      y: 700
+  - name: medidas
+    schema: inventario
+    comment: Cuarenta campos para medir el recorrido de la rejilla
+    fields:
+      - name: id
+        type: uuid
+        default: gen_random_uuid()
+      - name: dato_01
+        type: integer
+      - name: dato_02
+        type: integer
+      - name: dato_03
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_04
+        type: integer
+      - name: dato_05
+        type: integer
+      - name: dato_06
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_07
+        type: numeric
+        length: 12
+        scale: 2
+      - name: dato_08
+        type: integer
+      - name: dato_09
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_10
+        type: integer
+      - name: dato_11
+        type: integer
+      - name: dato_12
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_13
+        type: integer
+      - name: dato_14
+        type: numeric
+        length: 12
+        scale: 2
+      - name: dato_15
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_16
+        type: integer
+      - name: dato_17
+        type: integer
+      - name: dato_18
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_19
+        type: integer
+      - name: dato_20
+        type: integer
+      - name: dato_21
+        type: numeric
+        length: 12
+        scale: 2
+      - name: dato_22
+        type: integer
+      - name: dato_23
+        type: integer
+      - name: dato_24
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_25
+        type: integer
+      - name: dato_26
+        type: integer
+      - name: dato_27
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_28
+        type: numeric
+        length: 12
+        scale: 2
+      - name: dato_29
+        type: integer
+      - name: dato_30
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_31
+        type: integer
+      - name: dato_32
+        type: integer
+      - name: dato_33
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_34
+        type: integer
+      - name: dato_35
+        type: numeric
+        length: 12
+        scale: 2
+      - name: dato_36
+        type: varchar
+        length: 60
+        nullable: true
+      - name: dato_37
+        type: integer
+      - name: dato_38
+        type: integer
+      - name: dato_39
+        type: varchar
+        length: 60
+        nullable: true
+    primaryKey:
+      - id
+    position:
+      x: 900
+      y: 460
+relations:
+  - name: fk_factura_lineas_factura
+    fromTable: factura_lineas
+    fromFields:
+      - factura_id
+    toTable: facturas
+    toFields:
+      - id
+    onDelete: cascade
+  - name: fk_facturas_cliente
+    fromTable: facturas
+    fromFields:
+      - cliente_id
+    toTable: clientes
+    toFields:
+      - id
+    onDelete: restrict

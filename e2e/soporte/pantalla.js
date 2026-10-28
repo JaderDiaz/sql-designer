@@ -118,7 +118,9 @@ export async function esperarSinTexto(esperado) {
   try {
     await browser.waitUntil(async () => !(await texto()).includes(esperado), { timeout: ESPERA_MS })
   } catch {
-    throw new Error(`Seguía viéndose «${esperado}» en la pantalla. Lo que se veía:\n${await resumen()}`)
+    throw new Error(
+      `Seguía viéndose «${esperado}» en la pantalla. Lo que se veía:\n${await resumen()}`,
+    )
   }
 }
 
@@ -261,7 +263,8 @@ export async function alerta() {
 export async function esperarSinAlerta() {
   await browser.waitUntil(
     async () =>
-      (await browser.execute('return document.querySelector(\'[role="alert"]\') === null')) === true,
+      (await browser.execute('return document.querySelector(\'[role="alert"]\') === null')) ===
+      true,
     { timeout: ESPERA_MS, timeoutMsg: 'Seguía habiendo un aviso de error.' },
   )
 }
@@ -309,9 +312,10 @@ export async function esperarSinDialogo(titulo = null) {
     },
     {
       timeout: ESPERA_MS,
-      timeoutMsg: titulo === null
-        ? 'Seguía habiendo un diálogo abierto.'
-        : `Seguía abierto el diálogo «${titulo}».`,
+      timeoutMsg:
+        titulo === null
+          ? 'Seguía habiendo un diálogo abierto.'
+          : `Seguía abierto el diálogo «${titulo}».`,
     },
   )
 }
@@ -462,7 +466,8 @@ export async function filaDeshabilitada(nombre) {
 export async function esperarSinMenu() {
   await browser.waitUntil(
     async () =>
-      (await browser.execute('return document.querySelectorAll(\'[role="menuitem"]\').length')) === 0,
+      (await browser.execute('return document.querySelectorAll(\'[role="menuitem"]\').length')) ===
+      0,
     { timeout: ESPERA_MS, timeoutMsg: 'El menú contextual siguió abierto.' },
   )
 }
@@ -485,10 +490,10 @@ export async function alFrente() {
       .catch(() => undefined)
   `)
 
-  await browser.waitUntil(
-    async () => (await browser.execute('return document.hidden')) === false,
-    { timeout: ESPERA_MS, timeoutMsg: 'La ventana siguió oculta: WebKit no pinta fotogramas así.' },
-  )
+  await browser.waitUntil(async () => (await browser.execute('return document.hidden')) === false, {
+    timeout: ESPERA_MS,
+    timeoutMsg: 'La ventana siguió oculta: WebKit no pinta fotogramas así.',
+  })
 }
 
 /**
@@ -662,6 +667,27 @@ export async function vistaDelLienzo() {
 }
 
 /**
+ * Espera a que la vista del lienzo deje de moverse.
+ *
+ * «Ajustar» y enfocar un esquema llevan la vista a su sitio con una
+ * transición, y medir una zona o una tarjeta a mitad del viaje da la posición
+ * de un fotograma que ya pasó: los gestos que apuntan a un punto de la
+ * pantalla tienen que esperar aquí primero.
+ */
+export async function esperarVistaQuieta() {
+  let anterior = null
+  await browser.waitUntil(
+    async () => {
+      const ahora = await vistaDelLienzo()
+      const quieta = ahora === anterior
+      anterior = ahora
+      return quieta
+    },
+    { timeout: ESPERA_MS, timeoutMsg: 'La vista del lienzo no se quedó quieta.' },
+  )
+}
+
+/**
  * Pulsa el fondo del lienzo, sin arrastrarlo.
  *
  * Es el gesto que suelta el foco del esquema (FR-031): el puntero baja y sube
@@ -746,4 +772,420 @@ export async function menuDeZona(nombre) {
     return true
   }`
   await esperar(guion, `No se encontró la zona de «${nombre}».`)
+}
+
+/**
+ * Las tarjetas de tabla del lienzo, por su nombre accesible.
+ *
+ * Igual que {@link zonas}: cada tarjeta viene medida en píxeles de pantalla,
+ * que es lo que se ve, y en coordenadas del modelo, que es lo que el archivo
+ * guarda y lo que no depende del zoom.
+ *
+ * @returns Un objeto por tarjeta con su nombre, su tabla, sus dos cajas y si
+ * está seleccionada.
+ */
+export async function tablas() {
+  return browser.execute(`
+    const nombre = (el) => (el.getAttribute('aria-label') || '').trim()
+    // La vista previa del diálogo Nueva tabla también es una \`.sm-table\`, y
+    // esa no está en el lienzo: solo cuentan las que se nombran «Tabla …».
+    const tarjetas = [...document.querySelectorAll('.sm-table')]
+      .filter((el) => nombre(el).startsWith('Tabla '))
+    return tarjetas.map((el) => {
+      const caja = el.getBoundingClientRect()
+      const etiqueta = nombre(el)
+      const corte = /^Tabla ([^,]+),/.exec(etiqueta)
+      return {
+        nombre: etiqueta,
+        tabla: corte === null ? null : corte[1],
+        x: Math.round(caja.left),
+        y: Math.round(caja.top),
+        ancho: Math.round(caja.width),
+        alto: Math.round(caja.height),
+        modelo: {
+          x: parseFloat(el.style.left),
+          y: parseFloat(el.style.top),
+          ancho: parseFloat(el.style.width),
+          alto: parseFloat(el.style.height),
+        },
+        seleccionada: el.getAttribute('aria-pressed') === 'true',
+        atenuada: el.className.includes('is-dim'),
+      }
+    })
+  `)
+}
+
+/** Busca una tarjeta de tabla por su nombre técnico, dentro de la página. */
+const TARJETA = `(tabla) => [...document.querySelectorAll('.sm-table')]
+  .find((e) => (e.getAttribute('aria-label') || '').startsWith('Tabla ' + tabla + ','))`
+
+/**
+ * Da dos clics sobre el fondo del lienzo, que es lo que crea una tabla donde
+ * se pulsó (FR-001, FR-006).
+ *
+ * @param dx Distancia en horizontal desde el borde izquierdo del lienzo; en
+ *   negativo, desde el derecho.
+ * @param dy Distancia en vertical desde el borde de arriba; en negativo, desde
+ *   el de abajo.
+ * @returns El punto de la pantalla donde cayó el gesto.
+ */
+export async function dobleClicEnLienzo(dx, dy) {
+  const guion = `() => {
+    const el = document.querySelector('.sm-canvas')
+    if (!el) return null
+    const caja = el.getBoundingClientRect()
+    const x = ${dx} < 0 ? caja.right + ${dx} : caja.left + ${dx}
+    const y = ${dy} < 0 ? caja.bottom + ${dy} : caja.top + ${dy}
+    const comun = (botones) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      button: 0,
+      buttons: botones,
+      clientX: x,
+      clientY: y,
+    })
+    el.dispatchEvent(new PointerEvent('pointerdown', comun(1)))
+    el.dispatchEvent(new PointerEvent('pointerup', comun(0)))
+    el.dispatchEvent(new MouseEvent('dblclick', { ...comun(0), detail: 2 }))
+    return { x, y }
+  }`
+  return esperar(guion, 'No se encontró el fondo del lienzo.')
+}
+
+/**
+ * Arrastra la tarjeta de una tabla por el lienzo.
+ *
+ * No vale {@link arrastrar}: la fila de la barra lateral se llama «Tabla
+ * <nombre>, N campos» igual que la tarjeta, y está antes en el árbol, así que
+ * el gesto se iba a la barra lateral, donde no hay nada que arrastrar.
+ *
+ * @param tabla Nombre técnico de la tabla.
+ * @param dx Cuánto se mueve en horizontal, en píxeles de pantalla.
+ * @param dy Cuánto se mueve en vertical.
+ */
+export async function arrastrarTabla(tabla, dx, dy) {
+  const guion = `() => {
+    const el = (${TARJETA})(${JSON.stringify(tabla)})
+    if (!el) return null
+    const caja = el.getBoundingClientRect()
+    const x = caja.left + caja.width / 2
+    const y = caja.top + caja.height / 2
+    const comun = (cx, cy, botones) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      button: 0,
+      buttons: botones,
+      clientX: cx,
+      clientY: cy,
+    })
+    el.dispatchEvent(new PointerEvent('pointerdown', comun(x, y, 1)))
+    for (let paso = 1; paso <= 4; paso += 1) {
+      el.dispatchEvent(new PointerEvent('pointermove', comun(x + (${dx} * paso) / 4, y + (${dy} * paso) / 4, 1)))
+    }
+    el.dispatchEvent(new PointerEvent('pointerup', comun(x + ${dx}, y + ${dy}, 0)))
+    return true
+  }`
+  await esperar(guion, `No se pudo arrastrar la tarjeta de «${tabla}».`)
+}
+
+/**
+ * Abre el editor de campos de una tabla con dos clics sobre su tarjeta
+ * (FR-023).
+ *
+ * @param tabla Nombre técnico de la tabla.
+ */
+export async function abrirTabla(tabla) {
+  const guion = `() => {
+    const el = (${TARJETA})(${JSON.stringify(tabla)})
+    if (!el) return null
+    el.click()
+    el.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, detail: 2 }))
+    return true
+  }`
+  await esperar(guion, `No se encontró la tarjeta de «${tabla}».`)
+}
+
+/**
+ * Abre el menú contextual de una tabla del lienzo con la tecla que lo abre sin
+ * ratón (⇧F10).
+ *
+ * @param tabla Nombre técnico de la tabla.
+ */
+export async function menuDeTabla(tabla) {
+  await esperarSinMenu()
+  const guion = `() => {
+    const el = (${TARJETA})(${JSON.stringify(tabla)})
+    if (!el) return null
+    el.focus()
+    el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 10, clientY: 10 }))
+    return true
+  }`
+  await esperar(guion, `No se encontró la tarjeta de «${tabla}».`)
+}
+
+/**
+ * Arrastra el tirador del editor de campos, que cambia su alto (FR-022).
+ *
+ * El tirador es un `role="separator"`, no un botón, así que no lo alcanza
+ * {@link arrastrar}: este gesto va directo a su nodo.
+ *
+ * @param dy Cuánto se mueve en vertical, en píxeles de pantalla; negativo
+ *   hacia arriba, que es lo que agranda el panel.
+ */
+export async function arrastrarTirador(dy) {
+  const guion = `() => {
+    const el = document.querySelector('.sm-panel-handle')
+    if (!el) return null
+    const caja = el.getBoundingClientRect()
+    const x = caja.left + caja.width / 2
+    const y = caja.top + caja.height / 2
+    const comun = (cy, botones) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      button: 0,
+      buttons: botones,
+      clientX: x,
+      clientY: cy,
+    })
+    el.dispatchEvent(new PointerEvent('pointerdown', comun(y, 1)))
+    for (let paso = 1; paso <= 6; paso += 1) {
+      el.dispatchEvent(new PointerEvent('pointermove', comun(y + (${dy} * paso) / 6, 1)))
+    }
+    el.dispatchEvent(new PointerEvent('pointerup', comun(y + ${dy}, 0)))
+    return true
+  }`
+  await esperar(guion, 'No se encontró el tirador del editor de campos.')
+}
+
+/** Alto del editor de campos, el que anuncia su tirador. */
+export async function altoDelPanel() {
+  const guion = `() => {
+    const el = document.querySelector('.sm-panel-handle')
+    return el ? { alto: Number(el.getAttribute('aria-valuenow')) } : null
+  }`
+  const tirador = await esperar(guion, 'No se encontró el tirador del editor de campos.')
+  return tirador.alto
+}
+
+/**
+ * Elige una opción de un selector por la etiqueta del selector.
+ *
+ * Va por el teclado y no por el puntero: el primitivo abre con Intro, mueve
+ * la marca con las flechas y confirma con Intro, y así el recorrido no depende
+ * de en qué evento del puntero el primitivo decide cada cosa.
+ *
+ * @param etiqueta Texto accesible del selector.
+ * @param opcion Texto de la opción.
+ */
+export async function elegir(etiqueta, opcion) {
+  const abrir = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...${AMBITO}.querySelectorAll('[role="combobox"]')]
+      .filter((e) => e.offsetParent !== null && e.getAttribute('aria-disabled') !== 'true')
+      .find((e) => nombre(e) === ${JSON.stringify(etiqueta)})
+    if (!el) return null
+    el.focus()
+    return true
+  }`
+  await esperar(abrir, `No se encontró el selector «${etiqueta}».`)
+  await browser.keys('Enter')
+
+  // La lista del primitivo viaja a un portal al final del documento, así que
+  // es la última del árbol; las de la barra lateral son anteriores.
+  const lista = await esperar(
+    `() => {
+      const listas = [...document.querySelectorAll('[role="listbox"]')]
+      const lista = listas[listas.length - 1]
+      if (!lista) return null
+      const opciones = [...lista.querySelectorAll('[role="option"]')]
+      if (opciones.length === 0) return null
+      return {
+        textos: opciones.map((e) => e.textContent.trim()),
+        marcada: opciones.findIndex(
+          (e) => e.hasAttribute('data-highlighted') || e.getAttribute('aria-selected') === 'true',
+        ),
+      }
+    }`,
+    `El selector «${etiqueta}» no abrió su lista.`,
+  )
+
+  const destino = lista.textos.indexOf(opcion)
+  if (destino === -1) {
+    throw new Error(
+      `El selector «${etiqueta}» no trae «${opcion}»; trae: ${lista.textos.join(', ')}.`,
+    )
+  }
+
+  const pasos = destino - (lista.marcada === -1 ? 0 : lista.marcada)
+  const tecla = pasos > 0 ? 'ArrowDown' : 'ArrowUp'
+  for (let paso = 0; paso < Math.abs(pasos); paso += 1) await browser.keys(tecla)
+  await browser.keys('Enter')
+
+  // La lista se va con su animación, y mientras está puesta tapa lo que haya
+  // debajo: el paso siguiente espera a que no quede nada.
+  await browser.waitUntil(
+    async () =>
+      (await browser.execute(
+        "return document.querySelectorAll('[data-radix-select-viewport]').length",
+      )) === 0,
+    { timeout: ESPERA_MS, timeoutMsg: `La lista de «${etiqueta}» no se cerró.` },
+  )
+}
+
+/**
+ * Escribe en un campo con el teclado de verdad, pulsación a pulsación.
+ *
+ * {@link escribir} pone el valor de una vez, que es lo que hace falta para
+ * llenar un formulario deprisa; esto es lo contrario: cada letra es un evento
+ * de teclado, que es lo que fusiona el historial en un paso (FR-024a).
+ *
+ * @param etiqueta Etiqueta del campo.
+ * @param texto Lo que se escribe, letra a letra.
+ */
+export async function escribirConTeclado(etiqueta, texto) {
+  await enfocarCampo(etiqueta)
+  await browser.keys(texto.split(''))
+}
+
+/**
+ * Lleva el foco a un campo de texto por su etiqueta, sin escribir nada.
+ *
+ * @param etiqueta Etiqueta del campo.
+ */
+export async function enfocarCampo(etiqueta) {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...document.querySelectorAll('input,textarea')]
+      .filter((e) => e.offsetParent !== null && !e.disabled)
+      .find((e) => nombre(e) === ${JSON.stringify(etiqueta)})
+    if (!el) return null
+    el.focus()
+    if (typeof el.setSelectionRange === 'function' && el.type !== 'checkbox') {
+      el.setSelectionRange(el.value.length, el.value.length)
+    }
+    return true
+  }`
+  await esperar(guion, `No se encontró el campo «${etiqueta}».`)
+}
+
+/**
+ * Quién tiene el foco ahora mismo, con lo que hace falta para saber si se ve.
+ *
+ * @returns Su nombre accesible, su rol, su etiqueta de elemento y si el
+ * navegador le está dibujando el anillo de foco.
+ */
+export async function enfocado() {
+  return browser.execute(`
+    const nombre = (el) => (
+      el.getAttribute('aria-label')
+      || (el.labels && el.labels.length ? el.labels[0].textContent : '')
+      || el.textContent
+      || ''
+    ).trim()
+    const el = document.activeElement
+    if (!el || el === document.body) return { nombre: '', rol: null, etiqueta: 'body', visible: false }
+    return {
+      nombre: nombre(el),
+      rol: el.getAttribute('role'),
+      etiqueta: el.tagName.toLowerCase(),
+      visible: el.matches(':focus-visible'),
+    }
+  `)
+}
+
+/**
+ * Escribe en un campo de un diálogo concreto.
+ *
+ * Hace falta cuando la pantalla de debajo trae un campo con la misma
+ * etiqueta: el inspector de tabla tiene su propio «Nombre», y sin acotar el
+ * diálogo lo escrito se iba allí.
+ *
+ * @param titulo Título del diálogo.
+ * @param etiqueta Etiqueta del campo.
+ * @param valor Texto a escribir.
+ */
+export async function escribirEn(titulo, etiqueta, valor) {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const dialogo = [...document.querySelectorAll('[role="dialog"]')]
+      .find((d) => d.innerText.startsWith(${JSON.stringify(titulo)}))
+    if (!dialogo) return null
+    const el = [...dialogo.querySelectorAll('input,textarea')]
+      .find((e) => nombre(e) === ${JSON.stringify(etiqueta)})
+    if (!el) return null
+    const prototipo = el.tagName === 'INPUT' ? HTMLInputElement : HTMLTextAreaElement
+    const asignar = Object.getOwnPropertyDescriptor(prototipo.prototype, 'value').set
+    el.focus()
+    asignar.call(el, ${JSON.stringify(valor)})
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    return true
+  }`
+  await esperar(guion, `No se encontró el campo «${etiqueta}» en «${titulo}».`)
+}
+
+/**
+ * Valor de un campo de un diálogo concreto.
+ *
+ * @param titulo Título del diálogo.
+ * @param etiqueta Etiqueta del campo.
+ */
+export async function valorEn(titulo, etiqueta) {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const dialogo = [...document.querySelectorAll('[role="dialog"]')]
+      .find((d) => d.innerText.startsWith(${JSON.stringify(titulo)}))
+    if (!dialogo) return null
+    const el = [...dialogo.querySelectorAll('input,textarea')]
+      .find((e) => nombre(e) === ${JSON.stringify(etiqueta)})
+    return el ? { v: el.value } : null
+  }`
+  const encontrado = await esperar(guion, `No se encontró el campo «${etiqueta}» en «${titulo}».`)
+  return encontrado.v
+}
+
+/**
+ * Pulsa un control con la pareja entera de eventos del puntero.
+ *
+ * Los menús desplegables abren en el `pointerdown`, no en el `click`, así que
+ * a ellos no les vale {@link pulsar}.
+ *
+ * @param nombre Nombre del control, por su principio.
+ * @param selector Qué controles mirar.
+ */
+export async function pulsarPuntero(nombre, selector = 'button') {
+  const guion = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...document.querySelectorAll(${JSON.stringify(selector)})]
+      .filter((e) => e.offsetParent !== null && !e.disabled)
+      .find((e) => nombre(e).startsWith(${JSON.stringify(nombre)}))
+    if (!el) return null
+    const comun = (botones) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      button: 0,
+      buttons: botones,
+    })
+    el.focus()
+    el.dispatchEvent(new PointerEvent('pointerdown', comun(1)))
+    el.dispatchEvent(new PointerEvent('pointerup', comun(0)))
+    el.dispatchEvent(new MouseEvent('click', comun(0)))
+    return true
+  }`
+  await esperar(guion, `No se pudo pulsar «${nombre}».`)
 }

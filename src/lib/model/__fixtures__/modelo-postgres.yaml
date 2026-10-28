@@ -20,7 +20,8 @@ tables:
       - name: id
         type: integer
       - name: nombre
-        type: text
+        type: varchar
+        length: 120
       - name: ciudad
         type: text
     primaryKey:
@@ -29,6 +30,9 @@ tables:
       - name: hoteles_ciudad_idx
         fields:
           - ciudad
+    position:
+      x: 120
+      y: 160
   - name: habitaciones
     schema: public
     fields:
@@ -47,6 +51,9 @@ tables:
         fields:
           - hotel_id
           - numero
+    position:
+      x: 384
+      y: 160
   - name: clientes
     schema: public
     fields:
@@ -65,6 +72,9 @@ tables:
       - name: clientes_correo_key
         fields:
           - correo
+    position:
+      x: 648
+      y: 160
   - name: reservas
     schema: public
     fields:
@@ -87,6 +97,9 @@ tables:
       - name: reservas_entrada_idx
         fields:
           - entrada
+    position:
+      x: 120
+      y: 408
   - name: pagos
     schema: public
     fields:
@@ -95,12 +108,17 @@ tables:
       - name: reserva_id
         type: integer
       - name: importe
-        type: numeric(10,2)
+        type: numeric
+        length: 10
+        scale: 2
       - name: pagado_el
         type: timestamptz
         nullable: true
     primaryKey:
       - id
+    position:
+      x: 384
+      y: 408
   - name: resenas
     schema: public
     fields:
@@ -117,7 +135,11 @@ tables:
         nullable: true
         comment: Comentario libre del cliente
     primaryKey:
-      - id
+      - reserva_id
+      - cliente_id
+    position:
+      x: 648
+      y: 408
 relations:
   - name: habitaciones_hotel_fk
     fromTable: habitaciones

@@ -1,16 +1,25 @@
-import { TABLE_HEIGHT, TABLE_WIDTH } from '@/lib/canvas/constants'
-import type { Position, Table } from '@/lib/model/types'
+import { forwardRef, type ButtonHTMLAttributes } from 'react'
+
+import { TABLE_WIDTH, tableHeight } from '@/lib/canvas/constants'
+import { fieldMarks } from '@/lib/model/marks'
+import type { FieldMark } from '@/lib/model/marks'
+import type { Position, Relation, Table } from '@/lib/model/types'
 
 /**
- * Tarjeta compacta de una tabla en el lienzo.
+ * Tarjeta de una tabla en el lienzo, con sus campos (FR-012, FR-025, FR-047).
  *
- * Solo dibuja: ni crea, ni edita, ni mueve una tabla sola. Eso es del
- * Incremento 3; aquí la tabla se mueve únicamente cuando se arrastra la zona
- * de su esquema (Clarifications del spec).
+ * La tarjeta lista los campos de la tabla con su nombre, su tipo y su marca de
+ * llave, así que su alto no es fijo: lo da `tableHeight` a partir de cuántos
+ * campos tiene (research R1). Lo que se escribe en el editor de campos se ve
+ * aquí al instante, porque las dos cosas leen el mismo modelo.
+ *
+ * La marca viaja también en el nombre accesible: el color no es el único
+ * portador de esa información (FR-047, RS-11).
  */
 
 /** Props de la tarjeta. */
-export interface TableCardProps {
+export interface TableCardProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'style'> {
   table: Table
   /** Posición en coordenadas del modelo, de `resolveLayout`. */
   position: Position
@@ -18,39 +27,103 @@ export interface TableCardProps {
   abbreviation: string
   /** Nombre técnico del esquema, para el nombre accesible. */
   schema: string
+  /** Relaciones del modelo, para la marca `FK` de cada campo. */
+  relations?: Relation[]
+  /** Si es la tabla seleccionada (FR-007a). */
+  isSelected?: boolean
   /** Si está atenuada porque el foco está en otro esquema (FR-030). */
   isDim: boolean
-  /** Si acompaña a la zona que se está arrastrando (FR-026). */
+  /** Si acompaña al grupo que se está arrastrando (FR-026, FR-030). */
   isDragging?: boolean
+  /** Qué hacer al pulsarla (FR-007a). */
+  onSelect?: () => void
+  /** Qué hacer al pulsarla dos veces: abrir su editor de campos (FR-023). */
+  onOpenFields?: () => void
 }
 
-export function TableCard({
-  table,
-  position,
-  abbreviation,
-  schema,
-  isDim,
-  isDragging = false,
-}: TableCardProps) {
-  const fields = table.fields.length
+/** Cómo se dice cada marca en el nombre accesible (FR-047). */
+const MARK_WORDS: Record<Exclude<FieldMark, null>, string> = {
+  PK: 'llave primaria',
+  UK: 'única',
+  FK: 'clave foránea',
+}
 
-  const fieldsText = fields === 1 ? '1 campo' : `${fields} campos`
+export const TableCard = forwardRef<HTMLButtonElement, TableCardProps>(function TableCard(
+  {
+    table,
+    position,
+    abbreviation,
+    schema,
+    relations = [],
+    isSelected = false,
+    isDim,
+    isDragging = false,
+    onSelect,
+    onOpenFields,
+    className,
+    ...rest
+  },
+  ref,
+) {
+  const count = table.fields.length
+  const fieldsText = count === 1 ? '1 campo' : `${count} campos`
+  const marks = fieldMarks(table, relations)
+
+  /** Nombre accesible de la tarjeta: la tabla y después cada campo. */
+  const label = [
+    `Tabla ${table.name}, esquema ${abbreviation} · ${schema}, ${fieldsText}`,
+    ...table.fields.map((field) => {
+      const mark = marks.get(field.name) ?? null
+      return [
+        field.name,
+        field.type,
+        mark === null ? null : MARK_WORDS[mark],
+        field.nullable === true ? 'admite nulos' : null,
+      ]
+        .filter((part) => part !== null)
+        .join(', ')
+    }),
+  ].join('. ')
 
   return (
     <button
-      // Botón para que el tabulador la alcance y los lectores de pantalla la
-      // anuncien (contracts/canvas.md §5), aunque todavía no haga nada: lo que
-      // se hace con una tabla llega en el Incremento 3.
+      {...rest}
+      ref={ref}
       type="button"
-      aria-label={`Tabla ${table.name}, esquema ${abbreviation} · ${schema}, ${fieldsText}`}
-      className={`sm-table${isDim ? ' is-dim' : ''}`}
+      aria-label={label}
+      aria-pressed={isSelected}
+      className={`sm-table${isDim ? ' is-dim' : ''}${className === undefined ? '' : ` ${className}`}`}
       data-drag={isDragging ? '' : undefined}
-      style={{ left: position.x, top: position.y, width: TABLE_WIDTH, height: TABLE_HEIGHT }}
+      data-selected={isSelected ? '' : undefined}
+      style={{ left: position.x, top: position.y, width: TABLE_WIDTH, height: tableHeight(count) }}
+      onClick={onSelect}
+      onDoubleClick={onOpenFields}
     >
-      <span className="sm-table-name">{table.name}</span>
-      <span className="sm-table-meta">
-        {abbreviation} · {fieldsText}
+      <span className="sm-table-head" aria-hidden="true">
+        <span className="sm-table-name">{table.name}</span>
+        <span className="sm-table-meta">{abbreviation}</span>
+      </span>
+      <span className="sm-table-fields" aria-hidden="true">
+        {table.fields.map((field) => {
+          const mark = marks.get(field.name) ?? null
+          return (
+            <span className="sm-field-row" key={field.name}>
+              {mark === null ? (
+                <span className="sm-field-mark-space" />
+              ) : (
+                <span className="sm-field-mark" data-mark={mark}>
+                  {mark}
+                </span>
+              )}
+              <span className="sm-field-name">{field.name}</span>
+              <span className="sm-field-type">
+                {field.type}
+                {field.nullable === true ? '?' : ''}
+              </span>
+            </span>
+          )
+        })}
       </span>
     </button>
   )
-}
+})

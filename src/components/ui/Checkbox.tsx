@@ -10,6 +10,10 @@ export interface CheckboxProps {
   /** Segunda línea que explica la casilla. */
   hint?: string
   disabled?: boolean
+  /** Si la etiqueta solo se anuncia, sin ocupar sitio: en una rejilla. */
+  hideLabel?: boolean
+  /** Parada de tabulador; `-1` en las rejillas de tabindex rotatorio. */
+  tabIndex?: number
   className?: string
 }
 
@@ -23,6 +27,8 @@ export function Checkbox({
   label,
   hint,
   disabled = false,
+  hideLabel = false,
+  tabIndex,
   className,
 }: CheckboxProps) {
   const id = useId()
@@ -34,6 +40,7 @@ export function Checkbox({
         type="checkbox"
         checked={checked}
         disabled={disabled}
+        tabIndex={tabIndex}
         onChange={(event) => onCheckedChange(event.target.checked)}
       />
       <span className="au-check-box">
@@ -52,7 +59,7 @@ export function Checkbox({
           <path d="M20 6 9 17l-5-5" />
         </svg>
       </span>
-      <span className="au-check-label">
+      <span className={hideLabel ? 'sr-only' : 'au-check-label'}>
         {label}
         {hint ? <span className="au-check-hint">{hint}</span> : null}
       </span>

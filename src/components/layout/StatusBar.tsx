@@ -6,9 +6,10 @@ import { useAppStore } from '@/store'
  * Barra de estado del Editor (FR-004).
  *
  * Dice el motor del modelo, el estado del archivo que definió el Incremento 1,
- * qué esquema está enfocado, el porcentaje de zoom y cuántos esquemas y tablas
- * hay. El estado del archivo es lo único que cambia sin que el usuario mire,
- * así que es lo único con `aria-live`.
+ * qué esquema está enfocado, qué tabla está seleccionada y en qué esquema
+ * vive, el porcentaje de zoom y cuántos esquemas y tablas hay. El estado del
+ * archivo es lo único que cambia sin que el usuario mire, así que es lo único
+ * con `aria-live`.
  */
 
 /** Alto de la barra, del tablero `Editor` del lienzo. */
@@ -20,11 +21,14 @@ export function StatusBar() {
   const savedAtMs = useAppStore((state) => state.savedAtMs)
   const zoom = useAppStore((state) => state.zoom)
   const focusedSchema = useAppStore((state) => state.focusedSchema)
+  const selectedTable = useAppStore((state) => state.selectedTable)
 
   if (model === null) return null
 
   const schemas = model.schemas.length
-  const tables = model.tables?.length ?? 0
+  const all = model.tables ?? []
+  const tables = all.length
+  const selected = all.find((table) => table.name === selectedTable)
 
   return (
     <footer
@@ -39,6 +43,15 @@ export function StatusBar() {
         <>
           <span aria-hidden="true" className="h-[12px] w-[var(--hairline)] bg-separator" />
           <span>Enfocado: {focusedSchema}</span>
+        </>
+      )}
+
+      {selected === undefined ? null : (
+        <>
+          <span aria-hidden="true" className="h-[12px] w-[var(--hairline)] bg-separator" />
+          <span>
+            {selected.name} · {selected.schema}
+          </span>
         </>
       )}
 

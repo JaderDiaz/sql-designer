@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMenu'
+import { TableContextMenu } from '@/components/features/table/TableContextMenu'
 import { Titlebar } from '@/components/layout/Titlebar'
 import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
@@ -56,12 +57,20 @@ export function tableCountLabel(count: number): string {
   return count === 1 ? '1 tabla' : `${count} tablas`
 }
 
+/** Cómo se lee «4 campos» o «1 campo» en la fila de una tabla. */
+export function fieldCountLabel(count: number): string {
+  return count === 1 ? '1 campo' : `${count} campos`
+}
+
 export function ModelSidebar() {
   const model = useAppStore((state) => state.model)
   const selectedSchema = useAppStore((state) => state.selectedSchema)
   const focusedSchema = useAppStore((state) => state.focusedSchema)
   const focusSchema = useAppStore((state) => state.focusSchema)
   const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
+  const selectedTable = useAppStore((state) => state.selectedTable)
+  const selectTable = useAppStore((state) => state.selectTable)
+  const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
   const isDirty = useAppStore((state) => state.isDirty)
   const requestClose = useAppStore((state) => state.requestClose)
 
@@ -165,13 +174,24 @@ export function ModelSidebar() {
           ) : (
             <ul className="m-0 list-none p-0">
               {listed.map((table) => (
-                <li key={table.name} className="au-side-item cursor-default">
-                  <Icon name="table-2" size={14} />
-                  <span className="min-w-0 flex-1 truncate text-left">{table.name}</span>
-                  <span className="font-mono text-[10px] tracking-[0.04em] text-label-tertiary">
-                    {model.schemas.find((schema) => schema.name === table.schema)?.abbreviation ??
-                      ''}
-                  </span>
+                <li key={table.name}>
+                  <TableContextMenu table={table}>
+                    <button
+                      type="button"
+                      aria-pressed={selectedTable === table.name}
+                      aria-label={`Tabla ${table.name}, ${fieldCountLabel(table.fields.length)}`}
+                      className="au-side-item w-full"
+                      onClick={() => selectTable(table.name)}
+                      onDoubleClick={() => openFieldsPanel(table.name)}
+                    >
+                      <Icon name="table-2" size={14} />
+                      <span className="min-w-0 flex-1 truncate text-left">{table.name}</span>
+                      <span className="font-mono text-[10px] tracking-[0.04em] text-label-tertiary">
+                        {model.schemas.find((schema) => schema.name === table.schema)
+                          ?.abbreviation ?? ''}
+                      </span>
+                    </button>
+                  </TableContextMenu>
                 </li>
               ))}
             </ul>
