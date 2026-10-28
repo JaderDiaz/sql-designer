@@ -22,6 +22,7 @@ import {
   pulsarHastaApagar,
   rueda,
   seleccionar,
+  soltarElCursor,
   tecla,
   texto,
   valor,
@@ -276,6 +277,10 @@ describe('Escenario 9 · Lienzo y esquemas', () => {
     await esperarTexto('Enfocado: inventario')
     await seleccionar('Todos los esquemas')
     await esperarSinTexto('Enfocado:')
+    // Lo que se mira aquí es la atenuación del foco de esquema, y el
+    // resaltado del Incremento 4 atenúa por su cuenta mientras el cursor está
+    // sobre una tarjeta (FR-021), así que primero se saca el cursor.
+    await soltarElCursor()
     expect((await zonas()).filter((zona) => zona.atenuada)).toHaveLength(0)
 
     // Y la lista vuelve a traer las cuatro tablas del modelo.

@@ -821,6 +821,35 @@ export async function tablas() {
 }
 
 /**
+ * Saca el cursor de las tarjetas del lienzo.
+ *
+ * El resaltado del Incremento 4 atenúa lo que no está en el grupo de la tabla
+ * que tiene el cursor encima (FR-021), y en Windows el puntero físico se queda
+ * donde lo dejó el último clic: encima de una tarjeta. Esto manda el
+ * `pointerout` que el sistema mandaría al salir, para que una prueba que mira
+ * la atenuación del foco de esquema no vea la del resaltado.
+ */
+export async function soltarElCursor() {
+  await browser.execute(`
+    for (const el of document.querySelectorAll('.sm-table')) {
+      const comun = {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+        relatedTarget: null,
+      }
+      el.dispatchEvent(new PointerEvent('pointerout', comun))
+      el.dispatchEvent(new PointerEvent('pointerleave', { ...comun, bubbles: false }))
+      el.blur()
+    }
+    return true
+  `)
+}
+
+/**
  * Las líneas de relación que el lienzo tiene pintadas (FR-013 a FR-015).
  *
  * De cada una se devuelve su trazo —el atributo `d`, que es lo único que
