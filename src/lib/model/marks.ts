@@ -67,21 +67,42 @@ export function foreignKeyOf(model: Model, target: RelationTarget): Relation | n
   return found ?? null
 }
 
+/** Cómo se lee un extremo de una relación. */
+export type CardinalityEnd = 'one' | 'many' | 'zero-or-many' | 'zero-or-one'
+
+/** Los dos extremos de una relación, en el orden en que se leen. */
+export interface Cardinality {
+  /** Extremo de la tabla referenciada, la que tiene la llave primaria. */
+  from: 'one'
+  /** Extremo de la tabla que lleva la llave foránea. */
+  to: CardinalityEnd
+}
+
+/** Cómo se dice cada extremo. */
+const END_LABELS: Record<CardinalityEnd, string> = {
+  one: 'uno',
+  many: 'muchos',
+  'zero-or-many': 'cero o muchos',
+  'zero-or-one': 'cero o uno',
+}
+
 /**
- * Cómo se lee la cardinalidad de una relación (FR-045).
+ * Cardinalidad de una relación, como dato (FR-014, SC-011).
  *
- * Son las cuatro de la leyenda del lienzo de diseño, y salen de dos datos de
- * la tabla que lleva la llave foránea: si sus campos admiten nulos y si son
- * además únicos. No se guarda en el archivo porque no hace falta: la
- * relación, el `NOT NULL` y el único ya lo dicen.
+ * Es la **única** fuente de la cardinalidad: {@link relationCardinality} la
+ * formatea para el inspector y `glyphOf` la dibuja en el lienzo, así que la
+ * línea y el texto no pueden discrepar. Sale de dos datos de la tabla que
+ * lleva la llave foránea —si sus campos admiten nulos y si son además únicos—
+ * y no se guarda en el archivo porque no hace falta: la relación, el
+ * `NOT NULL` y el único ya lo dicen (research R5).
  *
  * @param model Modelo completo.
  * @param relation Relación que se lee.
- * @returns La cardinalidad en palabras.
+ * @returns El extremo referenciado, siempre «uno», y el de la clave foránea.
  */
-export function relationCardinality(model: Model, relation: Relation): string {
+export function cardinalityOf(model: Model, relation: Relation): Cardinality {
   const from = (model.tables ?? []).find((table) => table.name === relation.fromTable)
-  if (from === undefined) return 'Uno a muchos'
+  if (from === undefined) return { from: 'one', to: 'many' }
 
   const fields = from.fields.filter((field) => relation.fromFields.includes(field.name))
   const nullable = fields.some((field) => field.nullable === true)
@@ -93,8 +114,26 @@ export function relationCardinality(model: Model, relation: Relation): string {
       key.every((name) => relation.fromFields.includes(name)),
   )
 
-  if (unique) return nullable ? 'Uno a cero o uno' : 'Uno a uno'
-  return nullable ? 'Uno a cero o muchos' : 'Uno a muchos'
+  if (unique) return { from: 'one', to: nullable ? 'zero-or-one' : 'one' }
+  return { from: 'one', to: nullable ? 'zero-or-many' : 'many' }
+}
+
+/**
+ * Cómo se lee la cardinalidad de una relación (FR-045).
+ *
+ * Son las cuatro de la leyenda del lienzo de diseño. Desde el Incremento 4 es
+ * el formateador de {@link cardinalityOf} y no vuelve a deducir nada, para que
+ * el texto del inspector y el glifo de la línea digan siempre lo mismo
+ * (SC-011).
+ *
+ * @param model Modelo completo.
+ * @param relation Relación que se lee.
+ * @returns La cardinalidad en palabras.
+ */
+export function relationCardinality(model: Model, relation: Relation): string {
+  const cardinality = cardinalityOf(model, relation)
+  const first = END_LABELS[cardinality.from]
+  return `${first.charAt(0).toUpperCase()}${first.slice(1)} a ${END_LABELS[cardinality.to]}`
 }
 
 /**

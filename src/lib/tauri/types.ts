@@ -16,6 +16,12 @@ export type ThemePreference = 'system' | 'light' | 'dark'
 /** Tema realmente pintado, ya resuelto contra el del sistema. */
 export type EffectiveTheme = 'light' | 'dark'
 
+/** Trazado de las líneas de relación (FR-017). */
+export type RelationRoute = 'orthogonal' | 'curved' | 'straight'
+
+/** Animación de las relaciones resaltadas (FR-024). */
+export type RelationAnimation = 'off' | 'subtle' | 'lively'
+
 /** Geometría recordada de la ventana, en píxeles lógicos. */
 export interface WindowGeometry {
   x: number
@@ -43,6 +49,12 @@ export interface Preferences {
   snapToGrid: boolean
   /** Alto del editor de campos, recortado a `[200, 560]` (FR-022). */
   fieldsPanelHeight: number
+  /** Trazado de las líneas de relación del diagrama (FR-017). */
+  relationRoute: RelationRoute
+  /** Animación de las relaciones resaltadas (FR-024). */
+  relationAnimation: RelationAnimation
+  /** Patrón del nombre de la columna propuesta, de hasta 64 caracteres (FR-004). */
+  foreignKeyPattern: string
 }
 
 /**
@@ -61,6 +73,9 @@ export interface PreferencesPatch {
   inspectorHidden?: boolean
   snapToGrid?: boolean
   fieldsPanelHeight?: number
+  relationRoute?: RelationRoute
+  relationAnimation?: RelationAnimation
+  foreignKeyPattern?: string
 }
 
 /**

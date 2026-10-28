@@ -20,6 +20,7 @@ const FIXTURES: FixtureName[] = [
   'modelo-posiciones',
   'modelo-posiciones-extremas',
   'modelo-tipos-ajenos',
+  'modelo-relaciones',
 ]
 
 describe('ida y vuelta del modelo', () => {
@@ -96,6 +97,42 @@ describe('ida y vuelta del modelo', () => {
       { x: 520, y: 160 },
     ])
     expect(serializeModel(result.model)).toBe(file)
+  })
+
+  it('conserva las relaciones, las cinco acciones, el bucle y la de dos columnas', () => {
+    // La puerta 3 con lo que estrena el Incremento 4: las seis relaciones del
+    // ejemplo viajan enteras, `set_default` incluida, y una regla en
+    // `no_action` no se escribe porque es el valor por defecto (FR-040,
+    // SC-007).
+    const file = readFixture('modelo-relaciones')
+    const result = parseModel(file)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const relations = result.model.relations ?? []
+    expect(result.model.formatVersion).toBe(1)
+    expect(relations).toHaveLength(6)
+    expect(relations.map((relation) => relation.onDelete)).toEqual([
+      'restrict',
+      'set_default',
+      'cascade',
+      'set_null',
+      undefined,
+      undefined,
+    ])
+
+    const loop = relations.find((relation) => relation.name === 'fk_clientes_recomendado_por')
+    expect(loop).toMatchObject({ fromTable: 'clientes', toTable: 'clientes' })
+    expect(loop?.onDelete).toBeUndefined()
+
+    const composite = relations.find((relation) => relation.name === 'fk_comentarios_resena')
+    expect(composite?.fromFields).toEqual(['resena_pedido_id', 'resena_cliente_id'])
+    expect(composite?.toFields).toEqual(['pedido_id', 'cliente_id'])
+
+    const text = serializeModel(result.model)
+    expect(text).not.toContain('no_action')
+    expect(text).toContain('onDelete: set_default')
+    expect(text).toBe(file)
   })
 
   it('omite del archivo las colecciones vacías', () => {

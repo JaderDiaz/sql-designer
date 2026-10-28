@@ -2,6 +2,7 @@ import {
   Archive,
   ArrowDown,
   ArrowUp,
+  ArrowUpRight,
   Bell,
   CaseSensitive,
   Check,
@@ -17,6 +18,7 @@ import {
   Clock,
   Cloud,
   Copy,
+  CornerUpLeft,
   Database,
   Ellipsis,
   File,
@@ -77,6 +79,7 @@ export type IconName =
   | 'archive'
   | 'arrow-down'
   | 'arrow-up'
+  | 'arrow-up-right'
   | 'bell'
   | 'plus'
   | 'folder-open'
@@ -103,6 +106,7 @@ export type IconName =
   | 'cloud'
   | 'clipboard-copy'
   | 'copy'
+  | 'corner-up-left'
   | 'file'
   | 'file-code'
   | 'file-plus-2'
@@ -157,6 +161,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   archive: Archive,
   'arrow-down': ArrowDown,
   'arrow-up': ArrowUp,
+  'arrow-up-right': ArrowUpRight,
   bell: Bell,
   plus: Plus,
   'folder-open': FolderOpen,
@@ -183,6 +188,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   cloud: Cloud,
   'clipboard-copy': ClipboardCopy,
   copy: Copy,
+  'corner-up-left': CornerUpLeft,
   file: File,
   'file-code': FileCode,
   'file-plus-2': FilePlus2,

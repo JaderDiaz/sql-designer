@@ -215,6 +215,34 @@ describe('deshacer y rehacer (FR-044, RS-06)', () => {
     expect(useAppStore.getState().future).toEqual([])
   })
 
+  it('la tabla elegida y el editor de tabla no sobreviven al modelo (FR-002)', async () => {
+    openSaved()
+    useAppStore.setState({
+      selectedTable: 'traslados',
+      isFieldsPanelOpen: true,
+      fieldsPanelTable: 'traslados',
+      panelTab: 'foreignKeys',
+      focusedCell: { field: 'origen_id', column: 'name' },
+    })
+
+    vi.mocked(modelRead).mockResolvedValue({ text: readFixture('modelo-postgres'), stamp: STAMP })
+    await useAppStore.getState().openModel(PATH)
+
+    // La tabla del modelo anterior no está en este, y «Relación» o la tecla
+    // `R` pedían la clave foránea de una tabla que no existe.
+    const abierto = useAppStore.getState()
+    expect(abierto.selectedTable).toBeNull()
+    expect(abierto.isFieldsPanelOpen).toBe(false)
+    expect(abierto.fieldsPanelTable).toBeNull()
+    expect(abierto.panelTab).toBe('fields')
+    expect(abierto.focusedCell).toBeNull()
+
+    useAppStore.setState({ selectedTable: 'reservas', isFieldsPanelOpen: true })
+    useAppStore.getState().closeModel()
+    expect(useAppStore.getState().selectedTable).toBeNull()
+    expect(useAppStore.getState().isFieldsPanelOpen).toBe(false)
+  })
+
   it('un renombrado nuevo descarta lo que se podía rehacer', () => {
     openSaved()
     useAppStore.getState().renameModel('Uno')

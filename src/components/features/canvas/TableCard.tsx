@@ -35,8 +35,14 @@ export interface TableCardProps extends Omit<
   relations?: Relation[]
   /** Si es la tabla seleccionada (FR-007a). */
   isSelected?: boolean
-  /** Si está atenuada porque el foco está en otro esquema (FR-030). */
+  /** Si está atenuada porque el resaltado está en otra parte (FR-021). */
   isDim: boolean
+  /** Si es la tabla resaltada: cursor, foco o selección (FR-021, FR-022). */
+  isHot?: boolean
+  /** Si está al otro lado de una relación resaltada (FR-021, FR-022). */
+  isLinked?: boolean
+  /** Campos que forman las relaciones resaltadas de esta tabla (FR-023). */
+  hotFields?: ReadonlySet<string>
   /** Si acompaña al grupo que se está arrastrando (FR-026, FR-030). */
   isDragging?: boolean
   /** Qué hacer al pulsarla (FR-007a). */
@@ -62,6 +68,9 @@ export const TableCard = forwardRef<HTMLButtonElement, TableCardProps>(function 
     relations = [],
     isSelected = false,
     isDim,
+    isHot = false,
+    isLinked = false,
+    hotFields,
     isDragging = false,
     onSelect,
     onOpenFields,
@@ -97,7 +106,15 @@ export const TableCard = forwardRef<HTMLButtonElement, TableCardProps>(function 
       type="button"
       aria-label={label}
       aria-pressed={isSelected}
-      className={`sm-table${isDim ? ' is-dim' : ''}${className === undefined ? '' : ` ${className}`}`}
+      className={[
+        'sm-table',
+        isHot ? 'is-hot' : null,
+        isLinked ? 'is-linked' : null,
+        isDim ? 'is-dim' : null,
+        className,
+      ]
+        .filter((part) => part !== null && part !== undefined)
+        .join(' ')}
       data-drag={isDragging ? '' : undefined}
       data-selected={isSelected ? '' : undefined}
       style={
@@ -125,7 +142,13 @@ export const TableCard = forwardRef<HTMLButtonElement, TableCardProps>(function 
         {table.fields.map((field) => {
           const mark = marks.get(field.name) ?? null
           return (
-            <span className="sm-field-row" key={field.name}>
+            <span
+              className="sm-field-row"
+              key={field.name}
+              // Los campos que forman una relación resaltada se marcan en las
+              // dos tablas, no solo en la que lleva la clave (FR-023).
+              data-hot={hotFields?.has(field.name) === true ? '' : undefined}
+            >
               {mark === null ? (
                 <span className="sm-field-mark-space" />
               ) : (

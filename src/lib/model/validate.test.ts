@@ -150,3 +150,130 @@ describe('tipos ajenos al motor (FR-018a)', () => {
     expect(fields[1]).toMatchObject({ length: 120 })
   })
 })
+
+describe('relaciones del Incremento 4 (FR-028, data-model.md §6)', () => {
+  /** Arma un modelo de dos tablas con la relación que se le pase. */
+  function modelWithRelation(relation: string): string {
+    return [
+      'formatVersion: 1',
+      'name: Prueba',
+      'engine: postgres',
+      'schemas:',
+      '  - name: public',
+      '    abbreviation: PUB',
+      'tables:',
+      '  - name: pedidos',
+      '    schema: public',
+      '    fields:',
+      '      - name: id',
+      '        type: integer',
+      '      - name: cliente_id',
+      '        type: integer',
+      '    primaryKey:',
+      '      - id',
+      '  - name: clientes',
+      '    schema: public',
+      '    fields:',
+      '      - name: id',
+      '        type: integer',
+      '      - name: correo',
+      '        type: text',
+      '    primaryKey:',
+      '      - id',
+      'relations:',
+      relation,
+    ]
+      .join('\n')
+      .concat('\n')
+  }
+
+  /** Una relación de un campo con la acción referencial que se le pase. */
+  function relationWith(action: string): string {
+    return [
+      '  - name: fk_pedidos_cliente_id',
+      '    fromTable: pedidos',
+      '    fromFields:',
+      '      - cliente_id',
+      '    toTable: clientes',
+      '    toFields:',
+      '      - id',
+      `    onDelete: ${action}`,
+    ].join('\n')
+  }
+
+  it('acepta las cinco acciones referenciales, set_default incluida', () => {
+    for (const action of ['no_action', 'restrict', 'cascade', 'set_null', 'set_default']) {
+      const result = parseModel(modelWithRelation(relationWith(action)))
+
+      expect(result.ok, action).toBe(true)
+      if (!result.ok) continue
+      expect(result.model.relations?.[0]?.onDelete).toBe(action)
+    }
+  })
+
+  it('rechaza una acción referencial que no existe', () => {
+    expect(messagesOf(modelWithRelation(relationWith('set_zero')))).toContain(
+      '«onDelete» admite no_action, restrict, cascade, set_null, set_default.',
+    )
+  })
+
+  it('rechaza una relación que lleva más campos de los que referencia', () => {
+    const relation = [
+      '  - name: fk_pedidos_cliente_id',
+      '    fromTable: pedidos',
+      '    fromFields:',
+      '      - cliente_id',
+      '      - id',
+      '    toTable: clientes',
+      '    toFields:',
+      '      - id',
+    ].join('\n')
+
+    expect(messagesOf(modelWithRelation(relation))).toContain(
+      'Una relación tiene que referenciar tantos campos como lleva.',
+    )
+  })
+
+  it('acepta una relación de dos campos en los dos lados', () => {
+    const text = [
+      'formatVersion: 1',
+      'name: Prueba',
+      'engine: postgres',
+      'schemas:',
+      '  - name: public',
+      '    abbreviation: PUB',
+      'tables:',
+      '  - name: comentarios',
+      '    schema: public',
+      '    fields:',
+      '      - name: pedido_id',
+      '        type: integer',
+      '      - name: linea',
+      '        type: integer',
+      '  - name: lineas',
+      '    schema: public',
+      '    fields:',
+      '      - name: pedido_id',
+      '        type: integer',
+      '      - name: linea',
+      '        type: integer',
+      '    primaryKey:',
+      '      - pedido_id',
+      '      - linea',
+      'relations:',
+      '  - name: fk_comentarios_linea',
+      '    fromTable: comentarios',
+      '    fromFields:',
+      '      - pedido_id',
+      '      - linea',
+      '    toTable: lineas',
+      '    toFields:',
+      '      - pedido_id',
+      '      - linea',
+    ]
+      .join('\n')
+      .concat('\n')
+
+    expect(parseModel(text).ok).toBe(true)
+  })
+})

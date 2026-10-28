@@ -7,6 +7,7 @@ import type { ModelSlice } from '@/store/model'
 import type { NavigationSlice } from '@/store/navigation'
 import type { PreferencesSlice } from '@/store/preferences'
 import type { RecentsSlice } from '@/store/recents'
+import type { RelationsSlice } from '@/store/relations'
 import type { SchemasSlice } from '@/store/schemas'
 import type { TablesSlice } from '@/store/tables'
 
@@ -26,6 +27,7 @@ export type AppState = PreferencesSlice &
   SchemasSlice &
   TablesSlice &
   FieldsPanelSlice &
+  RelationsSlice &
   CanvasSlice &
   BrowserSlice &
   RecentsSlice

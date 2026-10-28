@@ -1,0 +1,166 @@
+formatVersion: 1
+name: Comercio · Relaciones
+engine: postgres
+schemas:
+  - name: ventas
+    abbreviation: VEN
+    color: blue
+    comment: Pedidos, pagos y reseñas
+  - name: personas
+    abbreviation: PER
+    color: purple
+tables:
+  - name: clientes
+    schema: personas
+    fields:
+      - name: id
+        type: integer
+      - name: nombre
+        type: varchar
+        length: 120
+      - name: recomendado_por
+        type: integer
+        nullable: true
+    primaryKey:
+      - id
+    position:
+      x: 120
+      y: 168
+  - name: pedidos
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+      - name: cliente_id
+        type: integer
+      - name: responsable_id
+        type: integer
+        default: "0"
+      - name: total
+        type: numeric
+        length: 10
+        scale: 2
+    primaryKey:
+      - id
+    position:
+      x: 528
+      y: 168
+  - name: pagos
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+      - name: pedido_id
+        type: integer
+      - name: metodo_id
+        type: integer
+        nullable: true
+      - name: importe
+        type: numeric
+        length: 10
+        scale: 2
+    primaryKey:
+      - id
+    position:
+      x: 936
+      y: 168
+  - name: metodos_pago
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+      - name: nombre
+        type: varchar
+        length: 60
+    primaryKey:
+      - id
+    position:
+      x: 936
+      y: 456
+  - name: resenas
+    schema: ventas
+    fields:
+      - name: pedido_id
+        type: integer
+      - name: cliente_id
+        type: integer
+      - name: texto
+        type: text
+    primaryKey:
+      - pedido_id
+      - cliente_id
+    position:
+      x: 528
+      y: 456
+  - name: comentarios
+    schema: ventas
+    fields:
+      - name: id
+        type: integer
+      - name: resena_pedido_id
+        type: integer
+      - name: resena_cliente_id
+        type: integer
+      - name: texto
+        type: text
+    primaryKey:
+      - id
+    uniques:
+      - name: comentarios_resena_uk
+        fields:
+          - resena_pedido_id
+          - resena_cliente_id
+    position:
+      x: 120
+      y: 456
+relations:
+  - name: fk_pedidos_cliente_id
+    fromTable: pedidos
+    fromFields:
+      - cliente_id
+    toTable: clientes
+    toFields:
+      - id
+    onDelete: restrict
+  - name: fk_pedidos_responsable_id
+    fromTable: pedidos
+    fromFields:
+      - responsable_id
+    toTable: clientes
+    toFields:
+      - id
+    onDelete: set_default
+  - name: fk_pagos_pedido_id
+    fromTable: pagos
+    fromFields:
+      - pedido_id
+    toTable: pedidos
+    toFields:
+      - id
+    onDelete: cascade
+    onUpdate: cascade
+  - name: fk_pagos_metodo_id
+    fromTable: pagos
+    fromFields:
+      - metodo_id
+    toTable: metodos_pago
+    toFields:
+      - id
+    onDelete: set_null
+  - name: fk_clientes_recomendado_por
+    fromTable: clientes
+    fromFields:
+      - recomendado_por
+    toTable: clientes
+    toFields:
+      - id
+  - name: fk_comentarios_resena
+    fromTable: comentarios
+    fromFields:
+      - resena_pedido_id
+      - resena_cliente_id
+    toTable: resenas
+    toFields:
+      - pedido_id
+      - cliente_id
+    onUpdate: cascade

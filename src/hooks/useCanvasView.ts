@@ -61,6 +61,13 @@ export interface CanvasViewGestures {
    * se puede dejar algo fuera de lo que se veía al empezar (US4, escenario 7).
    */
   edgeFollow: (clientX: number, clientY: number) => void
+  /**
+   * Cierra el seguimiento del borde al soltar lo que se arrastraba.
+   *
+   * Suelta la caja del lienzo que {@link CanvasViewGestures.edgeFollow} mide
+   * una vez por gesto.
+   */
+  endEdgeFollow: () => void
 }
 
 export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): CanvasViewGestures {
@@ -75,6 +82,18 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   /** Barra espaciadora mantenida (FR-007). */
   const space = useRef(false)
+  /**
+   * Caja del lienzo, medida una sola vez por gesto ajeno.
+   *
+   * `getBoundingClientRect` obliga al navegador a recalcular el estilo y la
+   * disposición en el momento, y quien arrastra la llamaba por cuadro justo
+   * después de escribir las variables del gesto: con 50 tablas y 60 relaciones
+   * en el lienzo, ese recálculo forzado costaba más que volver a trazar las
+   * líneas y se comía el presupuesto de los 16 ms (SC-003). La caja no cambia
+   * mientras el gesto dura, así que se mide al primer cuadro y se suelta al
+   * acabar.
+   */
+  const edgeBox = useRef<DOMRect | null>(null)
   /**
    * Arrastre que mueve la vista, con el puntero que lo lleva.
    *
@@ -297,8 +316,9 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
     isPanning: () => space.current,
 
     edgeFollow(clientX, clientY) {
-      const box = surface.current?.getBoundingClientRect()
-      if (box === undefined) return
+      const box = edgeBox.current ?? surface.current?.getBoundingClientRect() ?? null
+      if (box === null) return
+      edgeBox.current = box
       const push = (distance: number): number => {
         if (distance >= EDGE_BAND) return 0
         // Cuanto más cerca del borde, más corre: a medio camino de la franja
@@ -311,6 +331,10 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
       const view = currentView()
       paint({ pan: { x: view.pan.x + dx, y: view.pan.y + dy }, zoom: view.zoom })
       schedule()
+    },
+
+    endEdgeFollow() {
+      edgeBox.current = null
     },
 
     /**

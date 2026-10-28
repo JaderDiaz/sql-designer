@@ -8,7 +8,8 @@ import {
 import { desdeLaBienvenida } from './soporte/pantalla.js'
 
 /**
- * Recorrido automatizado de `specs/002-archivos-modelo/quickstart.md`.
+ * Recorrido automatizado de los `quickstart.md` de los incrementos cerrados:
+ * cada archivo de `e2e/specs/` es el escenario de uno de ellos.
  *
  * Conduce la aplicación de verdad —no una maqueta— con el servidor de
  * WebDriver que el binario monta cuando se compila con `--features webdriver`.

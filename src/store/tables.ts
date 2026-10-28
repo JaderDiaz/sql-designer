@@ -142,7 +142,7 @@ export interface TablesSlice {
 }
 
 /** Las tablas del modelo, que es la lista que estas acciones reescriben. */
-function tablesOf(model: Model): Table[] {
+export function tablesOf(model: Model): Table[] {
   return model.tables ?? []
 }
 
@@ -157,7 +157,7 @@ function withTables(model: Model, tables: Table[]): Model {
 }
 
 /** El modelo con otra lista de relaciones, sin dejar la clave vacía. */
-function withRelations(model: Model, relations: Relation[]): Model {
+export function withRelations(model: Model, relations: Relation[]): Model {
   if (relations.length === 0) {
     const next: Model = { ...model }
     delete next.relations
@@ -172,7 +172,7 @@ function withFields(table: Table, fields: Field[]): Table {
 }
 
 /** Reemplaza una tabla del modelo por otra, dejando el orden intacto. */
-function replaceTable(model: Model, name: string, next: Table): Model {
+export function replaceTable(model: Model, name: string, next: Table): Model {
   return withTables(
     model,
     tablesOf(model).map((table) => (table.name === name ? next : table)),
@@ -226,7 +226,7 @@ function renamePrefix(items: NamedFields[] | undefined, from: string, to: string
 }
 
 /** Cambia el nombre de un campo dentro de las llaves, únicos e índices. */
-function renameFieldInKeys(table: Table, from: string, to: string): Table {
+export function renameFieldInKeys(table: Table, from: string, to: string): Table {
   const swap = (list: string[]) => list.map((item) => (item === from ? to : item))
   const next: Table = { ...table }
   if (next.primaryKey) next.primaryKey = swap(next.primaryKey)
@@ -238,7 +238,7 @@ function renameFieldInKeys(table: Table, from: string, to: string): Table {
 }
 
 /** Cambia el nombre de un campo dentro de las relaciones que lo nombraban. */
-function renameFieldInRelations(
+export function renameFieldInRelations(
   relations: Relation[],
   table: string,
   from: string,

@@ -120,10 +120,10 @@ describe('Escenario 10 · Tablas y campos', () => {
     throw new Error(`No hay ningún punto que caiga solo en la zona de «${nombre}».`)
   }
 
-  /** Cierra el editor de campos si quedó abierto del escenario anterior. */
+  /** Cierra el editor de tabla si quedó abierto del escenario anterior. */
   async function cerrarPanel() {
     if ((await texto()).includes('Añadir campo')) {
-      await pulsar('Cerrar el editor de campos')
+      await pulsar('Cerrar el editor de tabla')
       await esperarSinTexto('Añadir campo')
     }
   }
@@ -212,7 +212,7 @@ describe('Escenario 10 · Tablas y campos', () => {
     await pulsarEn('Nueva tabla', 'Crear tabla')
     await esperarSinDialogo('Nueva tabla')
 
-    // Queda seleccionada, con el editor de campos abierto (FR-007).
+    // Queda seleccionada, con el editor de tabla abierto (FR-007).
     await esperarTexto('Añadir campo')
     const primera = await tarjeta('pagos_pendientes')
     expect(primera.seleccionada).toBe(true)
@@ -439,7 +439,7 @@ describe('Escenario 10 · Tablas y campos', () => {
     })
 
     // Y cerrarlo conserva la selección (FR-023).
-    await pulsar('Cerrar el editor de campos')
+    await pulsar('Cerrar el editor de tabla')
     await esperarSinTexto('Añadir campo')
     expect((await tarjeta('clientes')).seleccionada).toBe(true)
   })

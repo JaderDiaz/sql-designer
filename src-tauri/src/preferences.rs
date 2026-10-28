@@ -35,6 +35,30 @@ pub enum Engine {
     Sqlite,
 }
 
+/// Trazado de las líneas de relación del diagrama (FR-017).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RelationRoute {
+    #[default]
+    Orthogonal,
+    Curved,
+    Straight,
+}
+
+/// Animación de las relaciones resaltadas (FR-024).
+///
+/// Con «Reducir movimiento» activo no se anima nada, cualquiera que sea el
+/// valor guardado: la preferencia se respeta cuando el sistema deja de
+/// pedirlo (FR-025).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RelationAnimation {
+    Off,
+    #[default]
+    Subtle,
+    Lively,
+}
+
 /// Geometría recordada de la ventana (FR-018).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct WindowGeometry {
@@ -74,6 +98,18 @@ pub struct Preferences {
     /// anterior no lo trae y cae a 320, el alto con el que nace el panel.
     #[serde(default = "default_fields_panel_height")]
     pub fields_panel_height: u32,
+    /// Trazado de las líneas de relación (FR-017).
+    ///
+    /// `serde(default)` como los campos del Incremento 3: un archivo anterior
+    /// no lo trae y cae a «ortogonal», que es como nacen las líneas.
+    #[serde(default)]
+    pub relation_route: RelationRoute,
+    /// Animación de las relaciones resaltadas (FR-024).
+    #[serde(default)]
+    pub relation_animation: RelationAnimation,
+    /// Patrón del nombre de la columna propuesta, de hasta 64 caracteres (FR-004).
+    #[serde(default = "default_foreign_key_pattern")]
+    pub foreign_key_pattern: String,
 }
 
 /// Alto del editor de campos cuando el archivo no lo trae (FR-022).
@@ -88,6 +124,34 @@ const FIELDS_PANEL_MAX_HEIGHT: u32 = 560;
 /// Valor por defecto de `fields_panel_height` para `serde`.
 fn default_fields_panel_height() -> u32 {
     FIELDS_PANEL_DEFAULT_HEIGHT
+}
+
+/// Patrón del nombre de la columna propuesta cuando el archivo no lo trae (FR-004).
+const FOREIGN_KEY_DEFAULT_PATTERN: &str = "{tabla}_{pk}";
+
+/// Largo máximo del patrón del nombre de la columna propuesta.
+const FOREIGN_KEY_PATTERN_MAX_LENGTH: usize = 64;
+
+/// Valor por defecto de `foreign_key_pattern` para `serde`.
+fn default_foreign_key_pattern() -> String {
+    FOREIGN_KEY_DEFAULT_PATTERN.to_string()
+}
+
+/// Recorta el patrón del nombre de la columna propuesta (FR-004).
+///
+/// Vive aquí, al lado del recorte del alto del panel, para que la interfaz no
+/// pueda guardar un valor imposible. Un patrón en blanco cae al valor por
+/// defecto; uno largo se recorta a 64 caracteres, contando caracteres y no
+/// bytes, para no partir uno a medias.
+fn clamp_foreign_key_pattern(pattern: &str) -> String {
+    let trimmed = pattern.trim();
+    if trimmed.is_empty() {
+        return default_foreign_key_pattern();
+    }
+    trimmed
+        .chars()
+        .take(FOREIGN_KEY_PATTERN_MAX_LENGTH)
+        .collect()
 }
 
 /// Recorta un alto del editor de campos a sus topes (FR-022).
@@ -112,6 +176,9 @@ impl Default for Preferences {
             inspector_hidden: false,
             snap_to_grid: false,
             fields_panel_height: FIELDS_PANEL_DEFAULT_HEIGHT,
+            relation_route: RelationRoute::Orthogonal,
+            relation_animation: RelationAnimation::Subtle,
+            foreign_key_pattern: default_foreign_key_pattern(),
         }
     }
 }
@@ -137,6 +204,12 @@ pub struct PreferencesPatch {
     pub snap_to_grid: Option<bool>,
     /// Alto del editor de campos; se recorta a `[200, 560]` (FR-022).
     pub fields_panel_height: Option<u32>,
+    /// Trazado de las líneas de relación (FR-017).
+    pub relation_route: Option<RelationRoute>,
+    /// Animación de las relaciones resaltadas (FR-024).
+    pub relation_animation: Option<RelationAnimation>,
+    /// Patrón del nombre de la columna propuesta; se recorta a 64 (FR-004).
+    pub foreign_key_pattern: Option<String>,
 }
 
 /// Distingue «campo ausente» de «campo a `null`» en un parche.
@@ -313,6 +386,44 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
             .unwrap_or(defaults.fields_panel_height),
     );
 
+    // Y lo mismo con los tres del Incremento 4: ausentes caen a «ortogonal»,
+    // «sutil» y «{tabla}_{pk}», y un valor fuera del enum cae a su valor por
+    // defecto sin invalidar el archivo (FR-017, FR-024, FR-004).
+    let relation_route = match value.get("relationRoute").and_then(serde_json::Value::as_str) {
+        Some("orthogonal") => RelationRoute::Orthogonal,
+        Some("curved") => RelationRoute::Curved,
+        Some("straight") => RelationRoute::Straight,
+        Some(other) => {
+            log::warn!(
+                target: SCOPE_PREFERENCES,
+                "trazado desconocido «{other}»; se usa «orthogonal»"
+            );
+            RelationRoute::Orthogonal
+        }
+        None => defaults.relation_route,
+    };
+    let relation_animation = match value
+        .get("relationAnimation")
+        .and_then(serde_json::Value::as_str)
+    {
+        Some("off") => RelationAnimation::Off,
+        Some("subtle") => RelationAnimation::Subtle,
+        Some("lively") => RelationAnimation::Lively,
+        Some(other) => {
+            log::warn!(
+                target: SCOPE_PREFERENCES,
+                "animación desconocida «{other}»; se usa «subtle»"
+            );
+            RelationAnimation::Subtle
+        }
+        None => defaults.relation_animation,
+    };
+    let foreign_key_pattern = value
+        .get("foreignKeyPattern")
+        .and_then(serde_json::Value::as_str)
+        .map(clamp_foreign_key_pattern)
+        .unwrap_or(defaults.foreign_key_pattern);
+
     Preferences {
         format_version: FORMAT_VERSION,
         theme,
@@ -325,6 +436,9 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         inspector_hidden,
         snap_to_grid,
         fields_panel_height,
+        relation_route,
+        relation_animation,
+        foreign_key_pattern,
     }
 }
 
@@ -403,6 +517,15 @@ pub fn apply_patch(current: &Preferences, patch: &PreferencesPatch) -> Preferenc
     }
     if let Some(fields_panel_height) = patch.fields_panel_height {
         next.fields_panel_height = clamp_fields_panel_height(fields_panel_height);
+    }
+    if let Some(relation_route) = patch.relation_route {
+        next.relation_route = relation_route;
+    }
+    if let Some(relation_animation) = patch.relation_animation {
+        next.relation_animation = relation_animation;
+    }
+    if let Some(foreign_key_pattern) = patch.foreign_key_pattern.as_deref() {
+        next.foreign_key_pattern = clamp_foreign_key_pattern(foreign_key_pattern);
     }
     next.format_version = FORMAT_VERSION;
     next
@@ -498,6 +621,9 @@ mod tests {
             inspector_hidden: false,
             snap_to_grid: true,
             fields_panel_height: 420,
+            relation_route: RelationRoute::Curved,
+            relation_animation: RelationAnimation::Off,
+            foreign_key_pattern: "fk_{tabla}_{pk}".to_string(),
         };
 
         save_to(&path, &preferences).expect("guardar");
@@ -672,5 +798,111 @@ mod tests {
         );
         assert!(solo_alto.snap_to_grid);
         assert_eq!(solo_alto.fields_panel_height, 560);
+    }
+
+    #[test]
+    fn archivo_sin_los_campos_del_incremento_4_los_lee_por_defecto() {
+        // Igual que los del Incremento 3: los tres campos nuevos ausentes caen
+        // a su valor por defecto, sin aviso y sin copia `.bak`, y por eso
+        // `formatVersion` sigue en 1 (research R15).
+        let dir = temp_dir("sin-campos-4");
+        let path = file_path(&dir);
+        fs::write(
+            &path,
+            r#"{"formatVersion":1,"theme":"dark","snapToGrid":true,"fieldsPanelHeight":420}"#,
+        )
+        .expect("escribir");
+
+        let result = load_from(&path);
+
+        assert!(!result.recovered);
+        assert_eq!(result.preferences.relation_route, RelationRoute::Orthogonal);
+        assert_eq!(
+            result.preferences.relation_animation,
+            RelationAnimation::Subtle
+        );
+        assert_eq!(result.preferences.foreign_key_pattern, "{tabla}_{pk}");
+        assert_eq!(result.preferences.fields_panel_height, 420);
+        assert!(!dir.join("preferences.json.bak").exists());
+    }
+
+    #[test]
+    fn un_trazado_o_una_animacion_desconocidos_caen_a_su_valor_por_defecto() {
+        let dir = temp_dir("trazado-desconocido");
+        let path = file_path(&dir);
+        fs::write(
+            &path,
+            r#"{"formatVersion":1,"relationRoute":"zigzag","relationAnimation":"turbo"}"#,
+        )
+        .expect("escribir");
+
+        let result = load_from(&path);
+
+        // El archivo sigue siendo válido: solo el campo cae a su valor por
+        // defecto, no las preferencias enteras.
+        assert!(!result.recovered);
+        assert_eq!(result.preferences.relation_route, RelationRoute::Orthogonal);
+        assert_eq!(
+            result.preferences.relation_animation,
+            RelationAnimation::Subtle
+        );
+    }
+
+    #[test]
+    fn el_patron_de_la_clave_foranea_se_recorta_a_64_caracteres() {
+        let dir = temp_dir("patron-largo");
+        let path = file_path(&dir);
+        let largo = "p".repeat(100);
+
+        fs::write(
+            &path,
+            format!(r#"{{"formatVersion":1,"foreignKeyPattern":"{largo}"}}"#),
+        )
+        .expect("escribir");
+        assert_eq!(
+            load_from(&path).preferences.foreign_key_pattern.chars().count(),
+            64
+        );
+
+        fs::write(&path, r#"{"formatVersion":1,"foreignKeyPattern":"   "}"#).expect("escribir");
+        assert_eq!(
+            load_from(&path).preferences.foreign_key_pattern,
+            "{tabla}_{pk}"
+        );
+
+        fs::write(&path, r#"{"formatVersion":1,"foreignKeyPattern":"fk_{tabla}"}"#)
+            .expect("escribir");
+        assert_eq!(load_from(&path).preferences.foreign_key_pattern, "fk_{tabla}");
+    }
+
+    #[test]
+    fn el_parche_cambia_un_campo_del_incremento_4_sin_tocar_los_otros() {
+        let current = Preferences {
+            relation_route: RelationRoute::Curved,
+            relation_animation: RelationAnimation::Lively,
+            foreign_key_pattern: "fk_{tabla}".to_string(),
+            ..Preferences::default()
+        };
+
+        let solo_trazado = apply_patch(
+            &current,
+            &PreferencesPatch {
+                relation_route: Some(RelationRoute::Straight),
+                ..PreferencesPatch::default()
+            },
+        );
+        assert_eq!(solo_trazado.relation_route, RelationRoute::Straight);
+        assert_eq!(solo_trazado.relation_animation, RelationAnimation::Lively);
+        assert_eq!(solo_trazado.foreign_key_pattern, "fk_{tabla}");
+
+        let solo_patron = apply_patch(
+            &current,
+            &PreferencesPatch {
+                foreign_key_pattern: Some("x".repeat(100)),
+                ..PreferencesPatch::default()
+            },
+        );
+        assert_eq!(solo_patron.foreign_key_pattern.chars().count(), 64);
+        assert_eq!(solo_patron.relation_route, RelationRoute::Curved);
     }
 }

@@ -111,6 +111,7 @@ export function useAppShortcuts(): void {
   const openDeleteTableDialog = useAppStore((state) => state.openDeleteTableDialog)
   const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
   const closeFieldsPanel = useAppStore((state) => state.closeFieldsPanel)
+  const requestForeignKey = useAppStore((state) => state.requestForeignKey)
 
   const inEditor = screen === 'editor'
 
@@ -132,6 +133,9 @@ export function useAppShortcuts(): void {
   // seleccionada, ⌫ pide confirmación para eliminarla y ⌥⌘E abre su editor de
   // campos. Los tres últimos solo hacen algo con una tabla seleccionada.
   useShortcut({ key: 't' }, () => openTableDialog(), inEditor)
+  // `R` abre la ficha «Claves foráneas» de la tabla seleccionada y, sin
+  // selección, solo pide elegirla (FR-001, FR-002).
+  useShortcut({ key: 'r' }, () => requestForeignKey(), inEditor)
   useShortcut(
     { key: 'd', meta: true },
     () => {

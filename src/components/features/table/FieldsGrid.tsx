@@ -120,10 +120,17 @@ export function FieldsGrid({ table }: FieldsGridProps) {
     return cell.column === 'length' ? !traits.hasLength : !traits.hasScale
   }
 
+  // La celda enfocada la comparten las dos fichas del panel, así que esta
+  // rejilla solo atiende la que es de una de sus columnas (data-model.md §3).
+  const focused =
+    focusedCell !== null && COLUMNS.some((column) => column.key === focusedCell.column)
+      ? { row: focusedCell.field, column: focusedCell.column as FieldColumn }
+      : null
+
   const grid = useGridNavigation<string, FieldColumn>({
     rows: fields.map((field) => field.name),
     columns: COLUMNS.map((column) => column.key),
-    focused: focusedCell === null ? null : { row: focusedCell.field, column: focusedCell.column },
+    focused,
     onFocus: (cell) => focusCell({ field: cell.row, column: cell.column }),
     isDisabled,
   })
@@ -192,7 +199,7 @@ export function FieldsGrid({ table }: FieldsGridProps) {
                 null)
           }
           error={errors[field.name] ?? null}
-          focused={focusedCell?.field === field.name ? focusedCell.column : null}
+          focused={focused?.row === field.name ? focused.column : null}
           grid={grid}
           onWrite={write}
           onWarn={warn}

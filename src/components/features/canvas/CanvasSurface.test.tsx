@@ -44,6 +44,198 @@ async function dragZone(name: string, from: [number, number], to: [number, numbe
   ])
 }
 
+/** Deja el modelo de relaciones abierto y dibuja el lienzo. */
+function renderRelations() {
+  const result = parseModel(readFixture('modelo-relaciones'))
+  if (!result.ok) throw new Error('el ejemplo no es un modelo válido')
+  resetStore()
+  act(() => {
+    useAppStore.setState({
+      screen: 'editor',
+      model: result.model,
+      savedModel: result.model,
+      isDirty: false,
+    })
+  })
+  return render(<CanvasSurface />)
+}
+
+/** El `d` del trazo de una relación tal como está pintado ahora. */
+function pathOfRelation(container: HTMLElement, name: string): string {
+  const node = container.querySelector(`[data-relation="${name}"] .sm-rel-line`)
+  if (node === null) throw new Error(`no se pintó ${name}`)
+  return node.getAttribute('d') ?? ''
+}
+
+describe('CanvasSurface y las relaciones (FR-013, FR-018, FR-019)', () => {
+  it('pinta las líneas entre las zonas y las tarjetas (FR-018)', () => {
+    const { container } = renderRelations()
+    const stage = container.querySelector('.sm-stage')
+    if (stage === null) throw new Error('no hay escenario')
+
+    const kinds = Array.from(stage.querySelectorAll('.sm-zone, .sm-rel-layer, .sm-table')).map(
+      (node) =>
+        node.classList.contains('sm-zone')
+          ? 'zone'
+          : node.classList.contains('sm-rel-layer')
+            ? 'lines'
+            : 'card',
+    )
+
+    expect(kinds).toContain('lines')
+    expect(kinds.indexOf('lines')).toBeGreaterThan(kinds.lastIndexOf('zone'))
+    expect(kinds.indexOf('lines')).toBeLessThan(kinds.indexOf('card'))
+  })
+
+  it('arrastrar una tabla repinta solo sus relaciones (FR-019, research R6)', async () => {
+    const { container } = renderRelations()
+    const card = screen.getByRole('button', { name: /^Tabla pagos,/ })
+    const before = {
+      propia: pathOfRelation(container, 'fk_pagos_pedido_id'),
+      ajena: pathOfRelation(container, 'fk_pedidos_cliente_id'),
+    }
+
+    await userEvent.pointer([
+      { keys: '[MouseLeft>]', target: card, coords: { clientX: 400, clientY: 300 } },
+      { target: card, coords: { clientX: 460, clientY: 340 } },
+    ])
+
+    expect(pathOfRelation(container, 'fk_pagos_pedido_id')).not.toBe(before.propia)
+    expect(pathOfRelation(container, 'fk_pedidos_cliente_id')).toBe(before.ajena)
+
+    await userEvent.pointer([
+      { keys: '[/MouseLeft]', target: card, coords: { clientX: 460, clientY: 340 } },
+    ])
+  })
+
+  it('arrastrar desde la fila de un campo solo mueve la tabla (FR-001a)', async () => {
+    renderRelations()
+    const card = screen.getByRole('button', { name: /^Tabla pagos,/ })
+    const row = card.querySelector('.sm-field-row')
+    if (row === null) throw new Error('la tarjeta no lista sus campos')
+    const before = (useAppStore.getState().model?.relations ?? []).length
+
+    await userEvent.pointer([
+      { keys: '[MouseLeft>]', target: row, coords: { clientX: 400, clientY: 300 } },
+      { target: row, coords: { clientX: 520, clientY: 300 } },
+      { keys: '[/MouseLeft]', target: row, coords: { clientX: 520, clientY: 300 } },
+    ])
+
+    const model = useAppStore.getState().model
+    expect((model?.relations ?? []).length).toBe(before)
+    // Lo que sí pasó es que la tabla se movió: el gesto es el de siempre.
+    const pagos = (model?.tables ?? []).find((table) => table.name === 'pagos')
+    expect(pagos?.position?.x).not.toBe(936)
+  })
+})
+
+describe('CanvasSurface y el resaltado (FR-021 a FR-023, FR-026, FR-027)', () => {
+  /** La tarjeta de una tabla del ejemplo. */
+  function cardOf(name: string): HTMLElement {
+    return screen.getByRole('button', { name: new RegExp(`^Tabla ${name},`) })
+  }
+
+  /** El estado del grupo de una relación: `hot`, `dim` o nada. */
+  function stateOf(container: HTMLElement, name: string): string | null {
+    const node = container.querySelector(`[data-relation="${name}"]`)
+    if (node === null) throw new Error(`no se pintó ${name}`)
+    return node.getAttribute('data-state')
+  }
+
+  it('el cursor sobre una tabla resalta su grupo y atenúa el resto (FR-021, FR-022)', async () => {
+    const { container } = renderRelations()
+
+    await userEvent.hover(cardOf('pagos'))
+
+    // `pagos` apunta a `pedidos` y a `metodos_pago`.
+    expect(cardOf('pagos').className).toContain('is-hot')
+    expect(cardOf('pedidos').className).toContain('is-linked')
+    expect(cardOf('metodos_pago').className).toContain('is-linked')
+    expect(cardOf('clientes').className).toContain('is-dim')
+    expect(stateOf(container, 'fk_pagos_pedido_id')).toBe('hot')
+    expect(stateOf(container, 'fk_pedidos_cliente_id')).toBe('dim')
+  })
+
+  it('llegar con el teclado resalta igual que el cursor (FR-021)', () => {
+    const { container } = renderRelations()
+
+    act(() => fireEvent.focus(cardOf('pagos')))
+
+    expect(cardOf('pagos').className).toContain('is-hot')
+    expect(stateOf(container, 'fk_pagos_metodo_id')).toBe('hot')
+  })
+
+  it('marca los campos de la relación en las dos tablas (FR-023)', async () => {
+    renderRelations()
+
+    await userEvent.hover(cardOf('pagos'))
+
+    /** Los campos marcados de una tarjeta. */
+    function hotFields(table: string): string[] {
+      return Array.from(cardOf(table).querySelectorAll('.sm-field-row[data-hot]')).map(
+        (row) => row.querySelector('.sm-field-name')?.textContent ?? '',
+      )
+    }
+
+    expect(hotFields('pagos')).toEqual(['pedido_id', 'metodo_id'])
+    // Y al otro lado, el campo referenciado.
+    expect(hotFields('pedidos')).toEqual(['id'])
+  })
+
+  it('mientras se arrastra no se resalta nada (research R7)', async () => {
+    const { container } = renderRelations()
+    const card = cardOf('pagos')
+
+    await userEvent.pointer([
+      { keys: '[MouseLeft>]', target: card, coords: { clientX: 400, clientY: 300 } },
+      { target: card, coords: { clientX: 470, clientY: 300 } },
+    ])
+
+    expect(cardOf('pagos').className).not.toContain('is-hot')
+    expect(stateOf(container, 'fk_pagos_pedido_id')).toBeNull()
+
+    await userEvent.pointer([
+      { keys: '[/MouseLeft]', target: card, coords: { clientX: 470, clientY: 300 } },
+    ])
+  })
+
+  it('el foco de esquema resalta por el mismo camino (FR-027)', () => {
+    const { container } = renderRelations()
+
+    act(() => {
+      useAppStore.getState().focusSchema('ventas')
+    })
+
+    expect(cardOf('pedidos').className).toContain('is-hot')
+    expect(cardOf('clientes').className).toContain('is-dim')
+    // La relación entre dos tablas de `ventas` queda resaltada.
+    expect(stateOf(container, 'fk_pagos_pedido_id')).toBe('hot')
+    // Y la que vive dentro de `personas`, atenuada.
+    expect(stateOf(container, 'fk_clientes_recomendado_por')).toBe('dim')
+  })
+
+  it('sin cursor ni selección no queda nada atenuado (FR-026)', async () => {
+    const { container } = renderRelations()
+
+    await userEvent.hover(cardOf('pagos'))
+    await userEvent.unhover(cardOf('pagos'))
+
+    expect(container.querySelectorAll('.sm-table.is-dim')).toHaveLength(0)
+    expect(container.querySelectorAll('.sm-zone.is-dim')).toHaveLength(0)
+    expect(container.querySelectorAll('.sm-rel[data-state]')).toHaveLength(0)
+  })
+
+  it('seleccionar una tabla también la resalta (FR-021)', async () => {
+    renderRelations()
+
+    await userEvent.click(cardOf('pagos'))
+    await userEvent.unhover(cardOf('pagos'))
+
+    expect(useAppStore.getState().selectedTable).toBe('pagos')
+    expect(cardOf('pagos').className).toContain('is-hot')
+  })
+})
+
 describe('CanvasSurface con el modelo en blanco', () => {
   it('un modelo sin esquemas ni tablas no dibuja nada (FR-005a)', () => {
     resetStore()

@@ -7,6 +7,7 @@ import { Minimap } from '@/components/features/canvas/Minimap'
 import { ZoomBar } from '@/components/features/canvas/ZoomBar'
 import { FieldsGrid } from '@/components/features/table/FieldsGrid'
 import { FieldsPanelHeader } from '@/components/features/table/FieldsPanelHeader'
+import { ForeignKeysTab } from '@/components/features/table/ForeignKeysTab'
 import { BottomPanel } from '@/components/layout/BottomPanel'
 import { EditorChrome } from '@/components/layout/EditorChrome'
 import { EditorLayout } from '@/components/layout/EditorLayout'
@@ -38,6 +39,7 @@ export function EditorScreen() {
   const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
   const isFieldsPanelOpen = useAppStore((state) => state.isFieldsPanelOpen)
   const fieldsPanelTable = useAppStore((state) => state.fieldsPanelTable)
+  const panelTab = useAppStore((state) => state.panelTab)
 
   const tables = model?.tables?.length ?? 0
   // El panel de campos solo se pinta si su tabla sigue en el modelo: al
@@ -84,9 +86,17 @@ export function EditorScreen() {
         inspector={<Inspector />}
         panel={
           panelTable === undefined ? null : (
-            <BottomPanel>
-              <FieldsPanelHeader table={panelTable} />
-              <FieldsGrid table={panelTable} />
+            <BottomPanel table={panelTable}>
+              {/* La ficha activa decide el contenido; el marco, el tirador y
+                  las fichas son los mismos en las dos (FR-003). */}
+              {panelTab === 'foreignKeys' ? (
+                <ForeignKeysTab table={panelTable} />
+              ) : (
+                <>
+                  <FieldsPanelHeader table={panelTable} />
+                  <FieldsGrid table={panelTable} />
+                </>
+              )}
             </BottomPanel>
           )
         }

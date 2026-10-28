@@ -1,7 +1,7 @@
 {
   "name": "sql-designer",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -23,6 +23,7 @@
     "@radix-ui/react-radio-group": "^1.2.2",
     "@radix-ui/react-select": "^2.4.1",
     "@radix-ui/react-switch": "^1.4.1",
+    "@radix-ui/react-tabs": "^1.2.1",
     "@tauri-apps/api": "^2.1.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
