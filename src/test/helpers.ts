@@ -1,6 +1,7 @@
 import type { AppIdentity, PlatformInfo, Preferences } from '@/lib/tauri/types'
 import { useAppStore } from '@/store'
 import { DEFAULT_VIEWPORT } from '@/store/canvas'
+import { FIELDS_PANEL_DEFAULT_HEIGHT } from '@/store/fieldsPanel'
 import { DEFAULT_PREFERENCES } from '@/store/preferences'
 
 /**
@@ -98,9 +99,19 @@ export function resetStore(
     viewport: DEFAULT_VIEWPORT,
     focusedSchema: null,
     selectedSchema: null,
+    selectedTable: null,
     isGesturing: false,
     needsCenter: false,
     isSidebarHidden: false,
     isInspectorHidden: false,
+    // Tablas y campos
+    tableTarget: null,
+    tableDraftPosition: null,
+    deleteTableTarget: null,
+    deleteFieldTarget: null,
+    isFieldsPanelOpen: false,
+    fieldsPanelTable: null,
+    fieldsPanelHeight: FIELDS_PANEL_DEFAULT_HEIGHT,
+    focusedCell: null,
   })
 }

@@ -27,6 +27,7 @@ export type FixtureName =
   | 'modelo-tres-esquemas'
   | 'modelo-posiciones'
   | 'modelo-posiciones-extremas'
+  | 'modelo-tipos-ajenos'
 
 /**
  * Lee un modelo de ejemplo.

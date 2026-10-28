@@ -3,6 +3,7 @@ import {
   ENGINES,
   FORMAT_VERSION,
   NAME_MAX_LENGTH,
+  TABLE_COMMENT_MAX_LENGTH,
   TECHNICAL_NAME_MAX_LENGTH,
   TECHNICAL_NAME_PATTERN,
 } from '@/lib/model/types'
@@ -50,7 +51,7 @@ const ALLOWED_KEYS = {
   model: ['formatVersion', 'name', 'engine', 'schemas', 'enums', 'tables', 'relations', 'views'],
   schema: ['name', 'abbreviation', 'color', 'position', 'comment'],
   table: ['name', 'schema', 'comment', 'fields', 'primaryKey', 'uniques', 'indexes', 'position'],
-  field: ['name', 'type', 'nullable', 'default', 'comment'],
+  field: ['name', 'type', 'length', 'scale', 'nullable', 'default', 'comment'],
   namedFields: ['name', 'fields'],
   position: ['x', 'y'],
   relation: ['name', 'fromTable', 'fromFields', 'toTable', 'toFields', 'onDelete', 'onUpdate'],
@@ -274,6 +275,39 @@ function validateSchema(report: Report, value: unknown, path: ValuePath): string
   return name
 }
 
+/** Si el valor es un número entero de `min` en adelante. */
+function isWholeNumber(value: unknown, min: number): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= min
+}
+
+/**
+ * Comprueba la longitud y la escala de un campo (FR-016, FR-051a).
+ *
+ * Comprueba la forma de los dos valores y su relación, no el catálogo de
+ * tipos: un archivo puede traer una longitud en un tipo que el motor del
+ * modelo no reconoce, y sigue siendo válido (FR-018a).
+ */
+function validateFieldSize(report: Report, record: Record<string, unknown>, path: ValuePath): void {
+  const length = record['length']
+  const scale = record['scale']
+  let validLength = false
+  if (length !== undefined) {
+    if (!isWholeNumber(length, 1)) {
+      report.add([...path, 'length'], 'La longitud tiene que ser un número entero mayor que cero.')
+    } else {
+      validLength = true
+    }
+  }
+  if (scale === undefined) return
+  if (!isWholeNumber(scale, 0)) {
+    report.add([...path, 'scale'], 'La escala tiene que ser un número entero.')
+    return
+  }
+  if (validLength && scale > (length as number)) {
+    report.add([...path, 'scale'], 'La escala no puede pasar de la longitud.')
+  }
+}
+
 /** Comprueba un campo de una tabla. */
 function validateField(report: Report, value: unknown, path: ValuePath): string | null {
   const record = requireRecord(report, value, path, 'Cada campo')
@@ -281,6 +315,7 @@ function validateField(report: Report, value: unknown, path: ValuePath): string 
   rejectUnknownKeys(report, record, path, ALLOWED_KEYS.field)
   const name = requireTechnicalName(report, record['name'], [...path, 'name'], 'El nombre del campo')
   requireText(report, record['type'], [...path, 'type'], 'El tipo del campo')
+  validateFieldSize(report, record, path)
   if (record['nullable'] !== undefined && typeof record['nullable'] !== 'boolean') {
     report.add([...path, 'nullable'], '«nullable» tiene que ser verdadero o falso.')
   }
@@ -314,10 +349,19 @@ function validateTable(
   if (schema !== null && !schemaNames.has(schema)) {
     report.add([...path, 'schema'], `El esquema «${schema}» no está declarado en el modelo.`)
   }
-  if (record['comment'] !== undefined) {
-    requireText(report, record['comment'], [...path, 'comment'], 'El comentario de la tabla')
+  const comment = record['comment']
+  if (comment !== undefined) {
+    const text = requireText(report, comment, [...path, 'comment'], 'El comentario de la tabla')
+    if (text !== null && text.length > TABLE_COMMENT_MAX_LENGTH) {
+      report.add(
+        [...path, 'comment'],
+        `La descripción de la tabla no puede pasar de ${TABLE_COMMENT_MAX_LENGTH} caracteres.`,
+      )
+    }
   }
 
+  /** Campos de la tabla que admiten nulos, para la llave primaria (FR-026). */
+  const nullableFields = new Set<string>()
   const fields = requireList(report, record['fields'], [...path, 'fields'], 'Los campos de la tabla')
   if (fields !== null) {
     fields.forEach((field, index) => {
@@ -331,6 +375,7 @@ function validateTable(
         return
       }
       fieldNames.add(fieldName)
+      if (isRecord(field) && field['nullable'] === true) nullableFields.add(fieldName)
     })
   }
 
@@ -344,6 +389,13 @@ function validateTable(
     keys.forEach((key, index) => {
       if (!fieldNames.has(key)) {
         report.add([...path, 'primaryKey', index], `El campo «${key}» no existe en esta tabla.`)
+        return
+      }
+      if (nullableFields.has(key)) {
+        report.add(
+          [...path, 'primaryKey', index],
+          'Un campo de la llave primaria no puede admitir nulos.',
+        )
       }
     })
   }

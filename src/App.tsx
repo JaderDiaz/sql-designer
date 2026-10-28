@@ -9,6 +9,10 @@ import { StaleFileDialog } from '@/components/features/editor/StaleFileDialog'
 import { NewModelDialog } from '@/components/features/new-model/NewModelDialog'
 import { DeleteSchemaDialog } from '@/components/features/schema/DeleteSchemaDialog'
 import { SchemaDialog } from '@/components/features/schema/SchemaDialog'
+import { DeleteFieldDialog } from '@/components/features/table/DeleteFieldDialog'
+import { DeleteTableDialog } from '@/components/features/table/DeleteTableDialog'
+import { RenameTableDialog } from '@/components/features/table/RenameTableDialog'
+import { TableDialog } from '@/components/features/table/TableDialog'
 import { FileErrorDialog } from '@/components/features/open-model/FileErrorDialog'
 import { OpenModelDialog } from '@/components/features/open-model/OpenModelDialog'
 import { PreferencesWindow } from '@/components/features/preferences/PreferencesWindow'
@@ -222,6 +226,10 @@ export default function App() {
         <TrashConfirmDialog />
         <SchemaDialog />
         <DeleteSchemaDialog />
+        <TableDialog />
+        <RenameTableDialog />
+        <DeleteTableDialog />
+        <DeleteFieldDialog />
       </AppShell>
       <PreferencesWindow />
     </MotionConfig>

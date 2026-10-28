@@ -1,6 +1,7 @@
 import { Dialog } from '@/components/ui/Dialog'
 import { Icon } from '@/components/ui/Icon'
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/SegmentedControl'
+import { Switch } from '@/components/ui/Switch'
 import type { ThemePreference } from '@/lib/tauri/types'
 import { useAppStore } from '@/store'
 
@@ -13,8 +14,8 @@ const THEME_OPTIONS: ReadonlyArray<SegmentedOption<ThemePreference>> = [
 
 /**
  * Ventana de Ajustes, con la cabecera y la rejilla del lienzo: pestaña
- * «General» y una sola fila, «Tema» (FR-008). El cambio se aplica en toda la
- * aplicación sin reiniciar.
+ * «General» con «Tema» (FR-008 del Incremento 1) y «Ajustar a la cuadrícula»
+ * (FR-032). Los cambios se aplican en toda la aplicación sin reiniciar.
  *
  * La pestaña «Nomenclatura» del diseño llega con el editor; aquí se omite en
  * vez de dibujarla apagada.
@@ -24,6 +25,8 @@ export function PreferencesWindow() {
   const closePreferences = useAppStore((state) => state.closePreferences)
   const theme = useAppStore((state) => state.preferences.theme)
   const setTheme = useAppStore((state) => state.setTheme)
+  const snapToGrid = useAppStore((state) => state.preferences.snapToGrid)
+  const setSnapToGrid = useAppStore((state) => state.setSnapToGrid)
   const writeError = useAppStore((state) => state.writeError)
 
   return (
@@ -49,6 +52,14 @@ export function PreferencesWindow() {
           options={THEME_OPTIONS}
           onValueChange={(value) => void setTheme(value)}
         />
+        <span className="sm-plabel">Cuadrícula</span>
+        <Switch
+          checked={snapToGrid}
+          onCheckedChange={(value) => void setSnapToGrid(value)}
+          label="Ajustar a la cuadrícula"
+          hint="Las tablas se alinean a los puntos del lienzo al soltarlas"
+        />
+
         {writeError ? (
           <p role="alert" className="col-start-2 text-[11px] leading-[14px] text-danger-text">
             {writeError}

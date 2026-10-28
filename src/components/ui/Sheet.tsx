@@ -1,5 +1,5 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { cn } from '@/lib/cn'
@@ -25,6 +25,30 @@ export interface SheetProps {
   onSubmit?: () => void
   children?: ReactNode
   className?: string
+}
+
+/**
+ * Envía el formulario al pulsar Intro en un campo de texto.
+ *
+ * El envío implícito del navegador no llega en la ventana de la aplicación, y
+ * sin esto una hoja solo se puede confirmar con el ratón o tabulando hasta su
+ * botón, que es lo que SC-009 no admite. Se envía con el botón de envío como
+ * remitente, así que una hoja con el botón apagado no se envía.
+ *
+ * @param event Pulsación dentro del formulario.
+ */
+function submitOnEnter(event: KeyboardEvent<HTMLFormElement>): void {
+  if (event.key !== 'Enter' || event.defaultPrevented) return
+  const target = event.target as HTMLElement
+  // En un área de texto Intro es un salto de línea, y en un botón o un
+  // selector lo gestiona el propio control.
+  if (target.tagName !== 'INPUT') return
+  const submit = event.currentTarget.querySelector<HTMLButtonElement>(
+    'button[type="submit"]:not([disabled])',
+  )
+  if (submit === null) return
+  event.preventDefault()
+  event.currentTarget.requestSubmit(submit)
 }
 
 /**
@@ -110,6 +134,7 @@ export function Sheet({
                 event.preventDefault()
                 onSubmit()
               }}
+              onKeyDown={submitOnEnter}
             >
               {body}
             </form>

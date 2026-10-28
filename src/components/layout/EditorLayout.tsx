@@ -16,6 +16,8 @@ export interface EditorLayoutProps {
   canvas: ReactNode
   /** Inspector de lo seleccionado (FR-003). */
   inspector: ReactNode
+  /** Panel inferior de campos, o `null` cuando está cerrado (FR-023). */
+  panel?: ReactNode
   /** Barra de estado (FR-004). */
   statusBar: ReactNode
   /** Si la barra lateral está escondida (FR-006). */
@@ -37,12 +39,17 @@ export interface EditorLayoutProps {
  * árbol en lugar de quedarse con ancho cero: así el lienzo recibe de verdad
  * ese espacio y nada invisible sigue recibiendo el foco del tabulador
  * (FR-006).
+ *
+ * El panel de campos va entre el lienzo y la barra de estado, dentro de la
+ * misma columna: al abrirlo el lienzo cede su alto y al cerrarlo lo recupera,
+ * sin mover la barra lateral ni el inspector (FR-023).
  */
 export function EditorLayout({
   chrome,
   sidebar,
   canvas,
   inspector,
+  panel,
   statusBar,
   isSidebarHidden,
   isInspectorHidden,
@@ -65,6 +72,7 @@ export function EditorLayout({
         <div className="flex min-h-0 flex-1">
           <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
             {canvas}
+            {panel}
             {statusBar}
           </div>
 

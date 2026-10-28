@@ -56,7 +56,7 @@ function fromTable(table: Table): Record<string, unknown> {
     'position',
   ])
   out['fields'] = table.fields.map((field) =>
-    ordered(field, ['name', 'type', 'nullable', 'default', 'comment']),
+    ordered(field, ['name', 'type', 'length', 'scale', 'nullable', 'default', 'comment']),
   )
   if (table.uniques) out['uniques'] = table.uniques.map(fromNamedFields)
   if (table.indexes) out['indexes'] = table.indexes.map(fromNamedFields)

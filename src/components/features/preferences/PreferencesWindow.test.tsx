@@ -71,6 +71,21 @@ describe('Ajustes', () => {
     expect(preferencesUpdate).toHaveBeenCalledWith({ theme: 'light' })
 
     await user.tab()
+    expect(screen.getByRole('switch', { name: 'Ajustar a la cuadrícula' })).toHaveFocus()
+
+    await user.tab()
     expect(screen.getByRole('button', { name: 'Cerrar' })).toHaveFocus()
+  })
+
+  it('«Ajustar a la cuadrícula» escribe la preferencia (FR-032)', async () => {
+    const user = userEvent.setup()
+    renderOpen()
+
+    await user.click(screen.getByRole('switch', { name: 'Ajustar a la cuadrícula' }))
+
+    expect(preferencesUpdate).toHaveBeenCalledWith({ snapToGrid: true })
+    expect(
+      screen.getByText('Las tablas se alinean a los puntos del lienzo al soltarlas'),
+    ).toBeInTheDocument()
   })
 })

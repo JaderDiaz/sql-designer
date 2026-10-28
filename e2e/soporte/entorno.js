@@ -118,6 +118,7 @@ export function prepararEntorno(preferencias = {}) {
     join(RAIZ, 'e2e/soporte/modelo-esquemas.yaml'),
     join(carpeta, 'modelo-esquemas.yaml'),
   )
+  cpSync(join(RAIZ, 'e2e/soporte/modelo-tablas.yaml'), join(carpeta, 'modelo-tablas.yaml'))
   writeFileSync(join(carpeta, 'notas.md'), '# notas sueltas\n')
 
   writeFileSync(

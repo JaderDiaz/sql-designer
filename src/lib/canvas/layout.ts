@@ -2,8 +2,8 @@ import {
   GRID_COLUMNS,
   GRID_GAP,
   SCHEMA_GAP,
-  TABLE_HEIGHT,
   TABLE_WIDTH,
+  tableHeight,
 } from '@/lib/canvas/constants'
 import type { Model, Position } from '@/lib/model/types'
 
@@ -40,6 +40,10 @@ export function resolveLayout(model: Model): Map<string, Position> {
     const bandStart = cursorX
     let rightEdge = bandStart
     let placed = 0
+    // Cada fila baja el alto de su tabla más alta, no una constante: dos
+    // tablas de distinto número de campos no se pueden solapar (research R1).
+    let rowTop = 0
+    let rowHeight = 0
 
     for (const table of own) {
       if (table.position) {
@@ -48,12 +52,13 @@ export function resolveLayout(model: Model): Map<string, Position> {
         continue
       }
       const column = placed % GRID_COLUMNS
-      const row = Math.floor(placed / GRID_COLUMNS)
-      const position = {
-        x: bandStart + column * (TABLE_WIDTH + GRID_GAP),
-        y: row * (TABLE_HEIGHT + GRID_GAP),
+      if (column === 0 && placed > 0) {
+        rowTop += rowHeight + GRID_GAP
+        rowHeight = 0
       }
+      const position = { x: bandStart + column * (TABLE_WIDTH + GRID_GAP), y: rowTop }
       layout.set(table.name, position)
+      rowHeight = Math.max(rowHeight, tableHeight(table.fields.length))
       rightEdge = Math.max(rightEdge, position.x + TABLE_WIDTH)
       placed += 1
     }

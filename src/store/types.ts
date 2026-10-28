@@ -2,11 +2,13 @@ import type { StateCreator } from 'zustand'
 
 import type { BrowserSlice } from '@/store/browser'
 import type { CanvasSlice } from '@/store/canvas'
+import type { FieldsPanelSlice } from '@/store/fieldsPanel'
 import type { ModelSlice } from '@/store/model'
 import type { NavigationSlice } from '@/store/navigation'
 import type { PreferencesSlice } from '@/store/preferences'
 import type { RecentsSlice } from '@/store/recents'
 import type { SchemasSlice } from '@/store/schemas'
+import type { TablesSlice } from '@/store/tables'
 
 /**
  * Tipos del almacén único (principio IV de la constitución).
@@ -22,6 +24,8 @@ export type AppState = PreferencesSlice &
   NavigationSlice &
   ModelSlice &
   SchemasSlice &
+  TablesSlice &
+  FieldsPanelSlice &
   CanvasSlice &
   BrowserSlice &
   RecentsSlice

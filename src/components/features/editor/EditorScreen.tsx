@@ -5,6 +5,9 @@ import { CanvasSurface } from '@/components/features/canvas/CanvasSurface'
 import { EmptyModelCard } from '@/components/features/canvas/EmptyModelCard'
 import { Minimap } from '@/components/features/canvas/Minimap'
 import { ZoomBar } from '@/components/features/canvas/ZoomBar'
+import { FieldsGrid } from '@/components/features/table/FieldsGrid'
+import { FieldsPanelHeader } from '@/components/features/table/FieldsPanelHeader'
+import { BottomPanel } from '@/components/layout/BottomPanel'
 import { EditorChrome } from '@/components/layout/EditorChrome'
 import { EditorLayout } from '@/components/layout/EditorLayout'
 import { Inspector } from '@/components/layout/Inspector'
@@ -33,8 +36,15 @@ export function EditorScreen() {
   const isWindowSettling = useAppStore((state) => state.isWindowSettling)
   const isSidebarHidden = useAppStore((state) => state.isSidebarHidden)
   const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
+  const isFieldsPanelOpen = useAppStore((state) => state.isFieldsPanelOpen)
+  const fieldsPanelTable = useAppStore((state) => state.fieldsPanelTable)
 
   const tables = model?.tables?.length ?? 0
+  // El panel de campos solo se pinta si su tabla sigue en el modelo: al
+  // eliminarla el panel se queda sin tema del que hablar (FR-023).
+  const panelTable = isFieldsPanelOpen
+    ? (model?.tables ?? []).find((table) => table.name === fieldsPanelTable)
+    : undefined
   // La tarjeta de empezar solo sale con el modelo en blanco: con una tabla o
   // un esquema propio ya hay algo que mirar en el lienzo (FR-005a).
   const isBlank = isBlankModel(model)
@@ -72,6 +82,14 @@ export function EditorScreen() {
         chrome={<EditorChrome />}
         sidebar={<ModelSidebar />}
         inspector={<Inspector />}
+        panel={
+          panelTable === undefined ? null : (
+            <BottomPanel>
+              <FieldsPanelHeader table={panelTable} />
+              <FieldsGrid table={panelTable} />
+            </BottomPanel>
+          )
+        }
         statusBar={<StatusBar />}
         canvas={
           <CanvasSurface

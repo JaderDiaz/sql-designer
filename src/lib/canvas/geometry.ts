@@ -2,15 +2,16 @@ import {
   EMPTY_ZONE_HEIGHT,
   EMPTY_ZONE_WIDTH,
   GRID_GAP,
+  GRID_SNAP,
   SCHEMA_GAP,
-  TABLE_HEIGHT,
   TABLE_WIDTH,
   ZONE_HEADER,
   ZONE_PADDING,
+  tableHeight,
 } from '@/lib/canvas/constants'
 import type { Rect } from '@/lib/canvas/constants'
 import { resolveSchemaColor } from '@/lib/model/colors'
-import type { Model, Position } from '@/lib/model/types'
+import type { Model, Position, Table } from '@/lib/model/types'
 
 /**
  * Zonas de esquema y envolvente del modelo (FR-023 a FR-026a).
@@ -38,22 +39,28 @@ export interface SchemaZone {
 /** Alto mínimo de una zona: el rótulo nunca se queda sin sitio. */
 const MIN_ZONE_HEIGHT = ZONE_HEADER + ZONE_PADDING
 
-/** Envolvente de las tablas de un esquema, o `null` si no tiene ninguna. */
-function tablesBounds(names: string[], layout: Map<string, Position>): Rect | null {
+/**
+ * Envolvente de las tablas de un esquema, o `null` si no tiene ninguna.
+ *
+ * Recibe las tablas y no solo sus nombres porque el alto de cada tarjeta
+ * depende de cuántos campos tiene: la zona crece con la tabla más alta, no con
+ * una constante (research R1, FR-030).
+ */
+function tablesBounds(tables: Table[], layout: Map<string, Position>): Rect | null {
   let minX = Number.POSITIVE_INFINITY
   let minY = Number.POSITIVE_INFINITY
   let maxX = Number.NEGATIVE_INFINITY
   let maxY = Number.NEGATIVE_INFINITY
   let found = false
 
-  for (const name of names) {
-    const position = layout.get(name)
+  for (const table of tables) {
+    const position = layout.get(table.name)
     if (position === undefined) continue
     found = true
     minX = Math.min(minX, position.x)
     minY = Math.min(minY, position.y)
     maxX = Math.max(maxX, position.x + TABLE_WIDTH)
-    maxY = Math.max(maxY, position.y + TABLE_HEIGHT)
+    maxY = Math.max(maxY, position.y + tableHeight(table.fields.length))
   }
 
   if (!found) return null
@@ -80,10 +87,7 @@ export function schemaZones(model: Model, layout: Map<string, Position>): Schema
 
   for (const schema of model.schemas) {
     const own = tables.filter((table) => table.schema === schema.name)
-    const bounds = tablesBounds(
-      own.map((table) => table.name),
-      layout,
-    )
+    const bounds = tablesBounds(own, layout)
     if (bounds === null) {
       empty.push(schema)
       continue
@@ -128,6 +132,89 @@ export function schemaZones(model: Model, layout: Map<string, Position>): Schema
       tableCount: entry?.count ?? 0,
     }
   })
+}
+
+/**
+ * Zona que está debajo de un punto del modelo (FR-031).
+ *
+ * Cuando dos zonas se solapan gana la última del orden del modelo, que es la
+ * que el lienzo dibuja encima: lo que el usuario ve soltar es lo que recibe la
+ * tabla. Fuera de todas las zonas devuelve `null`, y entonces la tabla se
+ * queda en su esquema.
+ *
+ * @param zones Zonas del modelo, en el orden del modelo.
+ * @param point Punto en coordenadas del modelo.
+ */
+export function zoneAt(zones: SchemaZone[], point: Position): SchemaZone | null {
+  for (let index = zones.length - 1; index >= 0; index -= 1) {
+    const zone = zones[index]
+    if (zone === undefined) continue
+    const { x, y, width, height } = zone.rect
+    if (point.x >= x && point.x <= x + width && point.y >= y && point.y <= y + height) {
+      return zone
+    }
+  }
+  return null
+}
+
+/**
+ * Alinea una posición a la cuadrícula del lienzo (FR-032).
+ *
+ * Con la preferencia apagada devuelve la posición tal cual, para que la
+ * llamada no tenga que preguntar dos veces.
+ *
+ * @param position Posición en coordenadas del modelo.
+ * @param enabled Si la preferencia «Ajustar a la cuadrícula» está activa.
+ */
+export function snapToGrid(position: Position, enabled: boolean): Position {
+  if (!enabled) return position
+  return {
+    x: Math.round(position.x / GRID_SNAP) * GRID_SNAP,
+    y: Math.round(position.y / GRID_SNAP) * GRID_SNAP,
+  }
+}
+
+/** Si dos rectángulos se tocan. */
+function overlaps(one: Rect, other: Rect): boolean {
+  return (
+    one.x < other.x + other.width &&
+    other.x < one.x + one.width &&
+    one.y < other.y + other.height &&
+    other.y < one.y + one.height
+  )
+}
+
+/**
+ * Hueco libre más cercano al sitio pedido (FR-038).
+ *
+ * Lo usan duplicar una tabla y crear una donde el centro visible ya está
+ * ocupado. Busca en espiral por anillos de {@link GRID_GAP} y siempre acaba
+ * devolviendo un punto: en el peor caso, uno a la derecha de todo lo ocupado.
+ *
+ * @param occupied Rectángulos que ya ocupan sitio.
+ * @param desired Dónde se querría dejar la tabla.
+ * @param size Tamaño de la tabla que se va a colocar.
+ */
+export function findFreeSpot(occupied: Rect[], desired: Position, size: Rect): Position {
+  const step = TABLE_WIDTH + GRID_GAP
+  const fits = (point: Position): boolean =>
+    !occupied.some((rect) => overlaps({ ...point, width: size.width, height: size.height }, rect))
+
+  if (fits(desired)) return desired
+
+  for (let ring = 1; ring <= 8; ring += 1) {
+    for (let dy = -ring; dy <= ring; dy += 1) {
+      for (let dx = -ring; dx <= ring; dx += 1) {
+        if (Math.abs(dx) !== ring && Math.abs(dy) !== ring) continue
+        const candidate = { x: desired.x + dx * step, y: desired.y + dy * (size.height + GRID_GAP) }
+        if (candidate.x < 0 || candidate.y < 0) continue
+        if (fits(candidate)) return candidate
+      }
+    }
+  }
+
+  const rightEdge = occupied.reduce((edge, rect) => Math.max(edge, rect.x + rect.width), 0)
+  return { x: rightEdge + GRID_GAP, y: desired.y }
 }
 
 /**

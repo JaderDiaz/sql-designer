@@ -49,6 +49,63 @@ export interface NewModelDraft {
 export interface HistoryStep {
   model: Model
   label: string
+  /**
+   * Clave que fusiona pasos seguidos del mismo gesto (FR-024a, research R8).
+   *
+   * Escribir «clientes» en una celda son nueve cambios del modelo y un solo
+   * paso de deshacer. Mientras la clave no cambie, el paso de arriba del
+   * historial se reemplaza en lugar de apilar uno nuevo, así que el modelo
+   * que guarda es siempre el de antes de empezar a escribir. Sin clave, el
+   * paso nunca se fusiona.
+   */
+  coalesceKey?: string
+}
+
+/** Lo que una acción escribe en el almacén al cambiar el modelo. */
+export interface HistoryPatch {
+  model: Model
+  past: HistoryStep[]
+  future: HistoryStep[]
+  isDirty: boolean
+}
+
+/**
+ * Apila un paso del historial, o lo fusiona con el de arriba (FR-024a).
+ *
+ * Devuelve lo que la acción tiene que escribir en el almacén, para que las
+ * cuatro claves —modelo, pasado, futuro y «Editado»— se muevan siempre
+ * juntas y ninguna acción pueda olvidar una.
+ *
+ * @param state Estado actual: el modelo, el guardado y el pasado.
+ * @param next Modelo que queda tras el cambio.
+ * @param label Qué cambió, tal como se dirá al deshacer (RS-06).
+ * @param coalesceKey Clave del gesto; con la misma del paso de arriba, los dos
+ * pasos se vuelven uno.
+ */
+export function pushHistory(
+  state: { model: Model | null; savedModel: Model | null; past: HistoryStep[] },
+  next: Model,
+  label: string,
+  coalesceKey?: string,
+): HistoryPatch {
+  const { model, savedModel, past } = state
+  const previous = past[past.length - 1]
+  const merges =
+    coalesceKey !== undefined &&
+    previous !== undefined &&
+    previous.coalesceKey === coalesceKey
+  const step: HistoryStep = {
+    model: merges ? previous.model : (model as Model),
+    label,
+    ...(coalesceKey !== undefined ? { coalesceKey } : {}),
+  }
+
+  return {
+    model: next,
+    past: merges ? [...past.slice(0, -1), step] : [...past, step],
+    future: [],
+    isDirty: !isSameModel(next, savedModel),
+  }
 }
 
 /** Estado y acciones de la parte del modelo. */
@@ -315,17 +372,12 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
    * @param name Nombre nuevo del modelo.
    */
   renameModel(name) {
-    const { model, savedModel, past } = get()
+    const state = get()
+    const { model } = state
     const trimmed = name.trim()
     if (model === null || trimmed === '' || trimmed === model.name) return
 
-    const next: Model = { ...model, name: trimmed }
-    set({
-      model: next,
-      past: [...past, { model, label: RENAME_LABEL }],
-      future: [],
-      isDirty: !isSameModel(next, savedModel),
-    })
+    set(pushHistory(state, { ...model, name: trimmed }, RENAME_LABEL))
   },
 
   /**
@@ -472,6 +524,8 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
   undo() {
     const { past, future, model, savedModel } = get()
     const step = past[past.length - 1]
+    // El paso que se guarda para rehacer lleva la misma etiqueta y ninguna
+    // clave de fusión: rehacer nunca se fusiona con lo siguiente.
     if (step === undefined || model === null) return
 
     set({

@@ -29,6 +29,12 @@ const WHEEL_ZOOM = 0.002
 /** Hasta cuántos píxeles de recorrido un gesto sobre el fondo sigue siendo un clic. */
 const CLICK_SLOP = 3
 
+/** Franja del borde en la que arrastrar algo empieza a mover la vista. */
+const EDGE_BAND = 48
+
+/** Cuánto mueve la vista cada evento del puntero dentro de esa franja. */
+const EDGE_SPEED = 12
+
 /** Nodos del lienzo que el gesto escribe directamente. */
 export interface CanvasNodes {
   /** El nodo que recorta y recibe el foco. */
@@ -48,6 +54,13 @@ export interface CanvasViewGestures {
   onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
   onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void
   onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
+  /**
+   * Mueve la vista cuando un arrastre ajeno llega al borde del lienzo.
+   *
+   * La llama quien arrastra una tabla o una zona, no el gesto de la vista: así
+   * se puede dejar algo fuera de lo que se veía al empezar (US4, escenario 7).
+   */
+  edgeFollow: (clientX: number, clientY: number) => void
 }
 
 export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): CanvasViewGestures {
@@ -197,6 +210,9 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
       }
       const arrow = arrows[event.key]
       if (arrow !== undefined && !event.metaKey && !event.ctrlKey) {
+        // Con una tabla seleccionada las flechas la mueven, no la vista: el
+        // lienzo se encarga de eso en su propio manejador (FR-034).
+        if (useAppStore.getState().selectedTable !== null) return
         event.preventDefault()
         const view = currentView()
         paint({ pan: { x: view.pan.x + arrow.x, y: view.pan.y + arrow.y }, zoom: view.zoom })
@@ -279,6 +295,23 @@ export function useCanvasView({ surface, frame, stage, grid }: CanvasNodes): Can
 
   return {
     isPanning: () => space.current,
+
+    edgeFollow(clientX, clientY) {
+      const box = surface.current?.getBoundingClientRect()
+      if (box === undefined) return
+      const push = (distance: number): number => {
+        if (distance >= EDGE_BAND) return 0
+        // Cuanto más cerca del borde, más corre: a medio camino de la franja
+        // va a la mitad de velocidad.
+        return (EDGE_SPEED * (EDGE_BAND - Math.max(0, distance))) / EDGE_BAND
+      }
+      const dx = push(clientX - box.left) - push(box.right - clientX)
+      const dy = push(clientY - box.top) - push(box.bottom - clientY)
+      if (dx === 0 && dy === 0) return
+      const view = currentView()
+      paint({ pan: { x: view.pan.x + dx, y: view.pan.y + dy }, zoom: view.zoom })
+      schedule()
+    },
 
     /**
      * Empieza a mover la vista de las tres formas de FR-007: arrastrando desde

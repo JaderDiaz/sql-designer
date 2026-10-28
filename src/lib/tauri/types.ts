@@ -39,6 +39,10 @@ export interface Preferences {
   sidebarHidden: boolean
   /** El inspector del Editor quedó escondido (FR-006). */
   inspectorHidden: boolean
+  /** Las tablas se alinean a la cuadrícula al soltarlas (FR-032). */
+  snapToGrid: boolean
+  /** Alto del editor de campos, recortado a `[200, 560]` (FR-022). */
+  fieldsPanelHeight: number
 }
 
 /**
@@ -55,6 +59,8 @@ export interface PreferencesPatch {
   lastModelPath?: string | null
   sidebarHidden?: boolean
   inspectorHidden?: boolean
+  snapToGrid?: boolean
+  fieldsPanelHeight?: number
 }
 
 /**

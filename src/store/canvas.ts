@@ -40,6 +40,14 @@ export interface CanvasSlice {
   focusedSchema: string | null
   /** Nombre técnico del esquema seleccionado: lo que mira el inspector. */
   selectedSchema: string | null
+  /**
+   * Nombre técnico de la tabla seleccionada, o `null` (FR-007a).
+   *
+   * El inspector mira una cosa a la vez: seleccionar una tabla suelta el
+   * esquema seleccionado, y al contrario. Una sola tabla, nunca varias: la
+   * selección múltiple quedó fuera del incremento (Clarifications).
+   */
+  selectedTable: string | null
   /** Si hay un gesto en curso; el lienzo pinta sin sombras (research R19). */
   isGesturing: boolean
   /**
@@ -65,6 +73,7 @@ export interface CanvasSlice {
   centerOnModel: () => void
   focusSchema: (name: string | null) => void
   selectSchema: (name: string | null) => void
+  selectTable: (name: string | null) => void
   setGesturing: (gesturing: boolean) => void
   applyLayoutPreferences: (layout: { sidebar: boolean; inspector: boolean }) => void
   toggleSidebar: () => Promise<void>
@@ -88,6 +97,7 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
   viewport: DEFAULT_VIEWPORT,
   focusedSchema: null,
   selectedSchema: null,
+  selectedTable: null,
   isGesturing: false,
   needsCenter: false,
   isSidebarHidden: false,
@@ -215,7 +225,13 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
     }
 
     const next = centerOnContent(zone.rect, viewport, get().zoom)
-    set({ focusedSchema: name, selectedSchema: name, pan: next.pan, zoom: next.zoom })
+    set({
+      focusedSchema: name,
+      selectedSchema: name,
+      selectedTable: null,
+      pan: next.pan,
+      zoom: next.zoom,
+    })
   },
 
   /**
@@ -224,7 +240,19 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
    * @param name Nombre técnico del esquema, o `null` para soltar la selección.
    */
   selectSchema(name) {
-    set({ selectedSchema: name })
+    set({ selectedSchema: name, ...(name === null ? {} : { selectedTable: null }) })
+  },
+
+  /**
+   * Selecciona una tabla, que es entonces lo que mira el inspector (FR-007a).
+   *
+   * Seleccionar una tabla suelta el esquema seleccionado: el inspector muestra
+   * una ficha o la otra, nunca las dos.
+   *
+   * @param name Nombre técnico de la tabla, o `null` para soltar la selección.
+   */
+  selectTable(name) {
+    set({ selectedTable: name, ...(name === null ? {} : { selectedSchema: null }) })
   },
 
   /**

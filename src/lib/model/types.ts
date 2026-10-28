@@ -19,6 +19,9 @@ export const NAME_MAX_LENGTH = 120
 /** Largo máximo de un nombre técnico (RS-03). */
 export const TECHNICAL_NAME_MAX_LENGTH = 63
 
+/** Largo máximo de la descripción de una tabla (FR-043). */
+export const TABLE_COMMENT_MAX_LENGTH = 280
+
 /** Forma de un nombre técnico: minúsculas, números y guion bajo (RS-03). */
 export const TECHNICAL_NAME_PATTERN = /^[a-z_][a-z0-9_]*$/
 
@@ -56,8 +59,30 @@ export interface Schema {
 export interface Field {
   /** Nombre técnico, único dentro de la tabla (RS-03). */
   name: string
-  /** Tipo tal como lo escribe el usuario para su motor. */
+  /**
+   * Nombre del tipo, sin paréntesis ni números dentro.
+   *
+   * La longitud y la escala viajan aparte, en {@link Field.length} y
+   * {@link Field.scale}, para que se puedan leer y cambiar sin analizar texto
+   * (FR-051a). Un archivo antiguo con `numeric(10,2)` sigue siendo válido: el
+   * validador comprueba la forma de los dos campos nuevos, no el catálogo de
+   * tipos del motor.
+   */
   type: string
+  /**
+   * Longitud del tipo, cuando el tipo la admite.
+   *
+   * Entero mayor que cero. Solo la llevan los tipos con longitud del motor
+   * —`varchar`, `char`, `numeric`…—; ver `src/lib/model/engines.ts` (FR-015).
+   */
+  length?: number
+  /**
+   * Escala del tipo, cuando el tipo la admite.
+   *
+   * Entero de cero o más, y nunca mayor que {@link Field.length}. Solo la
+   * llevan los tipos decimales del motor (FR-016).
+   */
+  scale?: number
   /** Si admite nulos. Por defecto `false`. */
   nullable?: boolean
   /** Valor por defecto, tal como se escribe en SQL. */

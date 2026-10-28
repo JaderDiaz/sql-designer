@@ -1,0 +1,348 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sql-designer.local/schemas/004-tablas-campos/model.schema.json",
+  "title": "Modelo de SQL Designer, formato 1 (Incremento 2)",
+  "description": "Forma del archivo .yaml del modelo, formato 1. Incremento 3: el campo gana length y scale opcionales; type guarda solo el nombre del tipo. La version del formato no cambia.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "formatVersion",
+    "name",
+    "engine",
+    "schemas"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120,
+      "pattern": "^[^\\n\\r]+$"
+    },
+    "engine": {
+      "enum": [
+        "postgres",
+        "mysql",
+        "sqlite"
+      ]
+    },
+    "schemas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/schema"
+      }
+    },
+    "enums": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/enum"
+      }
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/table"
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relation"
+      }
+    },
+    "views": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/view"
+      }
+    }
+  },
+  "$defs": {
+    "technicalName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 63,
+      "pattern": "^[a-z_][a-z0-9_]*$",
+      "description": "RS-03: minusculas, numeros y guion bajo, sin empezar por numero."
+    },
+    "position": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    },
+    "schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "abbreviation"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "abbreviation": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "RS-04."
+        },
+        "color": {
+          "type": "string",
+          "minLength": 1
+        },
+        "position": {
+          "$ref": "#/$defs/position",
+          "description": "Posición de la zona del esquema en el lienzo. Solo se escribe mientras el esquema no tiene tablas; al leer, la de un esquema con tablas se descarta sin invalidar el archivo (FR-026a)."
+        },
+        "comment": {
+          "type": "string"
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Solo el nombre del tipo, sin parentesis ni numeros (research R3)."
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Longitud declarada. Solo cuando el tipo la admite (FR-015, FR-051a)."
+        },
+        "scale": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Escala declarada, nunca mayor que length (FR-016)."
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": false
+        },
+        "default": {
+          "type": "string"
+        },
+        "comment": {
+          "type": "string"
+        }
+      },
+      "description": "Campo de una tabla. length y scale son opcionales y no se validan contra el catalogo de tipos del motor."
+    },
+    "namedFields": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "fields"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/technicalName"
+          }
+        }
+      }
+    },
+    "table": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "schema",
+        "fields"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "schema": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 280,
+          "description": "Descripcion de la tabla, hasta 280 caracteres (FR-043)."
+        },
+        "fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/field"
+          }
+        },
+        "primaryKey": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/technicalName"
+          }
+        },
+        "uniques": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/namedFields"
+          }
+        },
+        "indexes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/namedFields"
+          }
+        },
+        "position": {
+          "$ref": "#/$defs/position",
+          "description": "Posición de la tabla en el lienzo."
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "fromTable",
+        "fromFields",
+        "toTable",
+        "toFields"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "fromTable": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "fromFields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/technicalName"
+          }
+        },
+        "toTable": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "toFields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/technicalName"
+          }
+        },
+        "onDelete": {
+          "enum": [
+            "cascade",
+            "restrict",
+            "set_null",
+            "no_action"
+          ],
+          "default": "no_action"
+        },
+        "onUpdate": {
+          "enum": [
+            "cascade",
+            "restrict",
+            "set_null",
+            "no_action"
+          ],
+          "default": "no_action"
+        }
+      }
+    },
+    "enum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "schema",
+        "values"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "schema": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "comment": {
+          "type": "string"
+        }
+      }
+    },
+    "view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "schema",
+        "tables"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "schema": {
+          "$ref": "#/$defs/technicalName"
+        },
+        "tables": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/technicalName"
+          }
+        },
+        "comment": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "x-referenciasCruzadas": {
+    "spec": "specs/004-tablas-campos/spec.md",
+    "dataModel": "specs/004-tablas-campos/data-model.md",
+    "research": "specs/004-tablas-campos/research.md",
+    "base": "specs/003-lienzo-esquemas/contracts/model.schema.json",
+    "cambios": [
+      "field.length (nuevo, opcional)",
+      "field.scale (nuevo, opcional)",
+      "table.fields minItems 1 (ya exigido por el validador)",
+      "table.comment maxLength 280"
+    ]
+  }
+}

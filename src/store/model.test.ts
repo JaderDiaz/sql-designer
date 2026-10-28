@@ -5,7 +5,8 @@ import { emptyModel } from '@/lib/model/defaults'
 import { CommandError } from '@/lib/tauri/commands'
 import type { Model } from '@/lib/model/types'
 import { useAppStore } from '@/store'
-import { RENAME_LABEL } from '@/store/model'
+import { RENAME_LABEL, pushHistory } from '@/store/model'
+import type { HistoryStep } from '@/store/model'
 import { resetStore } from '@/test/helpers'
 
 vi.mock('@/lib/tauri/commands', async (importOriginal) => {
@@ -223,5 +224,71 @@ describe('deshacer y rehacer (FR-044, RS-06)', () => {
 
     expect(useAppStore.getState().future).toEqual([])
     expect(useAppStore.getState().model?.name).toBe('Dos')
+  })
+})
+
+describe('pushHistory: un paso por gesto (FR-024a)', () => {
+  /** Modelo de partida y dos cambios seguidos sobre su nombre. */
+  const base = emptyModel('Uno', 'postgres')
+  const uno: Model = { ...base, name: 'Do' }
+  const dos: Model = { ...base, name: 'Dos' }
+  const tres: Model = { ...base, name: 'Doscientos' }
+
+  it('tres cambios con la misma clave dejan un solo paso', () => {
+    let past: HistoryStep[] = []
+    let model: Model = base
+
+    for (const next of [uno, dos, tres]) {
+      const patch = pushHistory({ model, savedModel: base, past }, next, 'editar el campo', 'celda')
+      past = patch.past
+      model = patch.model
+    }
+
+    expect(past).toHaveLength(1)
+    // Deshacer devuelve el valor de antes de empezar a escribir, no el de la
+    // pulsación anterior.
+    expect(past[0]?.model.name).toBe('Uno')
+    expect(past[0]?.coalesceKey).toBe('celda')
+    expect(model.name).toBe('Doscientos')
+  })
+
+  it('una clave distinta cierra el paso anterior', () => {
+    const first = pushHistory({ model: base, savedModel: base, past: [] }, uno, 'editar', 'a')
+    const second = pushHistory(
+      { model: first.model, savedModel: base, past: first.past },
+      dos,
+      'editar',
+      'b',
+    )
+
+    expect(second.past).toHaveLength(2)
+    expect(second.past.map((step) => step.coalesceKey)).toEqual(['a', 'b'])
+  })
+
+  it('un paso sin clave nunca se fusiona', () => {
+    const first = pushHistory({ model: base, savedModel: base, past: [] }, uno, 'renombrar')
+    const second = pushHistory(
+      { model: first.model, savedModel: base, past: first.past },
+      dos,
+      'renombrar',
+    )
+
+    expect(second.past).toHaveLength(2)
+    expect(second.past[0]?.coalesceKey).toBeUndefined()
+  })
+
+  it('siempre limpia el futuro y mide «Editado» contra el guardado', () => {
+    const patch = pushHistory(
+      { model: base, savedModel: base, past: [] },
+      uno,
+      'editar',
+      'celda',
+    )
+
+    expect(patch.future).toEqual([])
+    expect(patch.isDirty).toBe(true)
+    expect(pushHistory({ model: uno, savedModel: base, past: [] }, base, 'editar').isDirty).toBe(
+      false,
+    )
   })
 })

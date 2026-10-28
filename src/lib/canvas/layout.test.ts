@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { TABLE_WIDTH } from '@/lib/canvas/constants'
+import { TABLE_WIDTH, tableHeight } from '@/lib/canvas/constants'
 import { schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { readFixture } from '@/lib/model/__fixtures__'
@@ -115,5 +115,40 @@ describe('resolveLayout', () => {
     expect(third?.x).toBeGreaterThan(TABLE_WIDTH)
     expect(fourth?.x).toBe(first?.x)
     expect(fourth?.y).toBeGreaterThan(first?.y ?? 0)
+  })
+})
+
+describe('resolveLayout con tablas de distinto alto', () => {
+  it('la fila siguiente baja el alto de la tabla más alta de la anterior', () => {
+    // Cuatro tablas en una rejilla de tres columnas: la cuarta baja a la
+    // segunda fila, y no puede solaparse con la primera por mucho que la
+    // primera liste cuarenta campos (research R1).
+    const current: Model = {
+      formatVersion: 1,
+      name: 'Alturas',
+      engine: 'postgres',
+      schemas: [{ name: 'ventas', abbreviation: 'VEN' }],
+      tables: [
+        {
+          name: 'alta',
+          schema: 'ventas',
+          fields: Array.from({ length: 40 }, (_, index) => ({
+            name: `campo_${index}`,
+            type: 'integer',
+          })),
+        },
+        { name: 'baja_1', schema: 'ventas', fields: [{ name: 'id', type: 'integer' }] },
+        { name: 'baja_2', schema: 'ventas', fields: [{ name: 'id', type: 'integer' }] },
+        { name: 'segunda_fila', schema: 'ventas', fields: [{ name: 'id', type: 'integer' }] },
+      ],
+    }
+
+    const layout = resolveLayout(current)
+
+    const alta = layout.get('alta')
+    const siguiente = layout.get('segunda_fila')
+    expect(alta).toEqual({ x: 0, y: 0 })
+    expect(siguiente?.x).toBe(0)
+    expect(siguiente?.y).toBeGreaterThanOrEqual(tableHeight(40))
   })
 })

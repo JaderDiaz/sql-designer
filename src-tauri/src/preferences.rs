@@ -65,6 +65,37 @@ pub struct Preferences {
     /// El inspector del Editor quedó escondido (FR-006).
     #[serde(default)]
     pub inspector_hidden: bool,
+    /// Las tablas se alinean a la cuadrícula al soltarlas (FR-032).
+    #[serde(default)]
+    pub snap_to_grid: bool,
+    /// Alto del editor de campos, recortado a `[200, 560]` (FR-022).
+    ///
+    /// `serde(default)` igual que los dos campos de la disposición: un archivo
+    /// anterior no lo trae y cae a 320, el alto con el que nace el panel.
+    #[serde(default = "default_fields_panel_height")]
+    pub fields_panel_height: u32,
+}
+
+/// Alto del editor de campos cuando el archivo no lo trae (FR-022).
+const FIELDS_PANEL_DEFAULT_HEIGHT: u32 = 320;
+
+/// Alto mínimo del editor de campos (FR-022).
+const FIELDS_PANEL_MIN_HEIGHT: u32 = 200;
+
+/// Alto máximo del editor de campos (FR-022).
+const FIELDS_PANEL_MAX_HEIGHT: u32 = 560;
+
+/// Valor por defecto de `fields_panel_height` para `serde`.
+fn default_fields_panel_height() -> u32 {
+    FIELDS_PANEL_DEFAULT_HEIGHT
+}
+
+/// Recorta un alto del editor de campos a sus topes (FR-022).
+///
+/// Se aplica al leer y al escribir: un archivo editado a mano con 40 o con
+/// 5000 no deja el panel fuera de sus topes.
+fn clamp_fields_panel_height(height: u32) -> u32 {
+    height.clamp(FIELDS_PANEL_MIN_HEIGHT, FIELDS_PANEL_MAX_HEIGHT)
 }
 
 impl Default for Preferences {
@@ -79,6 +110,8 @@ impl Default for Preferences {
             last_folder: None,
             sidebar_hidden: false,
             inspector_hidden: false,
+            snap_to_grid: false,
+            fields_panel_height: FIELDS_PANEL_DEFAULT_HEIGHT,
         }
     }
 }
@@ -100,6 +133,10 @@ pub struct PreferencesPatch {
     pub sidebar_hidden: Option<bool>,
     /// Esconder o mostrar el inspector del Editor (FR-006).
     pub inspector_hidden: Option<bool>,
+    /// Alinear las tablas a la cuadrícula al soltarlas (FR-032).
+    pub snap_to_grid: Option<bool>,
+    /// Alto del editor de campos; se recorta a `[200, 560]` (FR-022).
+    pub fields_panel_height: Option<u32>,
 }
 
 /// Distingue «campo ausente» de «campo a `null`» en un parche.
@@ -262,6 +299,20 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(defaults.inspector_hidden);
 
+    // Lo mismo con los dos campos del Incremento 3: ausentes caen a «sin
+    // ajustar a la cuadrícula» y al alto de 320 (FR-022, FR-032).
+    let snap_to_grid = value
+        .get("snapToGrid")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(defaults.snap_to_grid);
+    let fields_panel_height = clamp_fields_panel_height(
+        value
+            .get("fieldsPanelHeight")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|height| u32::try_from(height).ok())
+            .unwrap_or(defaults.fields_panel_height),
+    );
+
     Preferences {
         format_version: FORMAT_VERSION,
         theme,
@@ -272,6 +323,8 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         last_folder,
         sidebar_hidden,
         inspector_hidden,
+        snap_to_grid,
+        fields_panel_height,
     }
 }
 
@@ -344,6 +397,12 @@ pub fn apply_patch(current: &Preferences, patch: &PreferencesPatch) -> Preferenc
     }
     if let Some(inspector_hidden) = patch.inspector_hidden {
         next.inspector_hidden = inspector_hidden;
+    }
+    if let Some(snap_to_grid) = patch.snap_to_grid {
+        next.snap_to_grid = snap_to_grid;
+    }
+    if let Some(fields_panel_height) = patch.fields_panel_height {
+        next.fields_panel_height = clamp_fields_panel_height(fields_panel_height);
     }
     next.format_version = FORMAT_VERSION;
     next
@@ -437,6 +496,8 @@ mod tests {
             last_folder: Some("/Users/x/Proyectos".to_string()),
             sidebar_hidden: true,
             inspector_hidden: false,
+            snap_to_grid: true,
+            fields_panel_height: 420,
         };
 
         save_to(&path, &preferences).expect("guardar");
@@ -544,5 +605,72 @@ mod tests {
         let next = apply_patch(&current, &olvidar);
         assert_eq!(next.last_model_path, None);
         assert_eq!(next.last_folder.as_deref(), Some("/Users/x/Proyectos"));
+    }
+
+    #[test]
+    fn archivo_sin_los_campos_del_incremento_3_los_lee_por_defecto() {
+        // Un `preferences.json` de la versión anterior no trae `snapToGrid`
+        // ni `fieldsPanelHeight`: caen a sus valores por defecto y el archivo
+        // no se considera recuperado, así que no se copia a `.bak` (FR-022,
+        // FR-032).
+        let dir = temp_dir("sin-campos-3");
+        let path = file_path(&dir);
+        fs::write(
+            &path,
+            r#"{"formatVersion":1,"theme":"dark","showWelcomeOnStart":false,"engine":"mysql"}"#,
+        )
+        .expect("escribir");
+
+        let result = load_from(&path);
+
+        assert!(!result.recovered);
+        assert!(!result.preferences.snap_to_grid);
+        assert_eq!(result.preferences.fields_panel_height, 320);
+        assert_eq!(result.preferences.theme, Theme::Dark);
+        assert!(!dir.join("preferences.json.bak").exists());
+    }
+
+    #[test]
+    fn el_alto_del_editor_de_campos_se_recorta_a_sus_topes() {
+        let dir = temp_dir("alto-topes");
+        let path = file_path(&dir);
+
+        fs::write(&path, r#"{"formatVersion":1,"fieldsPanelHeight":40}"#).expect("escribir");
+        assert_eq!(load_from(&path).preferences.fields_panel_height, 200);
+
+        fs::write(&path, r#"{"formatVersion":1,"fieldsPanelHeight":5000}"#).expect("escribir");
+        assert_eq!(load_from(&path).preferences.fields_panel_height, 560);
+
+        fs::write(&path, r#"{"formatVersion":1,"fieldsPanelHeight":420}"#).expect("escribir");
+        assert_eq!(load_from(&path).preferences.fields_panel_height, 420);
+    }
+
+    #[test]
+    fn el_parche_cambia_un_campo_del_incremento_3_sin_tocar_el_otro() {
+        let current = Preferences {
+            snap_to_grid: true,
+            fields_panel_height: 420,
+            ..Preferences::default()
+        };
+
+        let solo_cuadricula = apply_patch(
+            &current,
+            &PreferencesPatch {
+                snap_to_grid: Some(false),
+                ..PreferencesPatch::default()
+            },
+        );
+        assert!(!solo_cuadricula.snap_to_grid);
+        assert_eq!(solo_cuadricula.fields_panel_height, 420);
+
+        let solo_alto = apply_patch(
+            &current,
+            &PreferencesPatch {
+                fields_panel_height: Some(5000),
+                ..PreferencesPatch::default()
+            },
+        );
+        assert!(solo_alto.snap_to_grid);
+        assert_eq!(solo_alto.fields_panel_height, 560);
     }
 }

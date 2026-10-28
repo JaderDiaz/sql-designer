@@ -1,6 +1,6 @@
 [package]
 name = "sql-designer"
-version = "1.2.0"
+version = "1.3.0"
 description = "Diseñador visual de bases de datos relacionales"
 authors = ["Jader Luis Diaz E."]
 edition = "2021"

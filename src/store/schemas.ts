@@ -1,7 +1,7 @@
 import { schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
 import type { Model, Position, Schema } from '@/lib/model/types'
-import { isSameModel } from '@/store/model'
+import { pushHistory } from '@/store/model'
 import type { AppSlice } from '@/store/types'
 
 /**
@@ -135,7 +135,8 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
    * @param draft Nombre técnico, abreviatura, color y descripción.
    */
   createSchema(draft) {
-    const { model, savedModel, past } = get()
+    const state = get()
+    const { model } = state
     if (model === null) return
     const repeated = model.schemas.some(
       (schema) => schema.name === draft.name || schema.abbreviation === draft.abbreviation,
@@ -144,10 +145,7 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
 
     const next: Model = { ...model, schemas: [...model.schemas, fromDraft(draft)] }
     set({
-      model: next,
-      past: [...past, { model, label: CREATE_SCHEMA_LABEL }],
-      future: [],
-      isDirty: !isSameModel(next, savedModel),
+      ...pushHistory(state, next, CREATE_SCHEMA_LABEL),
       selectedSchema: draft.name,
     })
   },
@@ -164,7 +162,8 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
    * @param draft Valores nuevos, ya validados por el diálogo.
    */
   updateSchema(name, draft) {
-    const { model, savedModel, past, focusedSchema, selectedSchema } = get()
+    const state = get()
+    const { model, focusedSchema, selectedSchema } = state
     if (model === null) return
     const current = model.schemas.find((schema) => schema.name === name)
     if (current === undefined) return
@@ -183,10 +182,7 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
       ),
     }
     set({
-      model: next,
-      past: [...past, { model, label: UPDATE_SCHEMA_LABEL }],
-      future: [],
-      isDirty: !isSameModel(next, savedModel),
+      ...pushHistory(state, next, UPDATE_SCHEMA_LABEL),
       // El esquema sigue siendo el mismo objeto aunque haya cambiado de
       // nombre: el foco y la selección lo siguen.
       focusedSchema: focusedSchema === name ? draft.name : focusedSchema,
@@ -206,7 +202,8 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
    * @param options Si se eliminan sus tablas y, si no, a qué esquema pasan.
    */
   deleteSchema(name, options) {
-    const { model, savedModel, past, focusedSchema, selectedSchema } = get()
+    const state = get()
+    const { model, focusedSchema, selectedSchema } = state
     if (model === null) return
     if (model.schemas.every((schema) => schema.name !== name)) return
 
@@ -239,10 +236,7 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
     }
 
     set({
-      model: next,
-      past: [...past, { model, label: DELETE_SCHEMA_LABEL }],
-      future: [],
-      isDirty: !isSameModel(next, savedModel),
+      ...pushHistory(state, next, DELETE_SCHEMA_LABEL),
       // El esquema enfocado o seleccionado ya no existe (FR-032).
       focusedSchema: focusedSchema === name ? null : focusedSchema,
       selectedSchema: selectedSchema === name ? null : selectedSchema,
@@ -262,7 +256,8 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
    * @param delta Desplazamiento del gesto, en coordenadas del modelo.
    */
   moveSchema(name, delta) {
-    const { model, savedModel, past } = get()
+    const state = get()
+    const { model } = state
     if (model === null) return
     if (model.schemas.every((schema) => schema.name !== name)) return
     if (delta.x === 0 && delta.y === 0) return
@@ -280,12 +275,7 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
           schema.name === name ? { ...schema, position } : schema,
         ),
       }
-      set({
-        model: next,
-        past: [...past, { model, label: MOVE_SCHEMA_LABEL }],
-        future: [],
-        isDirty: !isSameModel(next, savedModel),
-      })
+      set(pushHistory(state, next, MOVE_SCHEMA_LABEL))
       return
     }
 
@@ -303,11 +293,6 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
         return { ...table, position: { x: base.x + delta.x, y: base.y + delta.y } }
       }),
     }
-    set({
-      model: next,
-      past: [...past, { model, label: MOVE_SCHEMA_TABLES_LABEL }],
-      future: [],
-      isDirty: !isSameModel(next, savedModel),
-    })
+    set(pushHistory(state, next, MOVE_SCHEMA_TABLES_LABEL))
   },
 })

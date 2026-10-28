@@ -65,7 +65,8 @@ describe('CanvasSurface', () => {
       screen.getByRole('button', { name: /^Esquema REP · reportes, sin tablas$/ }),
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Tabla facturas, esquema VEN · ventas, 3 campos' }),
+      // El nombre sigue con un campo por frase, así que aquí basta el encabezado.
+      screen.getByRole('button', { name: /^Tabla facturas, esquema VEN · ventas, 3 campos\./ }),
     ).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: /^Tabla / })).toHaveLength(4)
   })

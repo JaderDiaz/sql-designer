@@ -9,9 +9,9 @@ import { useAppStore } from '@/store'
  *
  * Es el estado vacío del lienzo: un modelo sin tablas no tiene nada que
  * dibujar, y en lugar de un lienzo en blanco se dice por dónde empezar. De
- * sus tres filas, «Agregar un esquema» es la única que actúa en este
- * incremento; las otras dos anuncian lo que traen los siguientes y por eso no
- * son botones.
+ * De sus tres filas, «Crear la primera tabla» y «Agregar un esquema» actúan;
+ * «Definir un enum» anuncia lo que trae un incremento posterior y por eso no
+ * es un botón.
  */
 
 /** Una fila de la tarjeta: qué se podrá hacer con el modelo. */
@@ -23,8 +23,8 @@ interface StartRow {
   tint: string
   /** Color del propio icono. */
   color: string
-  /** Si la fila actúa en este incremento. */
-  action?: 'new-schema'
+  /** Si la fila actúa, y qué diálogo abre. */
+  action?: 'new-schema' | 'new-table'
 }
 
 const START_ROWS: StartRow[] = [
@@ -34,6 +34,7 @@ const START_ROWS: StartRow[] = [
     icon: 'table-2',
     tint: 'sm-tint-indigo',
     color: 'text-indigo',
+    action: 'new-table',
   },
   {
     label: 'Agregar un esquema',
@@ -55,6 +56,7 @@ const START_ROWS: StartRow[] = [
 export function EmptyModelCard() {
   const model = useAppStore((state) => state.model)
   const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
+  const openTableDialog = useAppStore((state) => state.openTableDialog)
 
   const schema = model?.schemas[0]
 
@@ -102,11 +104,14 @@ export function EmptyModelCard() {
 
           return (
             <li key={row.label}>
-              {row.action === 'new-schema' ? (
+              {row.action ? (
                 <button
                   type="button"
                   className="sm-start-row sm-start-row-action w-full"
-                  onClick={() => openSchemaDialog(null)}
+                  onClick={() => {
+                    if (row.action === 'new-table') openTableDialog()
+                    else openSchemaDialog(null)
+                  }}
                 >
                   {content}
                   <Icon name="chevron-right" size={14} className="text-label-tertiary" />
@@ -121,7 +126,7 @@ export function EmptyModelCard() {
 
       <span className="flex items-center gap-1.5 text-[11px] leading-[14px] text-label-tertiary">
         <Icon name="mouse-pointer-click" size={12} />
-        Crea un esquema para empezar a organizar el modelo.
+        Doble clic en el lienzo también crea una tabla.
       </span>
     </motion.div>
   )
