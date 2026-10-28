@@ -408,10 +408,17 @@
 
 /* ---------- Popover: la superficie de vidrio de menús y listas ---------- */
 .au-pop {
-  position: absolute;
+  /*
+   * La capa la coloca el primitivo, no esta regla.
+   *
+   * El tablero de diseño la ancla con `position: absolute; top: 100%` porque
+   * allí cuelga del disparador. Aquí cuelga de un portal al final del
+   * documento y Radix ya la sitúa: con el anclaje puesto, la lista caía otra
+   * vez su propio alto más abajo de donde tocaba y, en un campo de la mitad
+   * inferior de la ventana, aparecía fuera de la pantalla —el selector se
+   * abría sin que se viera nada.
+   */
   z-index: var(--z-popover);
-  top: calc(100% + 6px);
-  left: 0;
   box-sizing: border-box;
   border-radius: var(--radius-lg);
   background: var(--glass);
@@ -487,8 +494,13 @@
   color: var(--label-secondary);
 }
 .au-select-list {
-  min-width: 100%;
-  max-height: 264px;
+  /* Al menos tan ancha como su campo, como en el lienzo de diseño. */
+  min-width: var(--radix-select-trigger-width, 100%);
+  /* El tope no es fijo: Radix publica cuánto sitio queda hasta el borde de la
+     ventana y la lista se queda en lo menor de los dos. Con 264 px fijos, un
+     campo cercano al borde inferior abría una lista que se salía de la
+     ventana y lo que sobraba no se alcanzaba. */
+  max-height: min(264px, var(--radix-select-content-available-height, 264px));
   overflow: auto;
   padding: 5px;
 }
@@ -511,6 +523,18 @@
   width: 16px;
   height: 16px;
   color: var(--label);
+}
+/*
+ * Icono de una opción y del disparador, del color que le pase quien la
+ * ofrece: el del esquema en los selectores de esquema. Sin color propio hereda
+ * el gris de las demás.
+ */
+.au-option-icon,
+.au-select-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  color: var(--tint, var(--label-secondary));
 }
 .au-option-text {
   display: flex;
@@ -639,6 +663,7 @@
    1,76:1 en oscuro (SC-011). */
 .au-menu-item[data-highlighted] .au-menu-shortcut kbd,
 .au-option[data-highlighted] .au-option-check,
+.au-option[data-highlighted] .au-option-icon,
 .au-option[data-highlighted] .au-option-desc {
   color: var(--on-accent);
 }

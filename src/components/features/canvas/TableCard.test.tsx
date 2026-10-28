@@ -46,6 +46,7 @@ function renderCard(overrides: Partial<React.ComponentProps<typeof TableCard>> =
       position={{ x: 40, y: 80 }}
       abbreviation="VEN"
       schema="ventas"
+      color="blue"
       relations={RELATIONS}
       isDim={false}
       {...overrides}

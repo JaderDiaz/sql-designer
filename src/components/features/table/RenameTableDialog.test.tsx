@@ -58,7 +58,6 @@ describe('RenameTableDialog', () => {
 
   it('nace con el nombre que la tabla tiene ahora (FR-037)', () => {
     expect(field('Nombre').value).toBe('facturas')
-    expect(field('Nombre técnico').value).toBe('facturas')
     expect(renameButton()).toBeDisabled()
   })
 
@@ -66,21 +65,20 @@ describe('RenameTableDialog', () => {
     await userEvent.clear(field('Nombre'))
     await userEvent.type(field('Nombre'), 'Facturas emitidas')
 
-    expect(field('Nombre técnico').value).toBe('facturas_emitidas')
     expect(screen.getByText('Se guardará como `facturas_emitidas`.')).toBeInTheDocument()
   })
 
   it('no renombra a un nombre que ya existe (RS-03)', async () => {
-    await userEvent.clear(field('Nombre técnico'))
-    await userEvent.type(field('Nombre técnico'), 'productos')
+    await userEvent.clear(field('Nombre'))
+    await userEvent.type(field('Nombre'), 'productos')
 
     expect(screen.getByText(takenNameMessage('productos'))).toBeInTheDocument()
     expect(renameButton()).toBeDisabled()
   })
 
   it('no renombra a un nombre mal formado (RS-03)', async () => {
-    await userEvent.clear(field('Nombre técnico'))
-    await userEvent.type(field('Nombre técnico'), '2026 facturas')
+    await userEvent.clear(field('Nombre'))
+    await userEvent.type(field('Nombre'), '2026 facturas')
 
     expect(screen.getByText(INVALID_NAME_MESSAGE)).toBeInTheDocument()
     expect(renameButton()).toBeDisabled()

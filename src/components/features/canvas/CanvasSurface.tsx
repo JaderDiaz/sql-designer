@@ -7,6 +7,7 @@ import { TableContextMenu } from '@/components/features/table/TableContextMenu'
 import { GRID_SNAP, TABLE_WIDTH, tableHeight } from '@/lib/canvas/constants'
 import { schemaZones, zoneAt } from '@/lib/canvas/geometry'
 import { toModelPoint } from '@/lib/canvas/zoom'
+import { resolveSchemaColor } from '@/lib/model/colors'
 import { isBlankModel } from '@/lib/model/defaults'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { cn } from '@/lib/cn'
@@ -359,6 +360,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
                   position={position}
                   schema={table.schema}
                   abbreviation={schema?.abbreviation ?? ''}
+                  color={resolveSchemaColor(schema?.color)}
                   relations={model?.relations ?? []}
                   isSelected={selectedTable === table.name}
                   isDim={focusedSchema !== null && focusedSchema !== table.schema}

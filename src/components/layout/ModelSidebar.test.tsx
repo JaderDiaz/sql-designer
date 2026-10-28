@@ -125,9 +125,11 @@ describe('filas de tabla de la barra lateral (FR-036, FR-041)', () => {
     expect(useAppStore.getState().selectedTable).toBe('facturas')
   })
 
-  it('su nombre accesible dice cuántos campos tiene', () => {
+  it('su nombre accesible dice de qué esquema es y cuántos campos tiene', () => {
     expect(
-      within(tablesSection()).getByRole('button', { name: 'Tabla facturas, 3 campos' }),
+      within(tablesSection()).getByRole('button', {
+        name: 'Tabla facturas, esquema VEN · ventas, 3 campos',
+      }),
     ).toBeInTheDocument()
   })
 

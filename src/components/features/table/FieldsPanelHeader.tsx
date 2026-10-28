@@ -1,5 +1,8 @@
+import type { CSSProperties } from 'react'
+
 import { FieldTemplatesMenu } from '@/components/features/table/FieldTemplatesMenu'
 import { Button } from '@/components/ui/Button'
+import { resolveSchemaColor } from '@/lib/model/colors'
 import { useAppStore } from '@/store'
 import type { Table } from '@/lib/model/types'
 
@@ -27,7 +30,12 @@ export function FieldsPanelHeader({ table }: FieldsPanelHeaderProps) {
 
   return (
     <header className="sm-fields-head">
-      <span className="sm-table-meta" aria-hidden="true">
+      <span
+        className="sm-abbr"
+        aria-hidden="true"
+        style={{ '--zone': `var(--${resolveSchemaColor(schema?.color)})` } as CSSProperties}
+      >
+        <span className="sm-abbr-dot" />
         {schema?.abbreviation ?? '···'}
       </span>
       <span className="sm-fields-title">{table.name}</span>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 
 import { TableContextMenu } from '@/components/features/table/TableContextMenu'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/Icon'
 import { Select } from '@/components/ui/Select'
 import { TextArea } from '@/components/ui/TextArea'
 import { TextField } from '@/components/ui/TextField'
+import { resolveSchemaColor } from '@/lib/model/colors'
 import { fieldMarks, relationsTouching } from '@/lib/model/marks'
 import { ENGINE_LABELS, TABLE_COMMENT_MAX_LENGTH, TECHNICAL_NAME_PATTERN } from '@/lib/model/types'
 import type { Model, Table } from '@/lib/model/types'
@@ -48,6 +49,16 @@ export function takenNameMessage(name: string): string {
 }
 
 /** Una cifra de la rejilla de resumen del modelo. */
+/**
+ * Cuántas tablas tiene un esquema, como segunda línea de su opción.
+ *
+ * @param count Tablas del esquema.
+ */
+function schemaCountLabel(count: number): string {
+  if (count === 0) return 'sin tablas'
+  return count === 1 ? '1 tabla' : `${count} tablas`
+}
+
 function Kpi({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
@@ -106,7 +117,8 @@ function TableSheet({ table, model }: { table: Table; model: Model }) {
         <div className="flex items-start gap-2.5">
           <span
             aria-hidden="true"
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-indigo-soft"
+            className="sm-schema-chip flex h-9 w-9 flex-none items-center justify-center rounded-lg"
+            style={{ '--zone': `var(--${resolveSchemaColor(schema?.color)})` } as CSSProperties}
           >
             <Icon name="table-2" size={18} />
           </span>
@@ -146,6 +158,11 @@ function TableSheet({ table, model }: { table: Table; model: Model }) {
             options={model.schemas.map((item) => ({
               value: item.name,
               label: `${item.abbreviation} · ${item.name}`,
+              icon: 'layers' as const,
+              tint: resolveSchemaColor(item.color),
+              description: schemaCountLabel(
+                (model.tables ?? []).filter((other) => other.schema === item.name).length,
+              ),
             }))}
             onValueChange={(value) => setTableSchema(table.name, value)}
           />

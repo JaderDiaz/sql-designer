@@ -18,15 +18,19 @@ import type { Position, Relation, Table } from '@/lib/model/types'
  */
 
 /** Props de la tarjeta. */
-export interface TableCardProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'style'> {
+export interface TableCardProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  'children' | 'style'
+> {
   table: Table
   /** Posición en coordenadas del modelo, de `resolveLayout`. */
   position: Position
-  /** Abreviatura del esquema de la tabla, para su chip. */
+  /** Abreviatura del esquema de la tabla, para su pastilla. */
   abbreviation: string
   /** Nombre técnico del esquema, para el nombre accesible. */
   schema: string
+  /** Color del esquema ya resuelto contra la paleta, para su pastilla. */
+  color: string
   /** Relaciones del modelo, para la marca `FK` de cada campo. */
   relations?: Relation[]
   /** Si es la tabla seleccionada (FR-007a). */
@@ -54,6 +58,7 @@ export const TableCard = forwardRef<HTMLButtonElement, TableCardProps>(function 
     position,
     abbreviation,
     schema,
+    color,
     relations = [],
     isSelected = false,
     isDim,
@@ -95,13 +100,26 @@ export const TableCard = forwardRef<HTMLButtonElement, TableCardProps>(function 
       className={`sm-table${isDim ? ' is-dim' : ''}${className === undefined ? '' : ` ${className}`}`}
       data-drag={isDragging ? '' : undefined}
       data-selected={isSelected ? '' : undefined}
-      style={{ left: position.x, top: position.y, width: TABLE_WIDTH, height: tableHeight(count) }}
+      style={
+        {
+          left: position.x,
+          top: position.y,
+          width: TABLE_WIDTH,
+          height: tableHeight(count),
+          // La pastilla del esquema lee el color por aquí, igual que la zona.
+          '--zone': `var(--${color})`,
+        } as React.CSSProperties
+      }
       onClick={onSelect}
       onDoubleClick={onOpenFields}
     >
       <span className="sm-table-head" aria-hidden="true">
+        <span className="sm-abbr">
+          <span className="sm-abbr-dot" />
+          {abbreviation}
+        </span>
         <span className="sm-table-name">{table.name}</span>
-        <span className="sm-table-meta">{abbreviation}</span>
+        <span className="sm-table-meta">{count}</span>
       </span>
       <span className="sm-table-fields" aria-hidden="true">
         {table.fields.map((field) => {

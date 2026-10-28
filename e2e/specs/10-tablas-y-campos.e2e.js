@@ -143,6 +143,53 @@ describe('Escenario 10 · Tablas y campos', () => {
     )
   }
 
+  /**
+   * Abre la lista de un selector y devuelve su caja contra la de la ventana.
+   *
+   * @param etiqueta Nombre accesible del selector.
+   */
+  async function cajaDeLaLista(etiqueta) {
+    await browser.execute(`
+      const nombre = (el) => (el.getAttribute('aria-label') || '').trim()
+      const el = [...document.querySelectorAll('[role="combobox"]')]
+        .filter((e) => e.offsetParent !== null && e.getAttribute('aria-disabled') !== 'true')
+        .find((e) => nombre(e) === ${JSON.stringify(etiqueta)})
+      if (el) el.focus()
+      return el !== undefined
+    `)
+    await browser.keys('Enter')
+
+    let caja = null
+    await browser.waitUntil(
+      async () => {
+        caja = await browser.execute(`
+          const el = [...document.querySelectorAll('[role="listbox"]')].pop()
+          if (!el) return null
+          const r = el.getBoundingClientRect()
+          const nombre = (e) => (e.getAttribute('aria-label') || '').trim()
+          const disparador = [...document.querySelectorAll('[role="combobox"]')]
+            .find((e) => nombre(e) === ${JSON.stringify(etiqueta)})
+          const d = disparador ? disparador.getBoundingClientRect() : null
+          return {
+            arriba: Math.round(r.top),
+            abajo: Math.round(r.bottom),
+            alto: Math.round(r.height),
+            ventana: window.innerHeight,
+            // La lista cuelga del campo o, si no cabe debajo, se abre encima:
+            // la distancia es la menor de las dos.
+            distanciaAlCampo:
+              d === null
+                ? null
+                : Math.round(Math.min(Math.abs(r.top - d.bottom), Math.abs(d.top - r.bottom))),
+          }
+        `)
+        return caja !== null
+      },
+      { timeout: 15000, timeoutMsg: `El selector «${etiqueta}» no abrió su lista.` },
+    )
+    return caja
+  }
+
   /** Lo que el modelo tenía justo antes de guardarse, para el último paso. */
   let guardado = null
 
@@ -153,7 +200,8 @@ describe('Escenario 10 · Tablas y campos', () => {
     const punto = await dobleClicEnLienzo(-220, -180)
     await esperarDialogo('Nueva tabla')
     await escribirEn('Nueva tabla', 'Nombre', 'Pagos pendientes')
-    expect(await valorEn('Nueva tabla', 'Nombre técnico')).toBe('pagos_pendientes')
+    // El nombre es uno solo y la pista dice cómo quedará (FR-003).
+    await esperarTexto('Se guardará como `pagos_pendientes`.')
 
     // Un nombre repetido no deja crear (FR-004, RS-03).
     await escribirEn('Nueva tabla', 'Nombre', 'facturas')
@@ -211,6 +259,18 @@ describe('Escenario 10 · Tablas y campos', () => {
     expect(await valor('Nombre de nuevo_campo')).toBe('nuevo_campo')
 
     await escribir('Nombre de nuevo_campo', 'importe')
+
+    // La lista de tipos cabe dentro de la ventana. El panel vive abajo del
+    // todo, así que una lista con tope fijo se sale por el borde y lo que
+    // sobra no hay manera de alcanzarlo (RS-01).
+    const lista = await cajaDeLaLista('Tipo de importe')
+    expect(lista.arriba).toBeGreaterThanOrEqual(0)
+    expect(lista.abajo).toBeLessThanOrEqual(lista.ventana)
+    // Y cuelga de su campo: arranca a menos de un dedo de su borde, debajo o
+    // encima según el sitio que quede.
+    expect(lista.distanciaAlCampo).toBeLessThanOrEqual(48)
+    await browser.keys('Escape')
+
     await elegir('Tipo de importe', 'numeric')
     await escribir('Longitud de importe', '12')
     await escribir('Escala de importe', '2')
@@ -313,7 +373,7 @@ describe('Escenario 10 · Tablas y campos', () => {
     await pulsar('Renombrar…')
     await esperarDialogo('Renombrar tabla')
     await escribirEn('Renombrar tabla', 'Nombre', 'Artículos del almacén')
-    expect(await valorEn('Renombrar tabla', 'Nombre técnico')).toBe('articulos_del_almacen')
+    await esperarTexto('Se guardará como `articulos_del_almacen`.')
     await pulsarEn('Renombrar tabla', 'Renombrar')
     await esperarSinDialogo('Renombrar tabla')
 
