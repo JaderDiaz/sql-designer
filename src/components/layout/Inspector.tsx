@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/Select'
 import { TextArea } from '@/components/ui/TextArea'
 import { TextField } from '@/components/ui/TextField'
 import { resolveSchemaColor } from '@/lib/model/colors'
-import { fieldMarks, relationsTouching } from '@/lib/model/marks'
+import { fieldMarks, relationCardinality, relationsTouching } from '@/lib/model/marks'
 import { ENGINE_LABELS, TABLE_COMMENT_MAX_LENGTH, TECHNICAL_NAME_PATTERN } from '@/lib/model/types'
 import type { Model, Table } from '@/lib/model/types'
 import { isMacOS } from '@/lib/platform'
@@ -254,13 +254,15 @@ function TableSheet({ table, model }: { table: Table; model: Model }) {
         ) : (
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
             {relations.map((relation) => (
-              <li key={relation.name} className="flex items-center gap-1.5">
-                <Icon name="git-merge" size={13} className="flex-none text-label-tertiary" />
-                <span className="min-w-0 flex-1 truncate font-mono text-[11px] leading-[15px]">
-                  {relation.name}
+              <li key={relation.name} className="flex items-center gap-2" title={relation.name}>
+                <Icon name="git-merge" size={14} className="flex-none text-indigo" />
+                {/* La relación se lee de la tabla referenciada a la que lleva
+                    la llave foránea, como en el lienzo de diseño. */}
+                <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] leading-4">
+                  {relation.toTable} → {relation.fromTable}
                 </span>
-                <span className="flex-none text-[10px] leading-[13px] text-label-secondary">
-                  {relation.fromTable === table.name ? relation.toTable : relation.fromTable}
+                <span className="flex-none text-[11px] leading-[14px] text-label-secondary">
+                  {relationCardinality(model, relation)}
                 </span>
               </li>
             ))}

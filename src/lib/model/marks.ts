@@ -68,6 +68,36 @@ export function foreignKeyOf(model: Model, target: RelationTarget): Relation | n
 }
 
 /**
+ * Cómo se lee la cardinalidad de una relación (FR-045).
+ *
+ * Son las cuatro de la leyenda del lienzo de diseño, y salen de dos datos de
+ * la tabla que lleva la llave foránea: si sus campos admiten nulos y si son
+ * además únicos. No se guarda en el archivo porque no hace falta: la
+ * relación, el `NOT NULL` y el único ya lo dicen.
+ *
+ * @param model Modelo completo.
+ * @param relation Relación que se lee.
+ * @returns La cardinalidad en palabras.
+ */
+export function relationCardinality(model: Model, relation: Relation): string {
+  const from = (model.tables ?? []).find((table) => table.name === relation.fromTable)
+  if (from === undefined) return 'Uno a muchos'
+
+  const fields = from.fields.filter((field) => relation.fromFields.includes(field.name))
+  const nullable = fields.some((field) => field.nullable === true)
+
+  const keys = [from.primaryKey ?? [], ...(from.uniques ?? []).map((item) => item.fields)]
+  const unique = keys.some(
+    (key) =>
+      key.length === relation.fromFields.length &&
+      key.every((name) => relation.fromFields.includes(name)),
+  )
+
+  if (unique) return nullable ? 'Uno a cero o uno' : 'Uno a uno'
+  return nullable ? 'Uno a cero o muchos' : 'Uno a muchos'
+}
+
+/**
  * Relaciones que se eliminarían al eliminar una tabla o un campo.
  *
  * Las usan las dos confirmaciones del incremento, que tienen que decir qué se
@@ -86,7 +116,8 @@ export function relationsTouching(model: Model, target: RelationTarget): Relatio
   }
   return relations.filter(
     (relation) =>
-      (relation.fromTable === target.table && relation.fromFields.includes(target.field as string)) ||
+      (relation.fromTable === target.table &&
+        relation.fromFields.includes(target.field as string)) ||
       (relation.toTable === target.table && relation.toFields.includes(target.field as string)),
   )
 }

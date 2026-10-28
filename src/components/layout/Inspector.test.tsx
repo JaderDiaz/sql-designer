@@ -196,7 +196,7 @@ describe('inspector de la tabla seleccionada', () => {
 
     const seccion = within(screen.getByRole('region', { name: 'Relaciones' }))
     expect(seccion.getByRole('heading', { name: 'Relaciones · 4' })).toBeInTheDocument()
-    expect(seccion.getByText('pagos_reserva_fk')).toBeInTheDocument()
+    expect(seccion.getByText('reservas → pagos')).toBeInTheDocument()
   })
 
   it('lo dice cuando la tabla no tiene ninguna relación (FR-045)', () => {

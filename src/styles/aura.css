@@ -552,11 +552,16 @@
 
 /* ---------- Menu ---------- */
 .au-menu {
-  position: absolute;
+  /*
+   * La capa la coloca el primitivo, igual que la lista del selector: el
+   * anclaje del tablero (`position: absolute; top: 100%`) vale allí, donde el
+   * menú cuelga del disparador, y aquí lo bajaba otra vez su propio alto.
+   */
   z-index: var(--z-popover);
-  top: calc(100% + 6px);
-  left: 0;
   min-width: 200px;
+  /* Y no pasa del sitio que queda hasta el borde de la ventana. */
+  max-height: var(--radix-popper-available-height, none);
+  overflow: auto;
   padding: 5px;
   box-sizing: border-box;
   border-radius: var(--radius-lg);
@@ -626,8 +631,6 @@
   color: var(--label-secondary);
 }
 .au-ctx-menu {
-  position: static;
-  top: auto;
   /* Ancho fijo del lienzo: sin él, una ruta larga en el encabezado estira el
      menú y Radix acaba abriéndolo del lado contrario al puntero. */
   width: 236px;
