@@ -300,10 +300,10 @@ comprobar que en un modelo de un solo esquema la opción está deshabilitada.
 
 - [X] T086 Crear `e2e/specs/09-lienzo-y-esquemas.e2e.js` con los nueve escenarios de `quickstart.md`: las cinco zonas, esconder y recuperar, mover la vista de las tres formas, el zoom con sus topes, crear tres esquemas, arrastrar una zona con tablas y guardar, arrastrar una zona vacía y guardar, enfocar, y eliminar con y sin tablas
 - [X] T087 Ejecutar el recorrido completo en macOS (`npm run e2e`) y arreglar lo que saque, con atención al botón central y al autoscroll en Windows
-- [ ] T088 [P] Revisar el Editor, el diálogo de esquema y la confirmación de eliminar en tema claro, tema oscuro y con «Reducir movimiento», sin texto por debajo de 4,5:1 de contraste (SC-010, FR-041, puerta 5)
-- [ ] T089 [P] Recorrer el incremento entero solo con el teclado, con foco visible en cada paso, y arreglar lo que falte (SC-008, puerta 4)
+- [X] T088 [P] Revisar el Editor, el diálogo de esquema y la confirmación de eliminar en tema claro, tema oscuro y con «Reducir movimiento», sin texto por debajo de 4,5:1 de contraste (SC-010, FR-041, puerta 5)
+- [X] T089 [P] Recorrer el incremento entero solo con el teclado, con foco visible en cada paso, y arreglar lo que falte (SC-008, puerta 4)
 - [ ] T090 Medir SC-003 con `modelo-50-tablas.yaml` y el panel de rendimiento: 60 cuadros por segundo durante los gestos y respuesta al primer gesto por debajo de 100 ms, con la ventana respondiendo en todo momento (SC-003, FR-045)
-- [ ] T090a Cronometrar los tiempos de `quickstart.md`: crear un esquema en tres pasos y menos de 30 s (SC-001), crear tres esquemas, moverlos y enfocarlos en menos de 3 min (SC-002), y enfocar un esquema en menos de 1 s (SC-005)
+- [X] T090a Cronometrar los tiempos de `quickstart.md`: crear un esquema en tres pasos y menos de 30 s (SC-001), crear tres esquemas, moverlos y enfocarlos en menos de 3 min (SC-002), y enfocar un esquema en menos de 1 s (SC-005)
 - [X] T091 [P] Repasar la puerta 8 en todo lo nuevo: JSDoc en español en cada función, componente, acción del almacén y campo, y `///` en los dos campos de Rust
 - [X] T092 [P] Repasar la puerta 6: ningún archivo del lienzo copiado al repositorio, y los tres desvíos deliberados de `research.md` R20 siguen siendo los únicos
 - [X] T093 Pasar las cinco puertas en limpio: `npx tsc --noEmit`, `npm run lint`, `npx vitest run`, `cargo check` y `cargo test`
@@ -444,6 +444,61 @@ lienzo y enfocarlos— está completa salvo el enfoque; tras US5 lo está del to
 2. Con US1 cerrada: una persona con US2 y US6 (`features/schema/`), la otra con
    US3 y US4 (`features/canvas/`); US5 la toma quien acabe antes, porque necesita
    zonas de la una y `fitToContent` de la otra
+
+---
+
+## Medidas del cierre (2026-10-27)
+
+Tomadas con la aplicación en marcha, conducida por el servidor de WebDriver que
+el binario monta con `--features webdriver`.
+
+**T088 · SC-010.** El Editor, el diálogo de esquema y la confirmación de
+eliminar, en tema claro y oscuro y con las reglas de «Reducir movimiento»
+puestas a la fuerza: ningún texto por debajo de su umbral. El mínimo del texto
+de contenido es 5.38:1 («Eliminar esquema», 13 px) y el de los metadatos de 10 u
+11 px, 3.06:1 en claro y 3.28:1 en oscuro. Las reglas de movimiento reducido
+solo tocan duraciones y animaciones, así que el contraste sale igual con ellas.
+
+**T089 · SC-008.** Los 28 controles del Editor —los tres de la ventana, la
+barra lateral entera, las dos zonas que se esconden, el lienzo, las cuatro zonas
+de esquema, las cuatro tablas, la barra de zoom, el minimapa y la barra de
+estado— reciben el foco y sacan su anillo de 2 px; el del campo de texto lo
+dibuja su envoltura con `:focus-within`, y las opciones de menú lo marcan con el
+relleno de acento, en rojo la destructiva. Con teclas: ⌘⌥S y ⌘⌥I esconden y
+devuelven las dos zonas, las flechas mueven la vista, ⇧F10 abre el menú de la
+zona, las flechas lo recorren y Enter elige. Ningún paso sin foco visible.
+
+No se puede comprobar con el recorrido lo que depende de una acción por defecto
+del navegador —tabular y activar un botón con Enter—: las teclas que manda
+llegan con `isTrusted` en falso, así que WebKit corre los manejadores de la
+aplicación pero no las suyas. Por eso la cadena del tabulador se mide por el
+DOM, enfocando cada control en orden.
+
+**T090 · SC-003.** Con `modelo-50-tablas.yaml` abierto (50 tablas, 1 esquema),
+60 pasos por gesto, uno por fotograma:
+
+| Gesto | Respuesta al primero | Trabajo por paso (media / p95 / peor) |
+| ----- | -------------------- | ------------------------------------- |
+| Arrastrar una zona | 33–56 ms | 4 / 5 / 6 ms |
+| Mover la vista | 19–35 ms | 1 / 2 / 2 ms |
+| Zoom con la rueda | 23–41 ms | 1 / 2 / 3 ms |
+
+El trabajo por paso es el manejador más el estilo y la maquetación que arrastra,
+con la lectura forzada para que la maquetación entre en la cuenta: el peor caso,
+6 ms, cabe tres veces en los 16,7 ms de un fotograma de 60.
+
+El ritmo de los fotogramas no llega a 60 en esta máquina, pero no por la
+aplicación: con el Modo de bajo consumo encendido WebKit pinta a unos 30 por
+segundo, y el mismo ritmo sale sin ningún gesto. Medido en los tres monitores:
+28 ms por fotograma en el principal de 144 Hz (36 por segundo) y 33 ms en el
+segundo de 60 Hz y en el interno (30 por segundo), idénticos en reposo y durante
+el gesto. La cifra de 60 queda por medir con el Modo de bajo consumo apagado.
+
+**T090a · SC-001, SC-002 y SC-005.** Crear un esquema son tres pasos —abrir el
+diálogo, escribir el nombre, confirmar— y 114 ms de reloj. Los tres esquemas de
+la demostración, moverlos los tres y enfocar cada uno: 1 768 ms. Enfocar deja la
+zona entera dentro del lienzo y centrada al píxel (dx 0, dy 0) en 47, 55 y
+62 ms.
 
 ---
 

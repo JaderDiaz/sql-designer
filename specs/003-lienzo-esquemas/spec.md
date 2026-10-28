@@ -565,8 +565,8 @@ un modelo de un solo esquema la opción está deshabilitada.
   accesible del control.
 
   Medido el 2026-10-27 con la aplicación en marcha, en los dos temas y en los
-  tres sitios: el mínimo del texto de contenido es 5.6:1 y el de los metadatos,
-  3.06:1 en claro y 3.27:1 en oscuro.
+  tres sitios: el mínimo del texto de contenido es 5.38:1 y el de los metadatos,
+  3.06:1 en claro y 3.28:1 en oscuro.
 
 ## Assumptions
 
