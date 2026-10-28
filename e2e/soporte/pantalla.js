@@ -810,9 +810,101 @@ export async function tablas() {
         },
         seleccionada: el.getAttribute('aria-pressed') === 'true',
         atenuada: el.className.includes('is-dim'),
+        resaltada: el.className.includes('is-hot'),
+        relacionada: el.className.includes('is-linked'),
+        camposMarcados: [...el.querySelectorAll('.sm-field-row[data-hot]')].map((fila) =>
+          (fila.querySelector('.sm-field-name') || {}).textContent,
+        ),
       }
     })
   `)
+}
+
+/**
+ * Las líneas de relación que el lienzo tiene pintadas (FR-013 a FR-015).
+ *
+ * De cada una se devuelve su trazo —el atributo `d`, que es lo único que
+ * `jsdom` no puede firmar y aquí sí se puede leer de la pantalla de verdad—,
+ * su estado de resaltado, si lleva el trazo del flujo y sus etiquetas de
+ * cardinalidad.
+ *
+ * @returns Un objeto por relación, en el orden en que están pintadas.
+ */
+export async function relaciones() {
+  return browser.execute(`
+    return [...document.querySelectorAll('.sm-rel')].map((el) => {
+      const linea = el.querySelector('.sm-rel-line')
+      return {
+        nombre: el.getAttribute('data-relation'),
+        d: linea ? linea.getAttribute('d') : null,
+        estado: el.getAttribute('data-state'),
+        flujo: el.querySelector('.sm-rel-flow') !== null,
+        etiquetas: [...el.querySelectorAll('.sm-rel-label text')].map((t) => t.textContent),
+        color: getComputedStyle(el).getPropertyValue('--rel').trim(),
+      }
+    })
+  `)
+}
+
+/**
+ * Arrastra una tarjeta midiendo cuánto tarda cada cuadro del gesto.
+ *
+ * El arrastre repinta las relaciones que toca dentro del propio
+ * `pointermove`, así que el tiempo de cada `pointermove` **es** el trabajo del
+ * cuadro: con 60 relaciones en el modelo, ninguno puede pasar de los 16 ms del
+ * presupuesto (SC-003, research R6).
+ *
+ * El primer movimiento no cuenta. Es el que cruza el umbral del arrastre y
+ * apunta en el almacén lo que se está moviendo, así que lleva pegado un
+ * render entero del lienzo que no se repite en el resto del gesto.
+ *
+ * @param tabla Nombre técnico de la tabla que se arrastra.
+ * @param dx Desplazamiento en horizontal, en píxeles de pantalla.
+ * @param dy Desplazamiento en vertical.
+ * @param pasos Cuántos cuadros tiene el gesto.
+ * @returns Cuántos cuadros se midieron, su tiempo medio y el peor, en
+ *   milisegundos.
+ */
+export async function arrastrarTablaMidiendo(tabla, dx, dy, pasos = 30) {
+  const guion = `() => {
+    const buscar = ${TARJETA}
+    const el = buscar(${JSON.stringify(tabla)})
+    if (!el) return null
+    const caja = el.getBoundingClientRect()
+    const x = caja.left + caja.width / 2
+    const y = caja.top + caja.height / 2
+    const comun = (cx, cy, botones) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: 1,
+      pointerType: 'mouse',
+      isPrimary: true,
+      button: 0,
+      buttons: botones,
+      clientX: cx,
+      clientY: cy,
+    })
+    el.dispatchEvent(new PointerEvent('pointerdown', comun(x, y, 1)))
+    const tiempos = []
+    for (let paso = 1; paso <= ${pasos}; paso += 1) {
+      const cx = x + (${dx} * paso) / ${pasos}
+      const cy = y + (${dy} * paso) / ${pasos}
+      const antes = performance.now()
+      el.dispatchEvent(new PointerEvent('pointermove', comun(cx, cy, 1)))
+      tiempos.push(performance.now() - antes)
+    }
+    el.dispatchEvent(new PointerEvent('pointerup', comun(x + ${dx}, y + ${dy}, 0)))
+    const cuadros = tiempos.slice(1)
+    const total = cuadros.reduce((suma, uno) => suma + uno, 0)
+    return {
+      cuadros: cuadros.length,
+      media: Math.round((total / cuadros.length) * 100) / 100,
+      peor: Math.round(Math.max(...cuadros) * 100) / 100,
+      arranque: Math.round(tiempos[0] * 100) / 100,
+    }
+  }`
+  return esperar(guion, `No se encontró la tarjeta de «${tabla}».`)
 }
 
 /** Busca una tarjeta de tabla por su nombre técnico, dentro de la página. */
@@ -932,7 +1024,7 @@ export async function menuDeTabla(tabla) {
 }
 
 /**
- * Arrastra el tirador del editor de campos, que cambia su alto (FR-022).
+ * Arrastra el tirador del editor de tabla, que cambia su alto (FR-022).
  *
  * El tirador es un `role="separator"`, no un botón, así que no lo alcanza
  * {@link arrastrar}: este gesto va directo a su nodo.
@@ -966,16 +1058,16 @@ export async function arrastrarTirador(dy) {
     el.dispatchEvent(new PointerEvent('pointerup', comun(y + ${dy}, 0)))
     return true
   }`
-  await esperar(guion, 'No se encontró el tirador del editor de campos.')
+  await esperar(guion, 'No se encontró el tirador del editor de tabla.')
 }
 
-/** Alto del editor de campos, el que anuncia su tirador. */
+/** Alto del editor de tabla, el que anuncia su tirador. */
 export async function altoDelPanel() {
   const guion = `() => {
     const el = document.querySelector('.sm-panel-handle')
     return el ? { alto: Number(el.getAttribute('aria-valuenow')) } : null
   }`
-  const tirador = await esperar(guion, 'No se encontró el tirador del editor de campos.')
+  const tirador = await esperar(guion, 'No se encontró el tirador del editor de tabla.')
   return tirador.alto
 }
 
@@ -1048,6 +1140,65 @@ export async function elegir(etiqueta, opcion) {
       )) === 0,
     { timeout: ESPERA_MS, timeoutMsg: `La lista de «${etiqueta}» no se cerró.` },
   )
+}
+
+/**
+ * Lo que un selector ofrece, sin elegir nada.
+ *
+ * {@link elegir} no sirve para firmar que una opción no se puede elegir: el
+ * primitivo salta las opciones deshabilitadas con las flechas, así que el
+ * gesto acaba en otra y la elige. Esto abre la lista, la lee y la cierra con
+ * Escape, que no cambia nada.
+ *
+ * @param etiqueta Texto accesible del selector.
+ * @returns Una entrada por opción con su texto, su segunda línea y si está
+ *   deshabilitada.
+ */
+export async function opciones(etiqueta) {
+  const abrir = `() => {
+    const nombre = ${NOMBRE}
+    const el = [...${AMBITO}.querySelectorAll('[role="combobox"]')]
+      .filter((e) => e.offsetParent !== null && e.getAttribute('aria-disabled') !== 'true')
+      .find((e) => nombre(e) === ${JSON.stringify(etiqueta)})
+    if (!el) return null
+    el.focus()
+    return true
+  }`
+  await esperar(abrir, `No se encontró el selector «${etiqueta}».`)
+  await browser.keys('Enter')
+
+  const lista = await esperar(
+    `() => {
+      const listas = [...document.querySelectorAll('[role="listbox"]')]
+      const lista = listas[listas.length - 1]
+      if (!lista) return null
+      const opciones = [...lista.querySelectorAll('[role="option"]')]
+      if (opciones.length === 0) return null
+      return {
+        opciones: opciones.map((e) => {
+          const desc = e.querySelector('.au-option-desc')
+          const texto = desc ? e.textContent.replace(desc.textContent, '') : e.textContent
+          return {
+            texto: texto.trim(),
+            descripcion: desc ? desc.textContent.trim() : null,
+            deshabilitada:
+              e.hasAttribute('data-disabled') || e.getAttribute('aria-disabled') === 'true',
+          }
+        }),
+      }
+    }`,
+    `El selector «${etiqueta}» no abrió su lista.`,
+  )
+
+  await browser.keys('Escape')
+  await browser.waitUntil(
+    async () =>
+      (await browser.execute(
+        "return document.querySelectorAll('[data-radix-select-viewport]').length",
+      )) === 0,
+    { timeout: ESPERA_MS, timeoutMsg: `La lista de «${etiqueta}» no se cerró.` },
+  )
+  return lista.opciones
 }
 
 /**

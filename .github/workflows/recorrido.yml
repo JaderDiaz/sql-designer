@@ -1,5 +1,5 @@
-# El recorrido de `specs/002-archivos-modelo/quickstart.md`: los ocho
-# escenarios sobre la aplicación de verdad.
+# El recorrido sobre la aplicación de verdad: los doce escenarios de
+# `e2e/specs/`, uno por cada `quickstart.md` de los incrementos cerrados.
 #
 # Va aparte de las puertas porque es lento: compila el binario con la bandera
 # `webdriver`. Corre en las dos plataformas del producto, y ahí comprueba lo
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   escenarios:
-    name: Los ocho escenarios en ${{ matrix.sistema }}
+    name: El recorrido en ${{ matrix.sistema }}
     runs-on: ${{ matrix.sistema }}
     timeout-minutes: 60
     strategy:

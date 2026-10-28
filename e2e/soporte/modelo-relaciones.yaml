@@ -1,0 +1,108 @@
+formatVersion: 1
+name: Recorrido · Relaciones
+engine: postgres
+schemas:
+  - name: ventas
+    abbreviation: VEN
+    color: blue
+    comment: Pedidos y pagos
+  - name: personas
+    abbreviation: PER
+    color: purple
+tables:
+  - name: pedidos
+    schema: ventas
+    comment: Cabecera del pedido
+    fields:
+      - name: id
+        type: uuid
+        default: gen_random_uuid()
+      - name: cliente_id
+        type: uuid
+      - name: total
+        type: numeric
+        length: 12
+        scale: 2
+    primaryKey:
+      - id
+    position:
+      x: 120
+      y: 168
+  - name: pagos
+    schema: ventas
+    comment: La clave foránea de este pedido no tiene índice
+    fields:
+      - name: id
+        type: uuid
+        default: gen_random_uuid()
+      - name: pedido_id
+        type: uuid
+      - name: importe
+        type: numeric
+        length: 12
+        scale: 2
+    primaryKey:
+      - id
+    position:
+      x: 528
+      y: 168
+  - name: pedido_lineas
+    schema: ventas
+    comment: Llave primaria de dos campos, así que no sirve de destino
+    fields:
+      - name: pedido_id
+        type: uuid
+      - name: linea
+        type: smallint
+      - name: cantidad
+        type: numeric
+        length: 10
+        scale: 3
+    primaryKey:
+      - pedido_id
+      - linea
+    position:
+      x: 528
+      y: 456
+  - name: clientes
+    schema: personas
+    comment: Un cliente puede recomendar a otro
+    fields:
+      - name: id
+        type: uuid
+        default: gen_random_uuid()
+      - name: nombre
+        type: varchar
+        length: 120
+      - name: recomendado_por
+        type: uuid
+        nullable: true
+    primaryKey:
+      - id
+    position:
+      x: 120
+      y: 456
+relations:
+  - name: fk_pagos_pedido_id
+    fromTable: pagos
+    fromFields:
+      - pedido_id
+    toTable: pedidos
+    toFields:
+      - id
+    onDelete: cascade
+  - name: fk_pedidos_cliente_id
+    fromTable: pedidos
+    fromFields:
+      - cliente_id
+    toTable: clientes
+    toFields:
+      - id
+    onDelete: restrict
+  - name: fk_clientes_recomendado_por
+    fromTable: clientes
+    fromFields:
+      - recomendado_por
+    toTable: clientes
+    toFields:
+      - id
