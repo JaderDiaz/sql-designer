@@ -344,7 +344,7 @@ incremento.
 - [X] T107 [P] Repasar la puerta 6: ningún archivo del tablero copiado al repositorio, y los ocho desvíos deliberados de `specs/004-tablas-campos/research.md` R18 —seis de comportamiento y dos de texto— siguen siendo los únicos
 - [X] T108 Pasar las cinco puertas en limpio desde la raíz y desde `src-tauri/`: `npx tsc --noEmit`, `npm run lint`, `npx vitest run`, `cargo check` y `cargo test`
 - [X] T109 Subir la versión del producto a `1.3.0` en `package.json`, `src-tauri/tauri.conf.json` y `src-tauri/Cargo.toml`, y actualizar `README.md` con lo que el Editor hace ahora
-- [ ] T110 Abrir el PR hacia `main`, esperar `.github/workflows/puertas.yml` y `.github/workflows/recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.3.0` sobre el commit que cierra el incremento (constitución, Versión del producto y etiquetas)
+- [X] T110 Abrir el PR hacia `main`, esperar `.github/workflows/puertas.yml` y `.github/workflows/recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.3.0` sobre el commit que cierra el incremento (constitución, Versión del producto y etiquetas)
 
 ---
 
