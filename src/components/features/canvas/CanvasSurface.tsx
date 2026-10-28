@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 
+import { RelationsLayer } from '@/components/features/canvas/RelationsLayer'
+import type { RelationsLayerHandle } from '@/components/features/canvas/RelationsLayer'
 import { SchemaZone } from '@/components/features/canvas/SchemaZone'
 import { TableCard } from '@/components/features/canvas/TableCard'
 import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMenu'
 import { TableContextMenu } from '@/components/features/table/TableContextMenu'
 import { GRID_SNAP, TABLE_WIDTH, tableHeight } from '@/lib/canvas/constants'
 import { schemaZones, zoneAt } from '@/lib/canvas/geometry'
+import { relationLayer } from '@/lib/canvas/relations'
+import { relationsTouching } from '@/lib/model/marks'
 import { toModelPoint } from '@/lib/canvas/zoom'
 import { resolveSchemaColor } from '@/lib/model/colors'
 import { isBlankModel } from '@/lib/model/defaults'
@@ -42,6 +46,9 @@ export interface CanvasSurfaceProps {
   overlay?: ReactNode
   className?: string
 }
+
+/** Conjunto vacío compartido, para no crear uno en cada render. */
+const EMPTY_NAMES: ReadonlySet<string> = new Set<string>()
 
 /** Desde cuántos píxeles de recorrido el gesto cuenta como arrastre. */
 const DRAG_THRESHOLD = 3
@@ -83,15 +90,23 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   const setGesturing = useAppStore((state) => state.setGesturing)
   const moveSchema = useAppStore((state) => state.moveSchema)
   const moveTable = useAppStore((state) => state.moveTable)
+  const route = useAppStore((state) => state.preferences.relationRoute)
+  const relationAnimation = useAppStore((state) => state.preferences.relationAnimation)
 
   const surface = useRef<HTMLDivElement>(null)
   const frame = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const grid = useRef<HTMLDivElement>(null)
   const drag = useRef<DragState | null>(null)
+  // Mando de la capa de relaciones: el arrastre le escribe el `d` de las
+  // líneas que mueve, sin pasar por React (research R6).
+  const relations = useRef<RelationsLayerHandle | null>(null)
   // Qué se arrastra es lo único del gesto que el árbol necesita saber, y solo
   // cambia dos veces: al empezar y al terminar.
   const [dragging, setDragging] = useState<DragTarget | null>(null)
+  // Tabla bajo el cursor o con el foco del teclado, que es lo que resalta su
+  // grupo de relaciones (FR-021, research R7).
+  const [hotTable, setHotTable] = useState<string | null>(null)
 
   // Mover la vista y hacer zoom son del gesto, no de este componente: el
   // lienzo solo le presta sus tres nodos.
@@ -132,6 +147,81 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     const resolved = resolveLayout(model)
     return { layout: resolved, zones: schemaZones(model, resolved) }
   }, [model])
+
+  // Las líneas se componen con la misma dependencia que el layout: mover la
+  // vista no las toca, y arrastrar tampoco, porque el gesto las repinta a
+  // mano (FR-013, FR-019).
+  const lines = useMemo(
+    () => (model === null || isBlankModel(model) ? [] : relationLayer(model, layout, route)),
+    [layout, model, route],
+  )
+
+  /**
+   * Qué está resaltado ahora mismo (FR-021 a FR-023, FR-027).
+   *
+   * Es un solo camino para los dos resaltados del lienzo: el de una tabla
+   * —cursor, foco o selección— y el foco de esquema del Incremento 2, que
+   * antes tenía su propia regla. Mientras hay un gesto en curso no se
+   * resalta nada: arrastrar una tabla pasa el cursor por encima de las
+   * demás, y el diagrama parpadeaba (research R7).
+   */
+  const highlight = useMemo(() => {
+    if (model === null || dragging !== null) return null
+    const schemaOf = new Map((model.tables ?? []).map((table) => [table.name, table.schema]))
+
+    const table = hotTable ?? selectedTable
+    if (table !== null && schemaOf.has(table)) {
+      const touching = relationsTouching(model, { table })
+      const linked = new Set(
+        touching
+          .flatMap((relation) => [relation.fromTable, relation.toTable])
+          .filter((name) => name !== table),
+      )
+      // Los campos que forman cada relación resaltada, por tabla, para
+      // marcarlos en las dos tarjetas (FR-023).
+      const fields = new Map<string, Set<string>>()
+      for (const relation of touching) {
+        for (const [name, own] of [
+          [relation.fromTable, relation.fromFields],
+          [relation.toTable, relation.toFields],
+        ] as const) {
+          const current = fields.get(name) ?? new Set<string>()
+          for (const field of own) current.add(field)
+          fields.set(name, current)
+        }
+      }
+      const schemas = new Set(
+        [table, ...linked].map((name) => schemaOf.get(name)).filter((name) => name !== undefined),
+      )
+      return {
+        hot: new Set([table]),
+        linked,
+        relations: new Set(touching.map((relation) => relation.name)),
+        fields,
+        schemas,
+      }
+    }
+
+    if (focusedSchema !== null) {
+      const own = new Set(
+        (model.tables ?? [])
+          .filter((item) => item.schema === focusedSchema)
+          .map((item) => item.name),
+      )
+      const touching = (model.relations ?? []).filter(
+        (relation) => own.has(relation.fromTable) || own.has(relation.toTable),
+      )
+      return {
+        hot: own,
+        linked: new Set<string>(),
+        relations: new Set(touching.map((relation) => relation.name)),
+        fields: new Map<string, Set<string>>(),
+        schemas: new Set([focusedSchema]),
+      }
+    }
+
+    return null
+  }, [dragging, focusedSchema, hotTable, model, selectedTable])
 
   const tables = model?.tables ?? []
 
@@ -216,6 +306,13 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     current.deltaX = screenX / zoom
     current.deltaY = screenY / zoom
     paintDrag(current.deltaX, current.deltaY)
+    // Las líneas no viven en el grupo que se desplaza con las variables CSS:
+    // un extremo se mueve y el otro no, así que su trazo se vuelve a escribir
+    // aquí mismo, solo el de las relaciones que este gesto toca (research R6).
+    relations.current?.paintRelations(
+      { x: current.deltaX, y: current.deltaY },
+      { kind: current.kind, name: current.name },
+    )
     // Si el gesto llega al borde, la vista sigue a lo que se arrastra, para
     // poder dejarlo fuera de lo que se ve al empezar (US4, escenario 7).
     view.edgeFollow(event.clientX, event.clientY)
@@ -235,6 +332,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     if (current === null || event.pointerId !== current.pointerId) return
     drag.current = null
     paintDrag(0, 0)
+    view.endEdgeFollow()
 
     if (!current.moved) return
     setDragging(null)
@@ -333,7 +431,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
       >
         <div
           ref={stage}
-          className="sm-stage absolute left-0 top-0 origin-top-left"
+          className={`sm-stage sm-anim-${relationAnimation} absolute left-0 top-0 origin-top-left`}
           style={{ transform: `scale(${zoom})` }}
         >
           {zones.map((zone) => {
@@ -345,7 +443,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
                   zone={zone}
                   schema={schema}
                   isSelected={selectedSchema === zone.schema}
-                  isDim={focusedSchema !== null && focusedSchema !== zone.schema}
+                  isDim={highlight !== null && !highlight.schemas.has(zone.schema)}
                   isDragging={dragging?.kind === 'schema' && dragging.name === zone.schema}
                   onPointerDown={(event) => startDrag(event, { kind: 'schema', name: zone.schema })}
                   onPointerMove={continueDrag}
@@ -356,6 +454,18 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
               </SchemaContextMenu>
             )
           })}
+
+          {model === null ? null : (
+            <RelationsLayer
+              model={model}
+              layout={layout}
+              lines={lines}
+              route={route}
+              hot={highlight?.relations ?? EMPTY_NAMES}
+              isDimming={highlight !== null}
+              handle={relations}
+            />
+          )}
 
           {tables.map((table) => {
             const position = layout.get(table.name)
@@ -371,7 +481,14 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
                   color={resolveSchemaColor(schema?.color)}
                   relations={model?.relations ?? []}
                   isSelected={selectedTable === table.name}
-                  isDim={focusedSchema !== null && focusedSchema !== table.schema}
+                  isHot={highlight?.hot.has(table.name) ?? false}
+                  isLinked={highlight?.linked.has(table.name) ?? false}
+                  isDim={
+                    highlight !== null &&
+                    !highlight.hot.has(table.name) &&
+                    !highlight.linked.has(table.name)
+                  }
+                  hotFields={highlight?.fields.get(table.name) ?? EMPTY_NAMES}
                   // La tarjeta acompaña al grupo cuando se arrastra su esquema
                   // y se mueve sola cuando se arrastra ella (FR-026, FR-030).
                   isDragging={
@@ -382,6 +499,18 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
                   }
                   onSelect={() => selectTable(table.name)}
                   onOpenFields={() => openFieldsPanel(table.name)}
+                  // El cursor y el teclado resaltan igual: la tarjeta avisa
+                  // por los cuatro manejadores y el estado es uno (FR-021).
+                  onPointerEnter={() => {
+                    if (drag.current === null) setHotTable(table.name)
+                  }}
+                  onPointerLeave={() => {
+                    setHotTable((current) => (current === table.name ? null : current))
+                  }}
+                  onFocus={() => setHotTable(table.name)}
+                  onBlur={() => {
+                    setHotTable((current) => (current === table.name ? null : current))
+                  }}
                   onPointerDown={(event) => startDrag(event, { kind: 'table', name: table.name })}
                   onPointerMove={continueDrag}
                   onPointerUp={endDrag}

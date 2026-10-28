@@ -24,10 +24,29 @@ export type FieldColumn =
   | 'comment'
   | 'order'
 
-/** Celda enfocada de la rejilla. */
+/** Columnas de la rejilla de claves foráneas, en orden (FR-006). */
+export type ForeignKeyColumn =
+  | 'column'
+  | 'reference'
+  | 'onDelete'
+  | 'onUpdate'
+  | 'index'
+  | 'remove'
+
+/** Fichas del panel inferior (FR-003, research R9). */
+export type PanelTab = 'fields' | 'foreignKeys'
+
+/**
+ * Celda enfocada de una de las dos rejillas del panel.
+ *
+ * En la ficha «Campos», `field` es el nombre del campo; en la de claves
+ * foráneas es el nombre de la relación, que es lo que identifica a su fila.
+ * Las dos rejillas comparten esta celda porque solo una está a la vista
+ * (data-model.md §3).
+ */
 export interface FieldCell {
   field: string
-  column: FieldColumn
+  column: FieldColumn | ForeignKeyColumn
 }
 
 /** Alto mínimo del panel (FR-022). */
@@ -62,10 +81,13 @@ export interface FieldsPanelSlice {
   fieldsPanelHeight: number
   /** Celda enfocada de la rejilla, o `null` (FR-044). */
   focusedCell: FieldCell | null
-  openFieldsPanel: (table?: string, cell?: FieldCell) => void
+  /** Ficha a la vista del panel (FR-003). */
+  panelTab: PanelTab
+  openFieldsPanel: (table?: string, cell?: FieldCell, tab?: PanelTab) => void
   closeFieldsPanel: () => void
   setFieldsPanelHeight: (height: number, commit?: boolean) => void
   focusCell: (cell: FieldCell | null) => void
+  setPanelTab: (tab: PanelTab) => void
 }
 
 /**
@@ -79,6 +101,7 @@ export const createFieldsPanelSlice: AppSlice<FieldsPanelSlice> = (set, get) => 
   fieldsPanelTable: null,
   fieldsPanelHeight: FIELDS_PANEL_DEFAULT_HEIGHT,
   focusedCell: null,
+  panelTab: 'fields',
 
   /**
    * Abre el panel sobre una tabla y, si se dice, enfoca una celda (FR-007,
@@ -86,14 +109,16 @@ export const createFieldsPanelSlice: AppSlice<FieldsPanelSlice> = (set, get) => 
    *
    * @param table Tabla que mostrar; sin ella, la seleccionada.
    * @param cell Celda que enfocar al abrir.
+   * @param tab Ficha en la que abrirse; sin ella, «Campos» (FR-003).
    */
-  openFieldsPanel(table, cell) {
+  openFieldsPanel(table, cell, tab) {
     const name = table ?? get().selectedTable
     if (name === null) return
     set({
       isFieldsPanelOpen: true,
       fieldsPanelTable: name,
       focusedCell: cell ?? null,
+      panelTab: tab ?? 'fields',
       selectedTable: name,
       selectedSchema: null,
     })
@@ -124,5 +149,18 @@ export const createFieldsPanelSlice: AppSlice<FieldsPanelSlice> = (set, get) => 
    */
   focusCell(cell) {
     set({ focusedCell: cell })
+  },
+
+  /**
+   * Cambia de ficha y suelta el foco (FR-003).
+   *
+   * El foco se suelta porque la celda enfocada es de la rejilla que se va: la
+   * ficha nueva enfoca la suya cuando el usuario entra en ella.
+   *
+   * @param tab Ficha que mostrar.
+   */
+  setPanelTab(tab) {
+    if (get().panelTab === tab) return
+    set({ panelTab: tab, focusedCell: null })
   },
 })

@@ -7,6 +7,7 @@ import { createModelSlice } from '@/store/model'
 import { createNavigationSlice } from '@/store/navigation'
 import { createPreferencesSlice } from '@/store/preferences'
 import { createRecentsSlice } from '@/store/recents'
+import { createRelationsSlice } from '@/store/relations'
 import { createSchemasSlice } from '@/store/schemas'
 import { createTablesSlice } from '@/store/tables'
 import type { AppState } from '@/store/types'
@@ -24,6 +25,7 @@ export const useAppStore = create<AppState>()((...args) => ({
   ...createSchemasSlice(...args),
   ...createTablesSlice(...args),
   ...createFieldsPanelSlice(...args),
+  ...createRelationsSlice(...args),
   ...createCanvasSlice(...args),
   ...createBrowserSlice(...args),
   ...createRecentsSlice(...args),

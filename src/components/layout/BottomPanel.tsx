@@ -2,35 +2,58 @@ import { useRef } from 'react'
 import type { ReactNode } from 'react'
 
 import { Button } from '@/components/ui/Button'
+import { Tabs } from '@/components/ui/Tabs'
+import type { TabItem } from '@/components/ui/Tabs'
 import {
   FIELDS_PANEL_MAX_HEIGHT,
   FIELDS_PANEL_MIN_HEIGHT,
   FIELDS_PANEL_STEP,
 } from '@/store/fieldsPanel'
+import type { PanelTab } from '@/store/fieldsPanel'
 import { useAppStore } from '@/store'
+import type { Table } from '@/lib/model/types'
 
 /**
- * Marco del panel inferior del Editor (FR-022, FR-023).
+ * Marco del panel inferior del Editor, con sus dos fichas (FR-003, FR-022,
+ * FR-023).
  *
  * El panel cede su alto al lienzo: va debajo de él y encima de la barra de
  * estado, así que al abrirlo el lienzo se encoge y al cerrarlo lo recupera,
  * sin que la barra lateral ni el inspector se muevan.
  *
- * El tirador es un `role="separator"` enfocable: con el puntero sigue el
- * gesto y con el teclado cambia el alto en pasos de 24 px. La preferencia se
- * escribe al soltar, no en cada `pointermove` (contracts/tables.md §2.3).
+ * Desde el Incremento 4 es el «Editor de tabla» y no solo el de campos: la
+ * lista de fichas vive aquí, y el contenido de la que esté activa lo decide
+ * quien usa el panel. El tirador es un `role="separator"` enfocable: con el
+ * puntero sigue el gesto y con el teclado cambia el alto en pasos de 24 px, y
+ * la preferencia se escribe al soltar, no en cada `pointermove`
+ * (contracts/tables.md §2.3).
  */
 
 /** Props del panel. */
 export interface BottomPanelProps {
-  /** Contenido del panel: la cabecera y la rejilla de campos. */
+  /** Tabla abierta; de ella salen los dos contadores de las fichas. */
+  table: Table
+  /** Contenido de la ficha activa. */
   children: ReactNode
 }
 
-export function BottomPanel({ children }: BottomPanelProps) {
+export function BottomPanel({ table, children }: BottomPanelProps) {
   const height = useAppStore((state) => state.fieldsPanelHeight)
   const setHeight = useAppStore((state) => state.setFieldsPanelHeight)
   const closeFieldsPanel = useAppStore((state) => state.closeFieldsPanel)
+  const panelTab = useAppStore((state) => state.panelTab)
+  const setPanelTab = useAppStore((state) => state.setPanelTab)
+  const relations = useAppStore((state) => state.model?.relations)
+
+  /** Las dos fichas con su contador (FR-034). */
+  const items: Array<TabItem<PanelTab>> = [
+    { value: 'fields', label: 'Campos', count: table.fields.length },
+    {
+      value: 'foreignKeys',
+      label: 'Claves foráneas',
+      count: (relations ?? []).filter((relation) => relation.fromTable === table.name).length,
+    },
+  ]
 
   /**
    * Gesto del tirador: dónde empezó, con qué alto y el último que calculó.
@@ -86,14 +109,10 @@ export function BottomPanel({ children }: BottomPanelProps) {
   }
 
   return (
-    <section
-      aria-label="Editor de campos"
-      className="sm-fields-panel relative"
-      style={{ height }}
-    >
+    <section aria-label="Editor de tabla" className="sm-fields-panel relative" style={{ height }}>
       <div
         role="separator"
-        aria-label="Cambiar el alto del editor de campos"
+        aria-label="Cambiar el alto del editor de tabla"
         aria-orientation="horizontal"
         aria-valuenow={height}
         aria-valuemin={FIELDS_PANEL_MIN_HEIGHT}
@@ -107,12 +126,21 @@ export function BottomPanel({ children }: BottomPanelProps) {
         onKeyDown={onKeyDown}
       />
 
+      <div className="sm-panel-tabs">
+        <Tabs
+          value={panelTab}
+          onValueChange={setPanelTab}
+          items={items}
+          label="Secciones de la tabla"
+        />
+      </div>
+
       <div className="flex min-h-0 flex-1 flex-col">{children}</div>
 
       <Button
         icon="x"
         size="sm"
-        aria-label="Cerrar el editor de campos"
+        aria-label="Cerrar el editor de tabla"
         className="absolute right-2 top-2"
         onClick={closeFieldsPanel}
       />

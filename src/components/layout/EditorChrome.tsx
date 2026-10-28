@@ -58,6 +58,7 @@ export function EditorChrome() {
   const isFieldsPanelOpen = useAppStore((state) => state.isFieldsPanelOpen)
   const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
   const closeFieldsPanel = useAppStore((state) => state.closeFieldsPanel)
+  const requestForeignKey = useAppStore((state) => state.requestForeignKey)
   const isSidebarHidden = useAppStore((state) => state.isSidebarHidden)
   const isInspectorHidden = useAppStore((state) => state.isInspectorHidden)
   const toggleSidebar = useAppStore((state) => state.toggleSidebar)
@@ -133,6 +134,14 @@ export function EditorChrome() {
           Tabla
         </Button>
         <Button
+          icon="git-merge"
+          aria-label="Relación"
+          title={`Nueva relación (${shortcutLabel(platform, 'R')})`}
+          onClick={() => requestForeignKey()}
+        >
+          Relación
+        </Button>
+        <Button
           variant="plain"
           icon="layers"
           aria-label="Nuevo esquema"
@@ -142,7 +151,7 @@ export function EditorChrome() {
         <Button
           variant="plain"
           icon="table-properties"
-          aria-label={isFieldsPanelOpen ? 'Cerrar el editor de campos' : 'Editar campos'}
+          aria-label={isFieldsPanelOpen ? 'Cerrar el editor de tabla' : 'Editar campos'}
           aria-pressed={isFieldsPanelOpen}
           title={`Editar campos (${layoutShortcut(platform, 'E')})`}
           disabled={selectedTable === null && !isFieldsPanelOpen}

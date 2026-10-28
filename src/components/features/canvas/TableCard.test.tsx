@@ -144,6 +144,23 @@ describe('TableCard', () => {
     expect(rows[3]?.querySelector('.sm-field-mark-space')).not.toBeNull()
   })
 
+  it('la tabla resaltada y la relacionada llevan clases distintas (FR-021, FR-022)', () => {
+    const { container } = renderCard({ isHot: true })
+    expect(container.querySelector('.sm-table')?.className).toContain('is-hot')
+
+    const linked = renderCard({ isLinked: true })
+    expect(linked.container.querySelector('.sm-table')?.className).toContain('is-linked')
+  })
+
+  it('marca los campos de las relaciones resaltadas (FR-023)', () => {
+    const { container } = renderCard({ hotFields: new Set(['cliente_id']) })
+
+    const marked = Array.from(container.querySelectorAll('.sm-field-row[data-hot]')).map(
+      (row) => row.querySelector('.sm-field-name')?.textContent,
+    )
+    expect(marked).toEqual(['cliente_id'])
+  })
+
   it('sin relaciones, el campo deja de ser clave foránea (FR-025)', () => {
     renderCard({ relations: [] })
 

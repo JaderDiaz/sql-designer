@@ -244,6 +244,82 @@
   color: var(--label);
 }
 
+/* ---------- Tabs ---------- */
+/* Lista de fichas del panel inferior, con el aspecto del segmentado (R9). */
+.au-tabs-list {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+}
+.au-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  height: 24px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font: 500 12px/1 var(--font-sans);
+  color: var(--label-secondary);
+  cursor: default;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    color var(--duration-fast) var(--easing-standard);
+}
+.au-tab:hover {
+  color: var(--label);
+}
+.au-tab[data-state='active'] {
+  background: var(--bg-control);
+  box-shadow: var(--shadow-control);
+  color: var(--label);
+}
+.au-tab:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+/*
+ * El contador va en secundario y no en terciario: a 12 px es texto de
+ * contenido, y el terciario se queda en 3,4:1 contra el fondo del panel, por
+ * debajo del 4,5:1 que pide SC-010.
+ */
+.au-tab-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--label-secondary);
+}
+.au-tab[data-state='active'] .au-tab-count {
+  color: var(--label);
+}
+
+/* ---------- Badge ---------- */
+.au-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  font: 500 11px/1 var(--font-sans);
+  white-space: nowrap;
+}
+.au-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: currentColor;
+}
+.au-badge-green {
+  background: var(--success-soft);
+  color: var(--success-text);
+}
+.au-badge-orange {
+  background: var(--warning-soft);
+  color: var(--warning-text);
+}
+
 /* ---------- Toast ---------- */
 /* Píldora de cristal abajo al centro, como el aviso del lienzo. */
 .au-pill {

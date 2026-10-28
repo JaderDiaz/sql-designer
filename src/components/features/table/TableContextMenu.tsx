@@ -42,6 +42,7 @@ export function TableContextMenu({ table, openOnClick, children }: TableContextM
   const openDeleteTableDialog = useAppStore((state) => state.openDeleteTableDialog)
   const duplicateTable = useAppStore((state) => state.duplicateTable)
   const selectTable = useAppStore((state) => state.selectTable)
+  const requestForeignKey = useAppStore((state) => state.requestForeignKey)
 
   const { alt } = platform.modifierSymbols
   const others = (model?.schemas ?? []).filter((schema) => schema.name !== table.schema)
@@ -59,6 +60,13 @@ export function TableContextMenu({ table, openOnClick, children }: TableContextM
         </Kbd>
       ),
       onSelect: () => openFieldsPanel(table.name),
+    },
+    {
+      id: 'foreign-key',
+      label: 'Nueva clave foránea…',
+      icon: 'key-round',
+      shortcut: <Kbd>{shortcutLabel(platform, 'R')}</Kbd>,
+      onSelect: () => requestForeignKey(table.name),
     },
     {
       id: 'move',

@@ -240,6 +240,14 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       needsCenter: true,
       focusedSchema: null,
       selectedSchema: null,
+      // El modelo que entra no tiene nada seleccionado ni abierto: la tabla
+      // elegida en el anterior ya no existe, y «Relación» o la tecla `R`
+      // acababan pidiendo la clave foránea de una tabla que no está (FR-002).
+      selectedTable: null,
+      isFieldsPanelOpen: false,
+      fieldsPanelTable: null,
+      focusedCell: null,
+      panelTab: 'fields',
     })
 
     await Promise.all([
@@ -345,6 +353,14 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       needsCenter: true,
       focusedSchema: null,
       selectedSchema: null,
+      // El modelo que entra no tiene nada seleccionado ni abierto: la tabla
+      // elegida en el anterior ya no existe, y «Relación» o la tecla `R`
+      // acababan pidiendo la clave foránea de una tabla que no está (FR-002).
+      selectedTable: null,
+      isFieldsPanelOpen: false,
+      fieldsPanelTable: null,
+      focusedCell: null,
+      panelTab: 'fields',
     })
 
     await Promise.all([
@@ -512,6 +528,14 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       needsCenter: true,
       focusedSchema: null,
       selectedSchema: null,
+      // El modelo que entra no tiene nada seleccionado ni abierto: la tabla
+      // elegida en el anterior ya no existe, y «Relación» o la tecla `R`
+      // acababan pidiendo la clave foránea de una tabla que no está (FR-002).
+      selectedTable: null,
+      isFieldsPanelOpen: false,
+      fieldsPanelTable: null,
+      focusedCell: null,
+      panelTab: 'fields',
     })
   },
 

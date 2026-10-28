@@ -8,6 +8,7 @@ import { readFixture } from '@/lib/model/__fixtures__'
 import { parseModel } from '@/lib/model/parse'
 import type { Model } from '@/lib/model/types'
 import { useAppStore } from '@/store'
+import { addForeignKeyNotice } from '@/store/relations'
 import { MACOS, resetStore } from '@/test/helpers'
 
 /**
@@ -117,6 +118,21 @@ describe('TableContextMenu', () => {
     const item = await screen.findByRole('menuitem', { name: 'Mover a esquema' })
     expect(item).toHaveAttribute('data-disabled')
     expect(NO_OTHER_SCHEMA).toBe('Este modelo solo tiene un esquema')
+  })
+
+  it('«Nueva clave foránea…» abre la ficha con esa tabla (FR-001)', async () => {
+    open()
+
+    fireEvent.contextMenu(card())
+    await userEvent.click(
+      await screen.findByRole('menuitem', { name: /^Nueva clave foránea…/ }),
+    )
+
+    const state = useAppStore.getState()
+    expect(state.isFieldsPanelOpen).toBe(true)
+    expect(state.fieldsPanelTable).toBe('facturas')
+    expect(state.panelTab).toBe('foreignKeys')
+    expect(state.notice).toBe(addForeignKeyNotice('facturas'))
   })
 
   it('abrir el menú selecciona la tabla, para que el inspector la mire (FR-007a)', async () => {

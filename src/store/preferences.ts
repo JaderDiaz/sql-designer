@@ -13,6 +13,8 @@ import type {
   PlatformInfo,
   Preferences,
   RecoveredReason,
+  RelationAnimation,
+  RelationRoute,
   ThemePreference,
 } from '@/lib/tauri/types'
 import type { AppSlice } from '@/store/types'
@@ -37,6 +39,9 @@ export const DEFAULT_PREFERENCES: Preferences = {
   inspectorHidden: false,
   snapToGrid: false,
   fieldsPanelHeight: 320,
+  relationRoute: 'orthogonal',
+  relationAnimation: 'subtle',
+  foreignKeyPattern: '{tabla}_{pk}',
 }
 
 /**
@@ -87,6 +92,8 @@ export interface PreferencesSlice {
   setTheme: (theme: ThemePreference) => Promise<void>
   setShowWelcomeOnStart: (value: boolean) => Promise<void>
   setSnapToGrid: (value: boolean) => Promise<void>
+  setRelationRoute: (route: RelationRoute) => Promise<void>
+  setRelationAnimation: (animation: RelationAnimation) => Promise<void>
   setSystemPrefersDark: (value: boolean) => void
   openPreferences: () => void
   closePreferences: () => void
@@ -205,6 +212,53 @@ export const createPreferencesSlice: AppSlice<PreferencesSlice> = (set, get) => 
           error instanceof CommandError
             ? `No se pudo guardar la preferencia: ${error.message}`
             : 'No se pudo guardar la preferencia.',
+      })
+    }
+  },
+
+  /**
+   * Cambia el trazado de las relaciones y lo persiste (FR-017).
+   *
+   * Se escribe al cambiar el control, sin esperar a cerrar Ajustes, para que
+   * las líneas del lienzo cambien mientras la ventana sigue abierta.
+   *
+   * @param route Trazado elegido.
+   */
+  async setRelationRoute(route) {
+    const previous = get().preferences
+    set({ preferences: { ...previous, relationRoute: route }, writeError: null })
+    try {
+      const saved = await preferencesUpdate({ relationRoute: route })
+      set({ preferences: saved })
+    } catch (error) {
+      set({
+        preferences: previous,
+        writeError:
+          error instanceof CommandError
+            ? `No se pudo guardar el trazado: ${error.message}`
+            : 'No se pudo guardar el trazado.',
+      })
+    }
+  },
+
+  /**
+   * Cambia la animación de las relaciones y la persiste (FR-024).
+   *
+   * @param animation Animación elegida.
+   */
+  async setRelationAnimation(animation) {
+    const previous = get().preferences
+    set({ preferences: { ...previous, relationAnimation: animation }, writeError: null })
+    try {
+      const saved = await preferencesUpdate({ relationAnimation: animation })
+      set({ preferences: saved })
+    } catch (error) {
+      set({
+        preferences: previous,
+        writeError:
+          error instanceof CommandError
+            ? `No se pudo guardar la animación: ${error.message}`
+            : 'No se pudo guardar la animación.',
       })
     }
   },

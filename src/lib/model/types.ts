@@ -28,11 +28,45 @@ export const TECHNICAL_NAME_PATTERN = /^[a-z_][a-z0-9_]*$/
 /** Forma de la abreviatura de un esquema: tres letras mayúsculas (RS-04). */
 export const ABBREVIATION_PATTERN = /^[A-Z]{3}$/
 
-/** Qué hace el motor con las filas dependientes. */
-export type ReferentialAction = 'cascade' | 'restrict' | 'set_null' | 'no_action'
+/**
+ * Qué hace el motor con las filas dependientes.
+ *
+ * El valor por defecto sigue siendo `no_action`, así que un archivo que no
+ * declara la acción se lee igual que antes. `set_default` entra en el
+ * Incremento 4 y **no** sube {@link FORMAT_VERSION}: ampliar los valores que
+ * un campo admite no rompe a un lector viejo que ya validaba el enum, y
+ * cualquier archivo escrito antes sigue siendo válido (research R11, FR-028).
+ */
+export type ReferentialAction =
+  | 'cascade'
+  | 'restrict'
+  | 'set_null'
+  | 'set_default'
+  | 'no_action'
 
 /** Acción referencial por defecto cuando el archivo no la declara. */
 export const DEFAULT_REFERENTIAL_ACTION: ReferentialAction = 'no_action'
+
+/**
+ * Acciones referenciales válidas, en el orden en que se ofrecen al usuario
+ * (FR-028). Las usan el validador y los selectores de la ficha.
+ */
+export const REFERENTIAL_ACTIONS: ReferentialAction[] = [
+  'no_action',
+  'restrict',
+  'cascade',
+  'set_null',
+  'set_default',
+]
+
+/** Las acciones tal como se escriben en SQL, que es como se muestran. */
+export const REFERENTIAL_ACTION_LABELS: Record<ReferentialAction, string> = {
+  no_action: 'NO ACTION',
+  restrict: 'RESTRICT',
+  cascade: 'CASCADE',
+  set_null: 'SET NULL',
+  set_default: 'SET DEFAULT',
+}
 
 /** Esquema del modelo; un modelo puede no tener ninguno (FR-005a). */
 export interface Schema {

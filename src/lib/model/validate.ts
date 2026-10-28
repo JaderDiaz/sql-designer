@@ -3,6 +3,7 @@ import {
   ENGINES,
   FORMAT_VERSION,
   NAME_MAX_LENGTH,
+  REFERENTIAL_ACTIONS,
   TABLE_COMMENT_MAX_LENGTH,
   TECHNICAL_NAME_MAX_LENGTH,
   TECHNICAL_NAME_PATTERN,
@@ -59,8 +60,6 @@ const ALLOWED_KEYS = {
   view: ['name', 'schema', 'tables', 'comment'],
 } as const
 
-/** Acciones referenciales aceptadas. */
-const REFERENTIAL_ACTIONS = ['cascade', 'restrict', 'set_null', 'no_action']
 
 /**
  * Escribe una ruta de valores como la ve el usuario.
@@ -434,6 +433,9 @@ function validateRelation(
     'El nombre de la relación',
   )
 
+  // Cuántos campos declara cada lado, para comprobar después que miden igual.
+  const sizes: Record<'from' | 'to', number> = { from: 0, to: 0 }
+
   for (const side of ['from', 'to'] as const) {
     const tableKey = side === 'from' ? 'fromTable' : 'toTable'
     const fieldsKey = side === 'from' ? 'fromFields' : 'toFields'
@@ -444,6 +446,7 @@ function validateRelation(
       `«${tableKey}»`,
     )
     const fieldNames = technicalNameList(report, record[fieldsKey], [...path, fieldsKey], `«${fieldsKey}»`)
+    sizes[side] = fieldNames.length
     if (tableName === null) continue
     const tableFields = tables.get(tableName)
     if (tableFields === undefined) {
@@ -460,10 +463,18 @@ function validateRelation(
     })
   }
 
+  // Una relación une campo con campo: los dos lados tienen que medir lo mismo
+  // o no hay manera de saber qué campo referencia a cuál (data-model.md §6,
+  // invariante 1).
+  if (sizes.from !== sizes.to && sizes.from > 0 && sizes.to > 0) {
+    report.add([...path, 'toFields'], 'Una relación tiene que referenciar tantos campos como lleva.')
+  }
+
   for (const key of ['onDelete', 'onUpdate'] as const) {
     const action = record[key]
     if (action === undefined) continue
-    if (typeof action !== 'string' || !REFERENTIAL_ACTIONS.includes(action)) {
+    const known = REFERENTIAL_ACTIONS.some((valid) => valid === action)
+    if (typeof action !== 'string' || !known) {
       report.add([...path, key], `«${key}» admite ${REFERENTIAL_ACTIONS.join(', ')}.`)
     }
   }

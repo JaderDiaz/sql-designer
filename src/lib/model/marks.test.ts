@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { fieldMarks, foreignKeyOf, relationCardinality, relationsTouching } from '@/lib/model/marks'
+import {
+  cardinalityOf,
+  fieldMarks,
+  foreignKeyOf,
+  relationCardinality,
+  relationsTouching,
+} from '@/lib/model/marks'
 import type { Model, Relation, Table } from '@/lib/model/types'
 
 /** Tabla de prueba con las llaves que se le pasen. */
@@ -220,5 +226,81 @@ describe('relationCardinality', () => {
 
   it('una relación cuya tabla no está en el modelo no rompe la lectura', () => {
     expect(relationCardinality(model(), relation({ fromTable: 'otra' }))).toBe('Uno a muchos')
+  })
+})
+
+describe('cardinalityOf (FR-014, SC-011)', () => {
+  /** Modelo con la tabla de prueba tal como se le pase y una relación. */
+  function model(extra: Partial<Table> = {}): Model {
+    return {
+      formatVersion: 1,
+      name: 'Prueba',
+      engine: 'postgres',
+      schemas: [{ name: 'ventas', abbreviation: 'VEN' }],
+      tables: [tableWith(extra)],
+      relations: [relation()],
+    }
+  }
+
+  /** La tabla de prueba con `articulo_id` admitiendo nulos. */
+  function withNulls(extra: Partial<Table> = {}): Partial<Table> {
+    return {
+      ...extra,
+      fields: tableWith().fields.map((field) =>
+        field.name === 'articulo_id' ? { ...field, nullable: true } : field,
+      ),
+    }
+  }
+
+  const unique = { name: 'uq_lineas_articulo', fields: ['articulo_id'] }
+
+  it('obligatoria y no única: uno a muchos', () => {
+    expect(cardinalityOf(model(), relation())).toEqual({ from: 'one', to: 'many' })
+  })
+
+  it('con nulos: uno a cero o muchos', () => {
+    expect(cardinalityOf(model(withNulls()), relation())).toEqual({
+      from: 'one',
+      to: 'zero-or-many',
+    })
+  })
+
+  it('única y obligatoria: uno a uno', () => {
+    expect(cardinalityOf(model({ uniques: [unique] }), relation())).toEqual({
+      from: 'one',
+      to: 'one',
+    })
+  })
+
+  it('única y con nulos: uno a cero o uno', () => {
+    expect(cardinalityOf(model(withNulls({ uniques: [unique] })), relation())).toEqual({
+      from: 'one',
+      to: 'zero-or-one',
+    })
+  })
+
+  it('el texto del inspector y el dato salen de la misma función', () => {
+    // SC-011: si `relationCardinality` dedujera por su cuenta, el glifo del
+    // lienzo y el texto podrían decir cosas distintas. Las cuatro lecturas se
+    // comprueban contra el mismo dato.
+    const cases: Array<[Partial<Table>, string]> = [
+      [{}, 'Uno a muchos'],
+      [withNulls(), 'Uno a cero o muchos'],
+      [{ uniques: [unique] }, 'Uno a uno'],
+      [withNulls({ uniques: [unique] }), 'Uno a cero o uno'],
+    ]
+    const labels: Record<string, string> = {
+      many: 'muchos',
+      'zero-or-many': 'cero o muchos',
+      one: 'uno',
+      'zero-or-one': 'cero o uno',
+    }
+
+    for (const [extra, text] of cases) {
+      const current = model(extra)
+      const data = cardinalityOf(current, relation())
+      expect(relationCardinality(current, relation())).toBe(text)
+      expect(text).toBe(`Uno a ${labels[data.to]}`)
+    }
   })
 })
