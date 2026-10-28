@@ -1012,7 +1012,13 @@ export async function elegir(etiqueta, opcion) {
       const opciones = [...lista.querySelectorAll('[role="option"]')]
       if (opciones.length === 0) return null
       return {
-        textos: opciones.map((e) => e.textContent.trim()),
+        // Una opción puede llevar segunda línea; lo que se elige es la
+        // primera, así que la descripción no entra en el texto.
+        textos: opciones.map((e) => {
+          const desc = e.querySelector('.au-option-desc')
+          const texto = desc ? e.textContent.replace(desc.textContent, '') : e.textContent
+          return texto.trim()
+        }),
         marcada: opciones.findIndex(
           (e) => e.hasAttribute('data-highlighted') || e.getAttribute('aria-selected') === 'true',
         ),

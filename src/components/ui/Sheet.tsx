@@ -1,5 +1,5 @@
 import * as RadixDialog from '@radix-ui/react-dialog'
-import type { KeyboardEvent, ReactNode } from 'react'
+import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
 
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { cn } from '@/lib/cn'
@@ -15,6 +15,8 @@ export interface SheetProps {
   icon?: IconName
   /** Clase del cuadro del icono, para su color de fondo. */
   iconClassName?: string
+  /** Estilo del cuadro del icono, para pasarle el color de un esquema. */
+  iconStyle?: CSSProperties
   /** Clase del icono, para su color; por defecto el azul del sistema. */
   iconColorClassName?: string
   /** Ancho en píxeles, como lo fija el lienzo para cada hoja. */
@@ -69,6 +71,7 @@ export function Sheet({
   description,
   icon,
   iconClassName,
+  iconStyle,
   iconColorClassName = 'text-blue',
   width = 440,
   footer,
@@ -85,6 +88,7 @@ export function Sheet({
               'flex h-9 w-9 flex-none items-center justify-center rounded-md',
               iconClassName ?? 'bg-accent-soft',
             )}
+            style={iconStyle}
           >
             <Icon name={icon} size={18} className={iconColorClassName} />
           </span>

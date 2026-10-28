@@ -43,7 +43,7 @@ export function FieldTemplatesMenu({ table }: FieldTemplatesMenuProps) {
   })
 
   return (
-    <Menu actions={actions} title="Grupos de campos comunes" side="top">
+    <Menu actions={actions} title="Grupos de campos comunes">
       <Button size="sm" icon="layout-template" aria-label="Plantillas de campos">
         Plantillas
       </Button>

@@ -56,11 +56,45 @@ describe('CanvasSurface con el modelo en blanco', () => {
   })
 })
 
+describe('CanvasSurface con mandos encima', () => {
+  it('el doble clic en un mando del lienzo no abre Nueva tabla (FR-006)', async () => {
+    const result = parseModel(readFixture('modelo-tres-esquemas'))
+    if (!result.ok) throw new Error('el ejemplo no es un modelo válido')
+    resetStore()
+    act(() => {
+      useAppStore.setState({ screen: 'editor', model: result.model, savedModel: result.model })
+    })
+    render(
+      <CanvasSurface
+        overlay={
+          <button type="button" className="sm-zoombar">
+            Acercar
+          </button>
+        }
+      />,
+    )
+
+    await userEvent.dblClick(screen.getByRole('button', { name: 'Acercar' }))
+
+    expect(useAppStore.getState().dialog).toBeNull()
+  })
+
+  it('el doble clic en el fondo sí la abre (FR-006)', async () => {
+    renderCanvas()
+
+    await userEvent.dblClick(screen.getByRole('button', { name: /^Esquema VEN · ventas,/ }))
+
+    expect(useAppStore.getState().dialog).toBe('table')
+  })
+})
+
 describe('CanvasSurface', () => {
   beforeEach(() => renderCanvas())
 
   it('dibuja una zona por esquema y una tarjeta por tabla (FR-023)', () => {
-    expect(screen.getByRole('button', { name: /^Esquema VEN · ventas, 2 tablas$/ })).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /^Esquema VEN · ventas, 2 tablas$/ }),
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: /^Esquema REP · reportes, sin tablas$/ }),
     ).toBeInTheDocument()

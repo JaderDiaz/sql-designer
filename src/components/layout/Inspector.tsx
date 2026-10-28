@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 
 import { TableContextMenu } from '@/components/features/table/TableContextMenu'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
@@ -7,7 +7,8 @@ import { Icon } from '@/components/ui/Icon'
 import { Select } from '@/components/ui/Select'
 import { TextArea } from '@/components/ui/TextArea'
 import { TextField } from '@/components/ui/TextField'
-import { fieldMarks, relationsTouching } from '@/lib/model/marks'
+import { resolveSchemaColor } from '@/lib/model/colors'
+import { fieldMarks, relationCardinality, relationsTouching } from '@/lib/model/marks'
 import { ENGINE_LABELS, TABLE_COMMENT_MAX_LENGTH, TECHNICAL_NAME_PATTERN } from '@/lib/model/types'
 import type { Model, Table } from '@/lib/model/types'
 import { isMacOS } from '@/lib/platform'
@@ -48,6 +49,16 @@ export function takenNameMessage(name: string): string {
 }
 
 /** Una cifra de la rejilla de resumen del modelo. */
+/**
+ * Cuántas tablas tiene un esquema, como segunda línea de su opción.
+ *
+ * @param count Tablas del esquema.
+ */
+function schemaCountLabel(count: number): string {
+  if (count === 0) return 'sin tablas'
+  return count === 1 ? '1 tabla' : `${count} tablas`
+}
+
 function Kpi({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
@@ -106,7 +117,8 @@ function TableSheet({ table, model }: { table: Table; model: Model }) {
         <div className="flex items-start gap-2.5">
           <span
             aria-hidden="true"
-            className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-indigo-soft"
+            className="sm-schema-chip flex h-9 w-9 flex-none items-center justify-center rounded-lg"
+            style={{ '--zone': `var(--${resolveSchemaColor(schema?.color)})` } as CSSProperties}
           >
             <Icon name="table-2" size={18} />
           </span>
@@ -146,6 +158,11 @@ function TableSheet({ table, model }: { table: Table; model: Model }) {
             options={model.schemas.map((item) => ({
               value: item.name,
               label: `${item.abbreviation} · ${item.name}`,
+              icon: 'layers' as const,
+              tint: resolveSchemaColor(item.color),
+              description: schemaCountLabel(
+                (model.tables ?? []).filter((other) => other.schema === item.name).length,
+              ),
             }))}
             onValueChange={(value) => setTableSchema(table.name, value)}
           />
@@ -237,13 +254,15 @@ function TableSheet({ table, model }: { table: Table; model: Model }) {
         ) : (
           <ul className="m-0 flex list-none flex-col gap-1 p-0">
             {relations.map((relation) => (
-              <li key={relation.name} className="flex items-center gap-1.5">
-                <Icon name="git-merge" size={13} className="flex-none text-label-tertiary" />
-                <span className="min-w-0 flex-1 truncate font-mono text-[11px] leading-[15px]">
-                  {relation.name}
+              <li key={relation.name} className="flex items-center gap-2" title={relation.name}>
+                <Icon name="git-merge" size={14} className="flex-none text-indigo" />
+                {/* La relación se lee de la tabla referenciada a la que lleva
+                    la llave foránea, como en el lienzo de diseño. */}
+                <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] leading-4">
+                  {relation.toTable} → {relation.fromTable}
                 </span>
-                <span className="flex-none text-[10px] leading-[13px] text-label-secondary">
-                  {relation.fromTable === table.name ? relation.toTable : relation.fromTable}
+                <span className="flex-none text-[11px] leading-[14px] text-label-secondary">
+                  {relationCardinality(model, relation)}
                 </span>
               </li>
             ))}

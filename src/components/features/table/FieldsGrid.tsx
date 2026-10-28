@@ -394,6 +394,9 @@ function FieldRow({
       <div role="row" className="sm-grid-row" data-focused={isFocusedRow ? '' : undefined}>
         <span
           {...cell('key')}
+          // La celda dice qué marca lleva para que la pastilla salga del color
+          // de la marca, igual que en la tarjeta del lienzo (FR-025, FR-047).
+          data-mark={mark ?? ''}
           title={relation === null ? undefined : usedByRelationMessage(relation)}
         >
           {mark === 'FK' ? (

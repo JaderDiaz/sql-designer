@@ -7,6 +7,7 @@ import { TableContextMenu } from '@/components/features/table/TableContextMenu'
 import { GRID_SNAP, TABLE_WIDTH, tableHeight } from '@/lib/canvas/constants'
 import { schemaZones, zoneAt } from '@/lib/canvas/geometry'
 import { toModelPoint } from '@/lib/canvas/zoom'
+import { resolveSchemaColor } from '@/lib/model/colors'
 import { isBlankModel } from '@/lib/model/defaults'
 import { resolveLayout } from '@/lib/canvas/layout'
 import { cn } from '@/lib/cn'
@@ -148,9 +149,17 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
 
   /** Doble clic en el lienzo: abre Nueva tabla en ese punto (FR-006). */
   function onDoubleClick(event: React.MouseEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement
     // El doble clic sobre una tarjeta abre su editor de campos, no un diálogo
     // (FR-023): aquí solo cuentan el fondo y las zonas.
-    if ((event.target as HTMLElement).closest('.sm-table') !== null) return
+    if (target.closest('.sm-table') !== null) return
+    // Y solo el lienzo cuenta como lienzo. Los mandos que flotan encima —el
+    // zoom, el minimapa, la tarjeta del modelo vacío— viven dentro de este
+    // nodo, así que sus dobles clics llegaban hasta aquí: pulsar dos veces
+    // seguidas en «Acercar» abría Nueva tabla.
+    const onCanvas =
+      target === event.currentTarget || target.closest('.sm-frame, .sm-stage, .sm-zone') !== null
+    if (!onCanvas) return
     const point = pointOf(event)
     openTableDialog({ x: Math.round(point.x), y: Math.round(point.y) })
   }
@@ -359,6 +368,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
                   position={position}
                   schema={table.schema}
                   abbreviation={schema?.abbreviation ?? ''}
+                  color={resolveSchemaColor(schema?.color)}
                   relations={model?.relations ?? []}
                   isSelected={selectedTable === table.name}
                   isDim={focusedSchema !== null && focusedSchema !== table.schema}

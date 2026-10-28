@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMenu'
 import { TableContextMenu } from '@/components/features/table/TableContextMenu'
@@ -173,27 +173,46 @@ export function ModelSidebar() {
             </p>
           ) : (
             <ul className="m-0 list-none p-0">
-              {listed.map((table) => (
-                <li key={table.name}>
-                  <TableContextMenu table={table}>
-                    <button
-                      type="button"
-                      aria-pressed={selectedTable === table.name}
-                      aria-label={`Tabla ${table.name}, ${fieldCountLabel(table.fields.length)}`}
-                      className="au-side-item w-full"
-                      onClick={() => selectTable(table.name)}
-                      onDoubleClick={() => openFieldsPanel(table.name)}
-                    >
-                      <Icon name="table-2" size={14} />
-                      <span className="min-w-0 flex-1 truncate text-left">{table.name}</span>
-                      <span className="font-mono text-[10px] tracking-[0.04em] text-label-tertiary">
-                        {model.schemas.find((schema) => schema.name === table.schema)
-                          ?.abbreviation ?? ''}
-                      </span>
-                    </button>
-                  </TableContextMenu>
-                </li>
-              ))}
+              {listed.map((table) => {
+                const tableSchema = model.schemas.find((item) => item.name === table.schema)
+                return (
+                  <li key={table.name}>
+                    <TableContextMenu table={table}>
+                      <button
+                        type="button"
+                        aria-pressed={selectedTable === table.name}
+                        aria-label={`Tabla ${table.name}, esquema ${tableSchema?.abbreviation ?? table.schema} · ${table.schema}, ${fieldCountLabel(table.fields.length)}`}
+                        className="au-side-item w-full"
+                        onClick={() => selectTable(table.name)}
+                        onDoubleClick={() => openFieldsPanel(table.name)}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="flex flex-none items-center"
+                          style={
+                            {
+                              // El icono lleva el color del esquema de la tabla,
+                              // como en el lienzo de diseño; quién es el esquema
+                              // lo dice el nombre accesible de la fila, no el
+                              // color (RS-11).
+                              color: `var(--${resolveSchemaColor(tableSchema?.color)})`,
+                            } as CSSProperties
+                          }
+                        >
+                          <Icon name="table-2" size={14} />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-left">{table.name}</span>
+                        <span className="font-mono text-[10px] tracking-[0.04em] text-label-tertiary">
+                          {tableSchema?.abbreviation ?? ''}
+                        </span>
+                        <span className="text-[11px] tabular-nums text-label-tertiary">
+                          {table.fields.length}
+                        </span>
+                      </button>
+                    </TableContextMenu>
+                  </li>
+                )
+              })}
             </ul>
           )}
         </section>

@@ -60,19 +60,17 @@ describe('TableDialog', () => {
     expect(createButton()).toBeInTheDocument()
   })
 
-  it('propone el nombre técnico mientras se escribe (FR-003)', async () => {
+  it('dice cómo quedará el nombre si lo que se escribe no es técnico (FR-003)', async () => {
     await userEvent.type(field('Nombre'), 'Pagos pendientes')
 
-    expect(field('Nombre técnico').value).toBe('pagos_pendientes')
+    expect(screen.getByText('Se guardará como `pagos_pendientes`.')).toBeInTheDocument()
   })
 
-  it('deja de seguir al nombre en cuanto se corrige a mano (FR-003)', async () => {
-    await userEvent.type(field('Nombre'), 'Pagos pendientes')
-    await userEvent.clear(field('Nombre técnico'))
-    await userEvent.type(field('Nombre técnico'), 'pagos')
-    await userEvent.type(field('Nombre'), ' del mes')
+  it('lo que se escribe es el nombre técnico, y entonces no promete otro (FR-003)', async () => {
+    await userEvent.type(field('Nombre'), 'pedidos')
 
-    expect(field('Nombre técnico').value).toBe('pagos')
+    expect(screen.queryByText(/Se guardará como/)).toBeNull()
+    expect(createButton()).toBeEnabled()
   })
 
   it('no crea nada sin nombre, y lo dice (FR-004)', async () => {
@@ -84,8 +82,7 @@ describe('TableDialog', () => {
   })
 
   it('no admite un nombre técnico que empiece por número (FR-004, RS-03)', async () => {
-    await userEvent.clear(field('Nombre técnico'))
-    await userEvent.type(field('Nombre técnico'), '2026_pagos')
+    await userEvent.type(field('Nombre'), '2026_pagos')
 
     expect(screen.getByText(INVALID_NAME_MESSAGE)).toBeInTheDocument()
     expect(createButton()).toBeDisabled()

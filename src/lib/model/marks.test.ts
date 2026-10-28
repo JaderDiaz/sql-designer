@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { fieldMarks, foreignKeyOf, relationsTouching } from '@/lib/model/marks'
+import { fieldMarks, foreignKeyOf, relationCardinality, relationsTouching } from '@/lib/model/marks'
 import type { Model, Relation, Table } from '@/lib/model/types'
 
 /** Tabla de prueba con las llaves que se le pasen. */
@@ -90,13 +90,7 @@ describe('fieldMarks', () => {
   it('devuelve una entrada por campo, también sin marca', () => {
     const marks = fieldMarks(tableWith())
 
-    expect([...marks.keys()]).toEqual([
-      'factura_id',
-      'linea',
-      'articulo_id',
-      'codigo',
-      'nota',
-    ])
+    expect([...marks.keys()]).toEqual(['factura_id', 'linea', 'articulo_id', 'codigo', 'nota'])
     expect([...marks.values()].every((mark) => mark === null)).toBe(true)
   })
 
@@ -165,7 +159,9 @@ describe('relationsTouching', () => {
       ),
     ).toEqual(['fk_lineas_articulo'])
     expect(
-      relationsTouching(model, { table: 'factura_lineas', field: 'linea' }).map((item) => item.name),
+      relationsTouching(model, { table: 'factura_lineas', field: 'linea' }).map(
+        (item) => item.name,
+      ),
     ).toEqual(['fk_pagos_linea'])
     expect(relationsTouching(model, { table: 'factura_lineas', field: 'nota' })).toEqual([])
   })
@@ -175,5 +171,54 @@ describe('relationsTouching', () => {
     delete model.relations
 
     expect(relationsTouching(model, { table: 'factura_lineas' })).toEqual([])
+  })
+})
+
+describe('relationCardinality', () => {
+  /** Modelo con la tabla de prueba tal como se le pase y una relación. */
+  function model(extra: Partial<Table> = {}): Model {
+    return {
+      formatVersion: 1,
+      name: 'Prueba',
+      engine: 'postgres',
+      schemas: [{ name: 'ventas', abbreviation: 'VEN' }],
+      tables: [tableWith(extra)],
+      relations: [relation()],
+    }
+  }
+
+  it('una llave foránea obligatoria es de uno a muchos', () => {
+    expect(relationCardinality(model(), relation())).toBe('Uno a muchos')
+  })
+
+  it('si admite nulos, de uno a cero o muchos', () => {
+    const conNulos = model({
+      fields: tableWith().fields.map((field) =>
+        field.name === 'articulo_id' ? { ...field, nullable: true } : field,
+      ),
+    })
+
+    expect(relationCardinality(conNulos, relation())).toBe('Uno a cero o muchos')
+  })
+
+  it('si además es única, de uno a uno', () => {
+    const unica = model({ uniques: [{ name: 'uq_lineas_articulo', fields: ['articulo_id'] }] })
+
+    expect(relationCardinality(unica, relation())).toBe('Uno a uno')
+  })
+
+  it('única y con nulos, de uno a cero o uno', () => {
+    const unicaConNulos = model({
+      uniques: [{ name: 'uq_lineas_articulo', fields: ['articulo_id'] }],
+      fields: tableWith().fields.map((field) =>
+        field.name === 'articulo_id' ? { ...field, nullable: true } : field,
+      ),
+    })
+
+    expect(relationCardinality(unicaConNulos, relation())).toBe('Uno a cero o uno')
+  })
+
+  it('una relación cuya tabla no está en el modelo no rompe la lectura', () => {
+    expect(relationCardinality(model(), relation({ fromTable: 'otra' }))).toBe('Uno a muchos')
   })
 })
