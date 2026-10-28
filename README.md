@@ -9,7 +9,7 @@ diagrama. No se conecta a ninguna base de datos ni la administra.
 
 ## Estado
 
-Versión 1.3.0, Incremento 3 «Tablas y campos» cerrado. Lo que ya hace:
+Versión 1.4.0, Incremento 4 «Relaciones» cerrado. Lo que ya hace:
 
 - Arranca con la Bienvenida y su identidad, sigue el tema del sistema o el
   elegido en Ajustes y recuerda el tamaño y la posición de la ventana
@@ -50,9 +50,26 @@ Versión 1.3.0, Incremento 3 «Tablas y campos» cerrado. Lo que ya hace:
   y lo deshace todo en un paso con ⌘Z, también lo que se escribe celda a celda.
 - Ve y cambia lo principal de la tabla seleccionada en el inspector: nombre,
   descripción, esquema, un resumen de ocho campos y sus relaciones.
+- Relaciona tablas con claves foráneas desde la ficha «Claves foráneas» del
+  editor de tabla, a la que se llega con «Relación», con la tecla `R` o desde
+  el menú de la tarjeta: la columna se propone con el patrón de Ajustes y el
+  tipo de la llave primaria referenciada (Incremento 4).
+- Dibuja cada relación en el diagrama con la cardinalidad deducida, el color
+  del esquema de la tabla que tiene la llave primaria, los carriles repartidos
+  para que ninguna línea atraviese una tarjeta y el trazado ortogonal, curvo o
+  recto que se elija en Ajustes.
+- Resalta de un vistazo con qué se conecta una tabla al pasar el cursor,
+  seleccionarla o llegar a ella con el teclado: su grupo se marca —con los
+  campos de cada relación— y el resto se atenúa, con el flujo animado en tres
+  niveles y sin movimiento si el sistema lo pide.
+- Elige ON DELETE y ON UPDATE entre `NO ACTION`, `RESTRICT`, `CASCADE`,
+  `SET NULL` y `SET DEFAULT`, avisando cuando `SET NULL` cae sobre una columna
+  no nula, dice si la columna está indexada y lista en «Referenciada por» qué
+  tablas apuntan a esta.
+- Elimina una relación conservando la columna, y lo deshace en un paso con ⌘Z.
 
-Las relaciones entre tablas llegan en el Incremento 4, que todavía no ha
-empezado.
+Los índices y las claves únicas compuestas llegan en el Incremento 5, que
+todavía no ha empezado.
 
 ## Requisitos
 
