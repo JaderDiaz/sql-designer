@@ -551,11 +551,22 @@ un modelo de un solo esquema la opción está deshabilitada.
 - **SC-008**: 100 % de las acciones del incremento se pueden completar solo con
   el teclado, con foco visible en cada paso.
 - **SC-009**: Los cuatro estados del incremento (modelo sin tablas, esquema sin
-  tablas, nombre o abreviatura repetidos, último esquema no eliminable) muestran
-  un mensaje visible y al menos una salida clara.
+  tablas, nombre o abreviatura repetidos, y el único esquema del modelo, que al
+  eliminarse se lleva sus tablas) muestran un mensaje visible y al menos una
+  salida clara.
 - **SC-010**: El Editor con sus cinco zonas, el diálogo de esquema y la
   confirmación de eliminar se revisan en tema claro, tema oscuro y con movimiento
-  reducido sin texto por debajo de 4.5:1 de contraste.
+  reducido sin texto de contenido por debajo de 4.5:1 de contraste, y sin
+  metadatos de 10 u 11 px por debajo de 3:1. El segundo umbral es un desvío
+  deliberado: el tercer gris de la línea gráfica (`--label-tertiary`) no alcanza
+  4.5:1 sobre los rellenos de la barra lateral sin volverse el segundo gris, y
+  son datos de apoyo —el contador de tablas, la abreviatura de la fila y la
+  línea «VEN · 2 campos»— que siempre están escritos también en el nombre
+  accesible del control.
+
+  Medido el 2026-10-27 con la aplicación en marcha, en los dos temas y en los
+  tres sitios: el mínimo del texto de contenido es 5.6:1 y el de los metadatos,
+  3.06:1 en claro y 3.27:1 en oscuro.
 
 ## Assumptions
 
