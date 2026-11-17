@@ -133,7 +133,11 @@ export async function esperarSinTexto(esperado) {
  */
 async function resumen() {
   const visible = (await texto()).replace(/\n{2,}/g, '\n').trim()
-  return visible.length > 800 ? `${visible.slice(0, 800)}…` : visible
+  // El principio es la barra lateral, que crece con cada incremento; el final
+  // es el lienzo, el inspector y la barra de estado. Se enseñan los dos.
+  return visible.length > 1600
+    ? `${visible.slice(0, 800)}\n…\n${visible.slice(-800)}`
+    : visible
 }
 
 /**
@@ -1421,9 +1425,12 @@ export async function marcarColumnas(etiqueta, columnas) {
   // El menú se cierra probando tres vías hasta que desaparece. En WebView2 el
   // Escape que manda WebDriver no siempre le llega tras un clic hecho desde
   // un guion, sobre todo si el cambio se rechazó y la fila se volvió a pintar.
+  // Abierto es lo que el primitivo marca como abierto. Al cerrarse, sus
+  // opciones pueden quedarse en el árbol mientras dura la animación de salida,
+  // y con la ventana sin el foco del sistema esa animación no siempre acaba.
   const abierto = async () =>
     (await browser.execute(
-      'return document.querySelectorAll(\'[role="menuitemcheckbox"]\').length',
+      'return document.querySelectorAll(\'[role="menu"][data-state="open"]\').length',
     )) > 0
   const vias = [
     // Escape dentro de la página, desde una opción del propio menú.
