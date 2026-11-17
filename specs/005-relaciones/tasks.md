@@ -247,7 +247,7 @@ incremento.
 - [X] T078 Pasar las cinco puertas en limpio desde la raíz y desde `src-tauri/`: `npx tsc --noEmit`, `npm run lint`, `npx vitest run`, `cargo check` y `cargo test`
 - [X] T079 Subir la versión del producto a `1.4.0` en `package.json`, `src-tauri/tauri.conf.json` y `src-tauri/Cargo.toml` —los tres dicen `1.3.0`, así que este cambio cierra también el desajuste con la etiqueta `v1.3.1`— y actualizar `README.md` con lo que el Editor hace ahora
 - [X] T080 Renombrar el job «Los ocho escenarios» de `.github/workflows/recorrido.yml`, que ya son doce archivos, y comprobar que el workflow ejecuta el archivo nuevo
-- [ ] T081 Abrir el PR hacia `main`, esperar `.github/workflows/puertas.yml` y `.github/workflows/recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.4.0` sobre el commit que cierra el incremento (constitución, Versión del producto y etiquetas)
+- [X] T081 Abrir el PR hacia `main`, esperar `.github/workflows/puertas.yml` y `.github/workflows/recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.4.0` sobre el commit que cierra el incremento (constitución, Versión del producto y etiquetas)
 
 ---
 

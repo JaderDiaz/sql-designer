@@ -39,3 +39,6 @@ src-tauri/gen/
 
 # Playwright MCP
 .playwright-mcp/
+
+# Others
+.tmp
