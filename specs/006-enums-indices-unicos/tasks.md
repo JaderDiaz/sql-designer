@@ -250,7 +250,7 @@ medidas y el cierre del incremento.
 - [X] T070 [P] Repasar la puerta 6: ningún archivo del tablero copiado al repositorio, y los ocho desvíos deliberados de `specs/006-enums-indices-unicos/research.md` R22 siguen siendo los únicos
 - [X] T071 Pasar las cinco puertas en limpio desde la raíz y desde `src-tauri/`: `npx tsc --noEmit`, `npm run lint`, `npx vitest run`, `cargo check` y `cargo test`
 - [X] T072 Subir la versión del producto a `1.5.0` en `package.json`, `src-tauri/tauri.conf.json` y `src-tauri/Cargo.toml`, y actualizar `README.md` con lo que el Editor hace ahora y con el incremento que sigue
-- [ ] T073 Abrir el PR hacia `main`, esperar `.github/workflows/puertas.yml` y `.github/workflows/recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.5.0` sobre el commit de merge (constitución, Versión del producto y etiquetas)
+- [X] T073 Abrir el PR hacia `main`, esperar `.github/workflows/puertas.yml` y `.github/workflows/recorrido.yml` en verde en las dos plataformas, y dejar la etiqueta anotada `v1.5.0` sobre el commit de merge (constitución, Versión del producto y etiquetas)
 
 ---
 
@@ -479,3 +479,23 @@ pruebas), todas en verde.
   con la anterior. Venía del Incremento 3, cuyo FR-010 pide el panel de «la
   tabla seleccionada». `selectTable` (`src/store/canvas.ts`) ahora pasa el panel
   a la tabla nueva en la misma ficha; soltar la selección no lo toca.
+
+## Integración (2026-11-17)
+
+**T073 · PR #12.** Mergeada en `main` (`496a755`) con Puertas y Recorrido en
+verde en macOS y Windows, y la etiqueta anotada `v1.5.0` sobre ese merge. Trajo
+también las ramas de las PR #10 y #11, que GitHub dio por mergeadas.
+
+Hicieron falta cuatro vueltas de CI. Lo que solo apareció en GitHub:
+
+- En Windows el menú de columnas no se daba por cerrado: sus opciones se quedan
+  en el árbol durante la animación de salida. `marcarColumnas` mira ahora el
+  estado del menú y lo cierra por la vía que funcione.
+- SC-011 midió 316 y 359 ms en las máquinas virtuales de macOS: el tope de
+  200 ms es de máquina local, y en CI se dejó en 600 ms con la cifra en el
+  registro.
+- El paso 4 del escenario 9 («Alejar» hasta el 40 %) falló dos veces y pasó en
+  la cuarta sin cambios en la aplicación: queda como intermitente a vigilar,
+  ahora con el volcado de pantalla completo si vuelve.
+- Puertas en macOS se canceló dos veces a los 15 minutos sin ejecutar pasos:
+  la máquina de GitHub, no el código.
