@@ -1,0 +1,151 @@
+formatVersion: 1
+name: Conjunto · Enums e índices
+engine: postgres
+schemas:
+  - name: personas
+    abbreviation: PER
+    color: purple
+  - name: finanzas
+    abbreviation: FIN
+    color: green
+    comment: Cuotas y pagos del conjunto
+enums:
+  - name: estado_pago
+    schema: finanzas
+    values:
+      - pendiente
+      - pagado
+      - vencido
+      - anulado
+  - name: tipo_documento
+    schema: personas
+    values:
+      - cedula
+      - pasaporte
+      - extranjeria
+    comment: Todavía sin uso
+tables:
+  - name: residente
+    schema: personas
+    fields:
+      - name: id
+        type: integer
+      - name: nombre
+        type: varchar
+        length: 120
+      - name: documento
+        type: varchar
+        length: 20
+      - name: correo
+        type: varchar
+        length: 160
+        nullable: true
+    primaryKey:
+      - id
+    uniques:
+      - name: uq_residente_correo
+        fields:
+          - correo
+    indexes:
+      - name: idx_residente_nombre_documento
+        fields:
+          - nombre
+          - documento
+    position:
+      x: 120
+      y: 168
+  - name: unidad
+    schema: personas
+    fields:
+      - name: id
+        type: integer
+      - name: torre
+        type: varchar
+        length: 10
+      - name: numero
+        type: varchar
+        length: 10
+      - name: residente_id
+        type: integer
+    primaryKey:
+      - id
+    uniques:
+      - name: uq_unidad_torre_numero
+        fields:
+          - torre
+          - numero
+    position:
+      x: 120
+      y: 456
+  - name: pago
+    schema: finanzas
+    fields:
+      - name: id
+        type: integer
+      - name: referencia
+        type: varchar
+        length: 40
+      - name: residente_id
+        type: integer
+      - name: cuota_id
+        type: integer
+      - name: estado
+        type: estado_pago
+      - name: mes
+        type: date
+    primaryKey:
+      - id
+    uniques:
+      - name: uq_pago_referencia
+        fields:
+          - referencia
+    position:
+      x: 528
+      y: 168
+  - name: cuota
+    schema: finanzas
+    fields:
+      - name: id
+        type: integer
+      - name: unidad_id
+        type: integer
+      - name: estado
+        type: estado_pago
+      - name: valor
+        type: numeric
+        length: 12
+        scale: 2
+    primaryKey:
+      - id
+    position:
+      x: 528
+      y: 456
+relations:
+  - name: fk_pago_residente_id
+    fromTable: pago
+    fromFields:
+      - residente_id
+    toTable: residente
+    toFields:
+      - id
+  - name: fk_pago_cuota_id
+    fromTable: pago
+    fromFields:
+      - cuota_id
+    toTable: cuota
+    toFields:
+      - id
+  - name: fk_cuota_unidad_id
+    fromTable: cuota
+    fromFields:
+      - unidad_id
+    toTable: unidad
+    toFields:
+      - id
+  - name: fk_unidad_residente_id
+    fromTable: unidad
+    fromFields:
+      - residente_id
+    toTable: residente
+    toFields:
+      - id

@@ -4,6 +4,14 @@ engine: postgres
 schemas:
   - name: public
     abbreviation: PUB
+enums:
+  - name: estado_general
+    schema: public
+    values:
+      - activo
+      - pausado
+      - archivado
+      - borrado
 tables:
   - name: tabla_01
     schema: public
@@ -17,12 +25,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -41,12 +49,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -65,12 +73,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -89,12 +97,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -113,12 +121,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -137,12 +145,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -161,12 +169,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -185,12 +193,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -209,12 +217,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -233,12 +241,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -257,12 +265,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -281,12 +289,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -305,12 +313,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -329,12 +337,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -353,12 +361,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -377,12 +385,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -401,12 +409,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -425,12 +433,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -449,12 +457,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -473,12 +481,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -497,12 +505,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -521,12 +529,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -545,12 +553,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -569,12 +577,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -593,12 +601,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -617,12 +625,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -641,12 +649,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -665,12 +673,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -689,12 +697,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -713,12 +721,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -737,12 +745,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -761,12 +769,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -785,12 +793,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -809,12 +817,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -833,12 +841,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -857,12 +865,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -881,12 +889,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -905,12 +913,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -929,12 +937,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -953,12 +961,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -977,12 +985,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1001,12 +1009,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1025,12 +1033,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1049,12 +1057,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1073,12 +1081,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1097,12 +1105,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1121,12 +1129,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1145,12 +1153,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1169,12 +1177,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:
@@ -1193,12 +1201,12 @@ tables:
         type: integer
         nullable: true
       - name: etiqueta
-        type: text
+        type: estado_general
       - name: cantidad
         type: integer
         default: "0"
       - name: creada_el
-        type: timestamptz
+        type: estado_general
     primaryKey:
       - id
     indexes:

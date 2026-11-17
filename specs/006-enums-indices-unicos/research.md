@@ -277,9 +277,13 @@ archivo.
 
 ## R18 · La sección «Enums» de la barra lateral repite la de «Tablas»
 
-**Decisión**: `ModelSidebar` gana una sección «Enums» debajo de «Tablas», con el
-botón «Nuevo enum» en su cabecera, una fila por enum con su número de valores, y
-el filtro por esquema enfocado que ya usa «Tablas». Cada fila se envuelve en
+**Decisión**: `ModelSidebar` gana una sección «Enums» entre «Esquemas» y
+«Tablas», en el orden del tablero, con el botón «Nuevo enum» en su cabecera, una
+fila por enum con su abreviatura y su número de valores, y el filtro por esquema
+enfocado que ya usa «Tablas». El icono de cada fila lleva el color de su
+esquema, como el de las tablas: el tablero lo pinta morado fijo porque allí el
+enum no tiene esquema, y aquí sí lo tiene (pedido por el usuario el
+2026-11-17). Cada fila se envuelve en
 `EnumContextMenu`, sobre el `ContextMenu` puro que ya usan esquemas y tablas.
 
 **Razón**: FR-010 y FR-020. El menú contextual de Radix abre con clic
@@ -343,7 +347,7 @@ cruzado lo señaló y se movió a Assumptions.
 
 ## R22 · Desvíos deliberados del tablero de diseño
 
-Del tablero `Editor` se toman medidas, textos y jerarquía. Ocho cosas se hacen
+Del tablero `Editor` se toman medidas, textos y jerarquía. Nueve cosas se hacen
 distinto a propósito:
 
 1. **Selector de esquema en la hoja del enum**: el tablero no lo dibuja y el
@@ -358,5 +362,7 @@ distinto a propósito:
    recalculado.
 7. **Ajustes solo gana los dos prefijos**: «Nombres de tabla», «Estilo de
    nombres» y el patrón de claves foráneas del tablero no entran aquí.
-8. **El valor de un enum tiene largo máximo** (63 caracteres), que el tablero no
+8. **El icono del enum en la barra lateral lleva el color de su esquema**, no el
+   morado fijo del tablero (R18).
+9. **El valor de un enum tiene largo máximo** (63 caracteres), que el tablero no
    limita (FR-007).

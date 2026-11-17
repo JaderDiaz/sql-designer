@@ -9,7 +9,7 @@ diagrama. No se conecta a ninguna base de datos ni la administra.
 
 ## Estado
 
-Versión 1.4.0, Incremento 4 «Relaciones» cerrado. Lo que ya hace:
+Versión 1.5.0, Incremento 5 «Enums, índices y únicos» cerrado. Lo que ya hace:
 
 - Arranca con la Bienvenida y su identidad, sigue el tema del sistema o el
   elegido en Ajustes y recuerda el tamaño y la posición de la ventana
@@ -67,9 +67,20 @@ Versión 1.4.0, Incremento 4 «Relaciones» cerrado. Lo que ya hace:
   no nula, dice si la columna está indexada y lista en «Referenciada por» qué
   tablas apuntan a esta.
 - Elimina una relación conservando la columna, y lo deshace en un paso con ⌘Z.
+- Define enums —listas cerradas de valores dentro de un esquema— desde la
+  sección «Enums» de la barra lateral o la tarjeta del modelo vacío, los usa
+  como tipo de cualquier campo, y al renombrarlos los campos que los usan
+  pasan al nombre nuevo; al eliminarlos la confirmación dice qué campos pasan a
+  texto (Incremento 5).
+- Crea índices de una o varias columnas, en orden y con la marca de único,
+  desde la ficha «Índices», que también lista los que crean la llave primaria
+  y los únicos; el primero se propone sobre la clave foránea sin índice.
+- Crea únicos compuestos de dos o más columnas desde la ficha «Únicos», al lado
+  de los de un campo que vienen de la marca UK, con los nombres propuestos con
+  los prefijos de Ajustes.
 
-Los índices y las claves únicas compuestas llegan en el Incremento 5, que
-todavía no ha empezado.
+El incremento siguiente es la exportación: el SQL de cada motor, con sus
+enums, índices, únicos y relaciones.
 
 ## Requisitos
 

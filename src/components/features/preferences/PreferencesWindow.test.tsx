@@ -54,7 +54,43 @@ describe('Ajustes', () => {
       screen.getAllByRole('radiogroup').map((group) => group.getAttribute('aria-label')),
     ).toEqual(['Tema', 'Trazado de relaciones', 'Animación de relaciones'])
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument()
+    // Los dos prefijos del Incremento 5 son los únicos campos de texto.
+    expect(screen.getAllByRole('textbox').map((box) => box.getAttribute('aria-label'))).toEqual([
+      'Prefijo de índices',
+      'Prefijo de únicos',
+    ])
+  })
+
+  it('los prefijos se escriben al salir del campo y muestran lo guardado (FR-043)', async () => {
+    vi.mocked(preferencesUpdate).mockImplementation((patch) =>
+      Promise.resolve({ ...DEFAULT_PREFERENCES, ...patch, indexPrefix: 'ix_' }),
+    )
+    const user = userEvent.setup()
+    renderOpen()
+
+    const field = screen.getByRole('textbox', { name: 'Prefijo de índices' })
+    expect(field).toHaveValue('idx_')
+    expect(screen.getByText('Ejemplo: idx_pago_residente_id')).toBeInTheDocument()
+
+    await user.clear(field)
+    await user.type(field, ' IX_ ')
+    expect(preferencesUpdate).not.toHaveBeenCalled()
+
+    await user.tab()
+    expect(preferencesUpdate).toHaveBeenCalledWith({ indexPrefix: ' IX_ ' })
+    expect(await screen.findByText('Ejemplo: ix_pago_residente_id')).toBeInTheDocument()
+    expect(field).toHaveValue('ix_')
+  })
+
+  it('Enter también escribe el prefijo de únicos (FR-043)', async () => {
+    const user = userEvent.setup()
+    renderOpen()
+
+    const field = screen.getByRole('textbox', { name: 'Prefijo de únicos' })
+    await user.clear(field)
+    await user.type(field, 'un_{Enter}')
+
+    expect(preferencesUpdate).toHaveBeenCalledWith({ uniquePrefix: 'un_' })
   })
 
   it('el control de tema se recorre y se activa solo con el teclado', async () => {
@@ -82,6 +118,12 @@ describe('Ajustes', () => {
 
     await user.tab()
     expect(screen.getByRole('radio', { name: 'Sutil' })).toHaveFocus()
+
+    await user.tab()
+    expect(screen.getByRole('textbox', { name: 'Prefijo de índices' })).toHaveFocus()
+
+    await user.tab()
+    expect(screen.getByRole('textbox', { name: 'Prefijo de únicos' })).toHaveFocus()
 
     await user.tab()
     expect(screen.getByRole('button', { name: 'Cerrar' })).toHaveFocus()

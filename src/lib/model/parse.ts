@@ -3,6 +3,7 @@ import { LineCounter, parseDocument } from 'yaml'
 import type {
   Enum,
   Field,
+  Index,
   Model,
   NamedFields,
   Position,
@@ -155,6 +156,14 @@ function toNamedFields(source: Record<string, unknown>): NamedFields {
   return { name: source['name'] as string, fields: source['fields'] as string[] }
 }
 
+/** Rearma un índice validado, con su marca de único solo si es verdadera. */
+function toIndex(source: Record<string, unknown>): Index {
+  return {
+    ...toNamedFields(source),
+    ...(source['unique'] === true ? { unique: true } : {}),
+  }
+}
+
 /** Rearma una tabla validada. */
 function toTable(source: Record<string, unknown>): Table {
   const uniques = source['uniques'] as Array<Record<string, unknown>> | undefined
@@ -169,7 +178,7 @@ function toTable(source: Record<string, unknown>): Table {
       ? { primaryKey: source['primaryKey'] as string[] }
       : {}),
     ...(uniques ? { uniques: uniques.map(toNamedFields) } : {}),
-    ...(indexes ? { indexes: indexes.map(toNamedFields) } : {}),
+    ...(indexes ? { indexes: indexes.map(toIndex) } : {}),
     ...(position ? { position: { x: position.x, y: position.y } } : {}),
   }
 }

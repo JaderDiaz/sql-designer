@@ -625,6 +625,22 @@
 .au-option.is-disabled {
   color: var(--label-tertiary);
 }
+/*
+ * Orden de elección de una opción marcada en un selector múltiple: en un
+ * índice compuesto el orden de las columnas es parte del índice (FR-025).
+ */
+.au-option-order {
+  flex: none;
+  margin-left: auto;
+  padding-left: var(--space-2);
+  font-size: 11px;
+  line-height: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--label-secondary);
+}
+.au-option[data-highlighted] .au-option-order {
+  color: inherit;
+}
 
 /* ---------- Menu ---------- */
 .au-menu {

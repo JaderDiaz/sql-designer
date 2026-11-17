@@ -368,3 +368,53 @@ describe('ida y vuelta de las posiciones (FR-026, FR-026a, SC-007)', () => {
     expect(serializeModel(model)).not.toContain('position:')
   })
 })
+
+describe('deleteSchema con enums en uso fuera (FR-019, research R16)', () => {
+  /** El modelo de enums: `estado_pago` es de `finanzas` y lo usan tablas de `finanzas`. */
+  function enums(): Model {
+    const result = parseModel(readFixture('modelo-enums'))
+    if (!result.ok) throw new Error('el ejemplo no es un modelo válido')
+    // Un campo de `personas` usa también el enum de `finanzas`.
+    const model = result.model
+    const residente = model.tables?.find((table) => table.name === 'residente')
+    if (residente) residente.fields = [...residente.fields, { name: 'ultimo_estado', type: 'estado_pago' }]
+    return model
+  }
+
+  it('eliminar finanzas con su contenido pasa a varchar(40) el campo de personas', () => {
+    openModel(enums())
+
+    useAppStore.getState().deleteSchema('finanzas', { withTables: true, target: null })
+
+    const model = useAppStore.getState().model
+    expect(model?.enums?.map((value) => value.name)).toEqual(['tipo_documento'])
+    const campo = model?.tables
+      ?.find((table) => table.name === 'residente')
+      ?.fields.find((field) => field.name === 'ultimo_estado')
+    expect(campo).toEqual({ name: 'ultimo_estado', type: 'varchar', length: 40 })
+    expect(useAppStore.getState().past).toHaveLength(1)
+  })
+
+  it('un solo deshacer lo devuelve todo', () => {
+    const before = enums()
+    openModel(before)
+
+    useAppStore.getState().deleteSchema('finanzas', { withTables: true, target: null })
+    useAppStore.getState().undo()
+
+    expect(useAppStore.getState().model).toEqual(before)
+  })
+
+  it('mover el contenido a otro esquema no retipa nada', () => {
+    openModel(enums())
+
+    useAppStore.getState().deleteSchema('finanzas', { withTables: false, target: 'personas' })
+
+    const model = useAppStore.getState().model
+    expect(model?.enums?.find((value) => value.name === 'estado_pago')?.schema).toBe('personas')
+    const campo = model?.tables
+      ?.find((table) => table.name === 'residente')
+      ?.fields.find((field) => field.name === 'ultimo_estado')
+    expect(campo?.type).toBe('estado_pago')
+  })
+})

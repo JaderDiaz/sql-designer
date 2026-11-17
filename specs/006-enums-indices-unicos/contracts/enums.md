@@ -77,7 +77,7 @@ R21).
 | Botones de fila | «Subir», «Bajar», «Quitar <valor>» |
 | Campo de alta | «Nuevo valor» |
 | Sección de la barra lateral | región «Enums» (o «Enums de <esquema>» con foco de esquema) |
-| Fila de enum | «<nombre>, 4 valores» |
+| Fila de enum | «<nombre>, 4 valores, esquema FIN · finanzas»; el icono lleva el color del esquema, como el de las tablas |
 | Ficha de uso | «Abrir <tabla>.<campo> en el editor» |
 | Opción del selector de tipo | «<nombre>», con la segunda línea «enum» |
 

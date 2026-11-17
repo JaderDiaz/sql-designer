@@ -146,13 +146,50 @@ describe('FieldsGrid', () => {
   })
 
   it('un tipo que el motor no reconoce se avisa sin invalidar nada (FR-018a)', () => {
-    renderGrid('reservas')
+    // Sin el enum declarado, `estado_reserva` es un tipo que nadie conoce.
+    resetStore()
+    const model = { ...postgres() }
+    delete model.enums
+    act(() => {
+      useAppStore.setState({ screen: 'editor', model, savedModel: model, isDirty: false })
+    })
+    render(<FieldsGrid table={tableNamed('reservas')} />)
 
     expect(
       screen.getByRole('combobox', {
         name: `Tipo de estado. ${unknownTypeMessage('estado_reserva', 'postgres')}`,
       }),
     ).toBeInTheDocument()
+  })
+
+  it('un campo de tipo enum no se avisa como desconocido (FR-011, research R1)', () => {
+    renderGrid('reservas')
+
+    expect(screen.getByRole('combobox', { name: 'Tipo de estado' })).toHaveTextContent(
+      'estado_reserva',
+    )
+  })
+
+  it('el selector de tipo ofrece los enums después de los del motor (FR-011)', async () => {
+    await userEvent.click(screen.getByRole('combobox', { name: 'Tipo de id' }))
+
+    const options = screen.getAllByRole('option').map((option) => option.textContent ?? '')
+    const last = options[options.length - 1] ?? ''
+    expect(last).toContain('estado_reserva')
+    expect(last).toContain('enum')
+    expect(options.findIndex((option) => option.startsWith('inet'))).toBeLessThan(options.length - 1)
+  })
+
+  it('elegir un enum quita la longitud y la escala del campo (FR-011)', async () => {
+    renderGrid('pagos')
+    act(() => {
+      useAppStore.getState().updateField('pagos', 'importe', { type: 'estado_reserva' })
+    })
+
+    const importe = tableNamed('pagos').fields.find((field) => field.name === 'importe')
+    expect(importe).toEqual(expect.objectContaining({ type: 'estado_reserva' }))
+    expect(importe?.length).toBeUndefined()
+    expect(importe?.scale).toBeUndefined()
   })
 
   it('un campo de la llave primaria no admite nulos (FR-026)', () => {

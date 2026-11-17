@@ -5,6 +5,8 @@ import { ChooseFolderDialog } from '@/components/features/choose-folder/ChooseFo
 import { ConfirmCloseDialog } from '@/components/features/editor/ConfirmCloseDialog'
 import { EditorScreen } from '@/components/features/editor/EditorScreen'
 import { RenameModelDialog } from '@/components/features/editor/RenameModelDialog'
+import { DeleteEnumDialog } from '@/components/features/enum/DeleteEnumDialog'
+import { EnumDialog } from '@/components/features/enum/EnumDialog'
 import { StaleFileDialog } from '@/components/features/editor/StaleFileDialog'
 import { NewModelDialog } from '@/components/features/new-model/NewModelDialog'
 import { DeleteSchemaDialog } from '@/components/features/schema/DeleteSchemaDialog'
@@ -230,6 +232,8 @@ export default function App() {
         <RenameTableDialog />
         <DeleteTableDialog />
         <DeleteFieldDialog />
+        <EnumDialog />
+        <DeleteEnumDialog />
       </AppShell>
       <PreferencesWindow />
     </MotionConfig>

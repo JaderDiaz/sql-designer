@@ -1155,10 +1155,17 @@ export async function elegir(etiqueta, opcion) {
     )
   }
 
-  const pasos = destino - (lista.marcada === -1 ? 0 : lista.marcada)
-  const tecla = pasos > 0 ? 'ArrowDown' : 'ArrowUp'
-  for (let paso = 0; paso < Math.abs(pasos); paso += 1) await browser.keys(tecla)
-  await browser.keys('Enter')
+  // La opción se enfoca y se confirma con Intro dentro de la página, en un
+  // solo paso. Con flechas enviadas una a una, el puntero real —si queda
+  // encima de la lista— resalta la opción que tiene debajo entre tecla y
+  // tecla, y el Intro acababa eligiendo esa y no la pedida.
+  await browser.execute(`
+    const listas = [...document.querySelectorAll('[role="listbox"]')]
+    const opciones = [...listas[listas.length - 1].querySelectorAll('[role="option"]')]
+    const opcion = opciones[${destino}]
+    opcion.focus()
+    opcion.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }))
+  `)
 
   // La lista se va con su animación, y mientras está puesta tapa lo que haya
   // debajo: el paso siguiente espera a que no quede nada.
@@ -1374,4 +1381,98 @@ export async function pulsarPuntero(nombre, selector = 'button') {
     return true
   }`
   await esperar(guion, `No se pudo pulsar «${nombre}».`)
+}
+
+/**
+ * Marca o desmarca columnas de un selector de varias opciones (FR-025).
+ *
+ * El selector es un menú con casillas que no se cierra al marcar, así que se
+ * abre una vez, se pulsa cada columna en el orden dado —marcar añade al final,
+ * desmarcar quita sin mover el resto— y se cierra con Escape.
+ *
+ * @param etiqueta Principio del nombre accesible del disparador, por ejemplo
+ *   «Columnas de idx_pago_residente_id».
+ * @param columnas Columnas que se pulsan, en orden.
+ */
+export async function marcarColumnas(etiqueta, columnas) {
+  const abrir = `() => {
+    const el = [...document.querySelectorAll('button')]
+      .filter((e) => e.offsetParent !== null)
+      .find((e) => (e.getAttribute('aria-label') || '').startsWith(${JSON.stringify(etiqueta)}))
+    if (!el) return null
+    el.focus()
+    return true
+  }`
+  await esperar(abrir, `No se encontró el selector «${etiqueta}».`)
+  await browser.keys('Enter')
+  for (const columna of columnas) {
+    const pulsa = `() => {
+      const menu = [...document.querySelectorAll('[role="menu"]')].pop()
+      if (!menu) return null
+      const item = [...menu.querySelectorAll('[role="menuitemcheckbox"]')].find(
+        (e) => e.querySelector('.au-option-text > span')?.textContent.trim() === ${JSON.stringify(columna)},
+      )
+      if (!item) return null
+      item.click()
+      return true
+    }`
+    await esperar(pulsa, `El selector «${etiqueta}» no trae «${columna}».`)
+  }
+  await browser.keys('Escape')
+  await browser.waitUntil(
+    async () =>
+      (await browser.execute(
+        'return document.querySelectorAll(\'[role="menuitemcheckbox"]\').length',
+      )) === 0,
+    { timeout: ESPERA_MS, timeoutMsg: `El selector «${etiqueta}» siguió abierto.` },
+  )
+}
+
+/**
+ * Las filas de una de las rejillas de índices o únicos, por su nombre.
+ *
+ * El nombre de cada fila vive en un campo de texto y no en el texto de la
+ * pantalla, que es lo único que {@link texto} ve; esto lee el valor del campo
+ * y lo que dice el selector de columnas.
+ *
+ * @param etiqueta Nombre accesible de la rejilla, por ejemplo «Índices de pago».
+ * @returns Una entrada por fila con su nombre y sus columnas en orden.
+ */
+export async function filasDeRejilla(etiqueta) {
+  return browser.execute(`
+    const rejilla = document.querySelector('[role="grid"][aria-label=' + JSON.stringify(${JSON.stringify(etiqueta)}) + ']')
+    if (!rejilla) return []
+    return [...rejilla.querySelectorAll('[role="row"]')].slice(1).map((fila) => {
+      const nombre = fila.querySelector('input:not([type="checkbox"])')
+      const columnas = fila.querySelector('.au-select-value')
+      const unico = fila.querySelector('input[type="checkbox"]')
+      return {
+        nombre: nombre ? nombre.value : '',
+        columnas: columnas ? columnas.textContent.split(', ').filter(Boolean) : [],
+        unico: unico ? unico.checked : null,
+      }
+    })
+  `)
+}
+
+/**
+ * Abre el menú contextual de un enum de la barra lateral, como lo abriría el
+ * botón derecho.
+ *
+ * @param nombre Nombre técnico del enum.
+ */
+export async function menuDeEnum(nombre) {
+  await esperarSinMenu()
+  const guion = `() => {
+    const seccion = document.querySelector('[aria-labelledby="sm-side-enums"]')
+    if (!seccion) return null
+    const el = [...seccion.querySelectorAll('button')].find((e) =>
+      (e.getAttribute('aria-label') || '').startsWith(${JSON.stringify(`${nombre},`)}),
+    )
+    if (!el) return null
+    el.focus()
+    el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 40, clientY: 40 }))
+    return true
+  }`
+  await esperar(guion, `No se encontró el enum «${nombre}» en la barra lateral.`)
 }

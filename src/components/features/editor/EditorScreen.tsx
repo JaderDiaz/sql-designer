@@ -8,6 +8,8 @@ import { ZoomBar } from '@/components/features/canvas/ZoomBar'
 import { FieldsGrid } from '@/components/features/table/FieldsGrid'
 import { FieldsPanelHeader } from '@/components/features/table/FieldsPanelHeader'
 import { ForeignKeysTab } from '@/components/features/table/ForeignKeysTab'
+import { IndexesTab } from '@/components/features/table/IndexesTab'
+import { UniquesTab } from '@/components/features/table/UniquesTab'
 import { BottomPanel } from '@/components/layout/BottomPanel'
 import { EditorChrome } from '@/components/layout/EditorChrome'
 import { EditorLayout } from '@/components/layout/EditorLayout'
@@ -88,9 +90,13 @@ export function EditorScreen() {
           panelTable === undefined ? null : (
             <BottomPanel table={panelTable}>
               {/* La ficha activa decide el contenido; el marco, el tirador y
-                  las fichas son los mismos en las dos (FR-003). */}
+                  las fichas son los mismos en las cuatro (FR-003). */}
               {panelTab === 'foreignKeys' ? (
                 <ForeignKeysTab table={panelTable} />
+              ) : panelTab === 'indexes' ? (
+                <IndexesTab table={panelTable} />
+              ) : panelTab === 'uniques' ? (
+                <UniquesTab table={panelTable} />
               ) : (
                 <>
                   <FieldsPanelHeader table={panelTable} />

@@ -2,7 +2,9 @@ import { create } from 'zustand'
 
 import { createBrowserSlice } from '@/store/browser'
 import { createCanvasSlice } from '@/store/canvas'
+import { createEnumsSlice } from '@/store/enums'
 import { createFieldsPanelSlice } from '@/store/fieldsPanel'
+import { createIndexesSlice } from '@/store/indexes'
 import { createModelSlice } from '@/store/model'
 import { createNavigationSlice } from '@/store/navigation'
 import { createPreferencesSlice } from '@/store/preferences'
@@ -26,6 +28,8 @@ export const useAppStore = create<AppState>()((...args) => ({
   ...createTablesSlice(...args),
   ...createFieldsPanelSlice(...args),
   ...createRelationsSlice(...args),
+  ...createEnumsSlice(...args),
+  ...createIndexesSlice(...args),
   ...createCanvasSlice(...args),
   ...createBrowserSlice(...args),
   ...createRecentsSlice(...args),

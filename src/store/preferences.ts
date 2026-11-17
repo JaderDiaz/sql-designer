@@ -42,6 +42,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   relationRoute: 'orthogonal',
   relationAnimation: 'subtle',
   foreignKeyPattern: '{tabla}_{pk}',
+  indexPrefix: 'idx_',
+  uniquePrefix: 'uq_',
 }
 
 /**
@@ -94,6 +96,7 @@ export interface PreferencesSlice {
   setSnapToGrid: (value: boolean) => Promise<void>
   setRelationRoute: (route: RelationRoute) => Promise<void>
   setRelationAnimation: (animation: RelationAnimation) => Promise<void>
+  setNamePrefix: (key: 'indexPrefix' | 'uniquePrefix', prefix: string) => Promise<void>
   setSystemPrefersDark: (value: boolean) => void
   openPreferences: () => void
   closePreferences: () => void
@@ -259,6 +262,33 @@ export const createPreferencesSlice: AppSlice<PreferencesSlice> = (set, get) => 
           error instanceof CommandError
             ? `No se pudo guardar la animación: ${error.message}`
             : 'No se pudo guardar la animación.',
+      })
+    }
+  },
+
+  /**
+   * Cambia un prefijo de nombre y se queda con el que Rust guardó (FR-043).
+   *
+   * Rust sanea el prefijo, así que el valor que vuelve puede no ser el
+   * escrito: el campo de Ajustes muestra después el guardado. Mientras el
+   * comando responde se muestra el escrito, y si falla se vuelve al anterior.
+   *
+   * @param key Qué prefijo: el de índices o el de únicos.
+   * @param prefix Lo que escribió el usuario.
+   */
+  async setNamePrefix(key, prefix) {
+    const previous = get().preferences
+    set({ preferences: { ...previous, [key]: prefix }, writeError: null })
+    try {
+      const saved = await preferencesUpdate({ [key]: prefix })
+      set({ preferences: saved })
+    } catch (error) {
+      set({
+        preferences: previous,
+        writeError:
+          error instanceof CommandError
+            ? `No se pudo guardar el prefijo: ${error.message}`
+            : 'No se pudo guardar el prefijo.',
       })
     }
   },

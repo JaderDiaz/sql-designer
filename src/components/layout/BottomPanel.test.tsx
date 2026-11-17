@@ -72,6 +72,15 @@ function renderPanel() {
   )
 }
 
+/** Dibuja otro panel con una tabla dada, sobre el almacén ya preparado. */
+function renderPanelWith(table: Table) {
+  return render(
+    <BottomPanel table={table}>
+      <p>Campos</p>
+    </BottomPanel>,
+  )
+}
+
 /** El tirador del alto. */
 function handle(): HTMLElement {
   return screen.getByRole('separator', { name: 'Cambiar el alto del editor de tabla' })
@@ -150,7 +159,7 @@ describe('BottomPanel', () => {
     expect(preferencesUpdate).toHaveBeenCalledTimes(3)
   })
 
-  it('es el editor de tabla, con sus dos fichas y sus contadores (FR-003, §5)', () => {
+  it('es el editor de tabla, con sus fichas y sus contadores (FR-003, §5)', () => {
     expect(screen.getByRole('region', { name: 'Editor de tabla' })).toBeInTheDocument()
     const tabs = screen.getByRole('tablist', { name: 'Secciones de la tabla' })
     expect(tabs).toBeInTheDocument()
@@ -159,6 +168,44 @@ describe('BottomPanel', () => {
       'true',
     )
     expect(screen.getByRole('tab', { name: 'Claves foráneas 1' })).toBeInTheDocument()
+  })
+
+  it('tiene las cuatro fichas en el orden del tablero, con sus contadores (FR-030, FR-038)', () => {
+    act(() => {
+      const model = useAppStore.getState().model
+      if (model === null) return
+      useAppStore.setState({
+        model: {
+          ...model,
+          tables: [
+            {
+              ...PAGOS,
+              fields: [...PAGOS.fields, { name: 'mes', type: 'date' }],
+              uniques: [
+                { name: 'uq_pagos_mes', fields: ['mes'] },
+                { name: 'uq_pagos_unidad_id_mes', fields: ['unidad_id', 'mes'] },
+              ],
+              indexes: [{ name: 'idx_pagos_unidad_id', fields: ['unidad_id'] }],
+            },
+          ],
+        },
+      })
+    })
+    const table = useAppStore.getState().model?.tables?.[0] as Table
+    renderPanelWith(table)
+
+    const names = screen
+      .getAllByRole('tablist', { name: 'Secciones de la tabla' })
+      .at(-1)
+      ?.querySelectorAll('[role="tab"]')
+    expect([...(names ?? [])].map((tab) => tab.getAttribute('aria-label') ?? tab.textContent)).toEqual([
+      expect.stringMatching(/^Campos/),
+      expect.stringMatching(/^Índices/),
+      expect.stringMatching(/^Claves foráneas/),
+      expect.stringMatching(/^Únicos/),
+    ])
+    expect(screen.getByRole('tab', { name: 'Índices 1' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Únicos 2' })).toBeInTheDocument()
   })
 
   it('cambiar de ficha cambia la ficha activa del almacén (FR-003)', async () => {

@@ -43,8 +43,18 @@ function singleKeyOf(table: Table): string | null {
   return key.length === 1 ? (key[0] as string) : null
 }
 
-/** Añade el sufijo `_2`, `_3`… hasta que el nombre no esté usado. */
-function freeName(base: string, taken: Set<string>): string {
+/**
+ * Añade el sufijo `_2`, `_3`… hasta que el nombre no esté usado.
+ *
+ * El sufijo cabe siempre dentro de {@link TECHNICAL_NAME_MAX_LENGTH}: se
+ * recorta la base, no el sufijo. Lo comparten los nombres de relación, de
+ * índice, de único y de enum, que siguen la misma regla.
+ *
+ * @param base Nombre que se querría, ya de un largo válido.
+ * @param taken Nombres ya usados.
+ * @returns La base si está libre, o la base con el primer sufijo libre.
+ */
+export function freeName(base: string, taken: ReadonlySet<string>): string {
   if (!taken.has(base)) return base
   for (let index = 2; ; index += 1) {
     const suffix = `_${index}`

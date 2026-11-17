@@ -304,3 +304,36 @@ describe('cardinalityOf (FR-014, SC-011)', () => {
     }
   })
 })
+
+describe('cardinalityOf con índices únicos (FR-029a, SC-013)', () => {
+  /** Modelo con la tabla de prueba tal como se le pase y la relación de `articulo_id`. */
+  function model(extra: Partial<Table> = {}): Model {
+    return {
+      formatVersion: 1,
+      name: 'Prueba',
+      engine: 'postgres',
+      schemas: [{ name: 'ventas', abbreviation: 'VEN' }],
+      tables: [tableWith(extra)],
+      relations: [relation()],
+    }
+  }
+
+  it('un índice único de una sola columna la hace uno a uno, como UK', () => {
+    const indexes = [{ name: 'idx_articulo', fields: ['articulo_id'], unique: true }]
+
+    expect(cardinalityOf(model({ indexes }), relation())).toEqual({ from: 'one', to: 'one' })
+    expect(relationCardinality(model({ indexes }), relation())).toBe('Uno a uno')
+  })
+
+  it('un índice sin la marca de único no cambia nada', () => {
+    const indexes = [{ name: 'idx_articulo', fields: ['articulo_id'] }]
+
+    expect(cardinalityOf(model({ indexes }), relation())).toEqual({ from: 'one', to: 'many' })
+  })
+
+  it('un índice único de dos columnas no cambia nada', () => {
+    const indexes = [{ name: 'idx_articulo_linea', fields: ['articulo_id', 'linea'], unique: true }]
+
+    expect(cardinalityOf(model({ indexes }), relation())).toEqual({ from: 'one', to: 'many' })
+  })
+})

@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react'
+
 import { Dialog } from '@/components/ui/Dialog'
 import { Icon } from '@/components/ui/Icon'
 import { SegmentedControl, type SegmentedOption } from '@/components/ui/SegmentedControl'
 import { Switch } from '@/components/ui/Switch'
+import { TextField } from '@/components/ui/TextField'
 import type { RelationAnimation, RelationRoute, ThemePreference } from '@/lib/tauri/types'
 import { useAppStore } from '@/store'
 
@@ -36,12 +39,59 @@ const ANIMATION_OPTIONS: ReadonlyArray<SegmentedOption<RelationAnimation>> = [
  * Ventana de Ajustes, con la cabecera y la rejilla del lienzo: pestaña
  * «General» con «Tema» (FR-008 del Incremento 1), «Ajustar a la cuadrícula»
  * (FR-032 del Incremento 3) y «Trazado de relaciones» (FR-017 del Incremento
- * 4) y «Animación de relaciones» (FR-024). Los cambios se aplican en toda la aplicación sin reiniciar y sin cerrar
- * la ventana.
+ * 4) y «Animación de relaciones» (FR-024), y el grupo «Nombres» con los
+ * prefijos de índices y de únicos (FR-043 del Incremento 5). Los cambios se
+ * aplican en toda la aplicación sin reiniciar y sin cerrar la ventana.
  *
  * La pestaña «Nomenclatura» del diseño llega con el editor; aquí se omite en
  * vez de dibujarla apagada.
  */
+/** Props del campo de un prefijo. */
+interface PrefixFieldProps {
+  label: string
+  /** El prefijo guardado, ya saneado por Rust. */
+  value: string
+  /** Columnas del ejemplo, después del prefijo. */
+  example: string
+  onCommit: (value: string) => void
+}
+
+/**
+ * Campo de un prefijo de nombre (FR-043).
+ *
+ * Escribe al perder el foco o con Enter, no en cada tecla, para no guardar en
+ * el disco prefijos a medias; después muestra lo que Rust guardó, que puede
+ * no ser lo escrito (contracts/preferences.md, «Interfaz»).
+ */
+function PrefixField({ label, value, example, onCommit }: PrefixFieldProps) {
+  const [draft, setDraft] = useState(value)
+
+  useEffect(() => setDraft(value), [value])
+
+  /** Guarda lo escrito si cambió. */
+  function commit() {
+    if (draft !== value) onCommit(draft)
+  }
+
+  return (
+    <TextField
+      aria-label={label}
+      value={draft}
+      onValueChange={setDraft}
+      onBlur={commit}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter') return
+        event.preventDefault()
+        commit()
+      }}
+      hint={`Ejemplo: ${value}${example}`}
+      inputClassName="font-mono"
+      spellCheck={false}
+      className="w-[180px]"
+    />
+  )
+}
+
 export function PreferencesWindow() {
   const isOpen = useAppStore((state) => state.isPreferencesOpen)
   const closePreferences = useAppStore((state) => state.closePreferences)
@@ -53,6 +103,9 @@ export function PreferencesWindow() {
   const setRelationRoute = useAppStore((state) => state.setRelationRoute)
   const relationAnimation = useAppStore((state) => state.preferences.relationAnimation)
   const setRelationAnimation = useAppStore((state) => state.setRelationAnimation)
+  const indexPrefix = useAppStore((state) => state.preferences.indexPrefix)
+  const uniquePrefix = useAppStore((state) => state.preferences.uniquePrefix)
+  const setNamePrefix = useAppStore((state) => state.setNamePrefix)
   const writeError = useAppStore((state) => state.writeError)
 
   return (
@@ -109,6 +162,22 @@ export function PreferencesWindow() {
             Los puntos que fluyen por las relaciones activas.
           </span>
         </div>
+
+        <span className="sm-plabel">Prefijo de índices</span>
+        <PrefixField
+          label="Prefijo de índices"
+          value={indexPrefix}
+          example="pago_residente_id"
+          onCommit={(value) => void setNamePrefix('indexPrefix', value)}
+        />
+
+        <span className="sm-plabel">Prefijo de únicos</span>
+        <PrefixField
+          label="Prefijo de únicos"
+          value={uniquePrefix}
+          example="unidad_torre_numero"
+          onCommit={(value) => void setNamePrefix('uniquePrefix', value)}
+        />
 
         {writeError ? (
           <p role="alert" className="col-start-2 text-[11px] leading-[14px] text-danger-text">

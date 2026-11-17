@@ -24,6 +24,9 @@ export type FieldColumn =
   | 'comment'
   | 'order'
 
+/** Columnas de las rejillas de índices y de únicos, en orden (FR-022, FR-032). */
+export type ConstraintColumn = 'name' | 'columns' | 'unique' | 'remove'
+
 /** Columnas de la rejilla de claves foráneas, en orden (FR-006). */
 export type ForeignKeyColumn =
   | 'column'
@@ -33,8 +36,13 @@ export type ForeignKeyColumn =
   | 'index'
   | 'remove'
 
-/** Fichas del panel inferior (FR-003, research R9). */
-export type PanelTab = 'fields' | 'foreignKeys'
+/**
+ * Fichas del panel inferior (FR-003, research R9).
+ *
+ * El Incremento 5 añade «Índices» y «Únicos»; el orden en pantalla es el del
+ * tablero: Campos · Índices · Claves foráneas · Únicos.
+ */
+export type PanelTab = 'fields' | 'indexes' | 'foreignKeys' | 'uniques'
 
 /**
  * Celda enfocada de una de las dos rejillas del panel.
@@ -46,7 +54,7 @@ export type PanelTab = 'fields' | 'foreignKeys'
  */
 export interface FieldCell {
   field: string
-  column: FieldColumn | ForeignKeyColumn
+  column: FieldColumn | ForeignKeyColumn | ConstraintColumn
 }
 
 /** Alto mínimo del panel (FR-022). */

@@ -65,6 +65,15 @@ describe('TableCard', () => {
     expect(card).toHaveTextContent('nota')
   })
 
+  it('un campo de tipo enum muestra el nombre del enum como tipo (FR-011)', () => {
+    renderCard({
+      table: { ...TABLE, fields: [...TABLE.fields, { name: 'estado', type: 'estado_reserva' }] },
+    })
+
+    const card = screen.getByRole('button', { name: /^Tabla reservas,/ })
+    expect(card).toHaveTextContent('estado_reserva')
+  })
+
   it('su alto sigue a `tableHeight` (research R1)', () => {
     renderCard()
 

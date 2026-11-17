@@ -5,7 +5,13 @@ import { resolveLayout } from '@/lib/canvas/layout'
 import { toModelPoint } from '@/lib/canvas/zoom'
 import { auditFields, idField, templatesOf, textTypeOf, typeTraits } from '@/lib/model/engines'
 import type { FieldTemplate } from '@/lib/model/engines'
-import { TECHNICAL_NAME_PATTERN, TABLE_COMMENT_MAX_LENGTH } from '@/lib/model/types'
+import { constraintNames, fieldDependents, proposeConstraintName } from '@/lib/model/indexes'
+import { freeName } from '@/lib/model/relations'
+import {
+  TABLE_COMMENT_MAX_LENGTH,
+  TECHNICAL_NAME_MAX_LENGTH,
+  TECHNICAL_NAME_PATTERN,
+} from '@/lib/model/types'
 import type { Field, Model, NamedFields, Position, Relation, Table } from '@/lib/model/types'
 import { pushHistory } from '@/store/model'
 import type { AppSlice } from '@/store/types'
@@ -257,7 +263,16 @@ export function renameFieldInRelations(
   })
 }
 
-/** La tabla sin el campo que se elimina, también en sus llaves (FR-019). */
+/**
+ * La tabla sin el campo que se elimina, también en sus llaves (FR-019, FR-039).
+ *
+ * Desde el Incremento 5 sigue a `fieldDependents`, que es lo mismo que lee la
+ * confirmación: un índice no único pierde la columna y desaparece si era la
+ * única; un índice único y un único compuesto desaparecen enteros, porque
+ * quedarse con menos columnas los haría más estrictos de lo que se definió; y
+ * el único de un campo, que es la marca UK del propio campo, se va con él
+ * (research R15).
+ */
 function removeFieldFromKeys(table: Table, field: string): Table {
   const next: Table = { ...table, fields: table.fields.filter((item) => item.name !== field) }
   const primaryKey = (table.primaryKey ?? []).filter((item) => item !== field)
@@ -265,16 +280,56 @@ function removeFieldFromKeys(table: Table, field: string): Table {
     if (primaryKey.length === 0) delete next.primaryKey
     else next.primaryKey = primaryKey
   }
-  for (const key of ['uniques', 'indexes'] as const) {
-    const list = table[key]
-    if (list === undefined) continue
-    const kept = list
+
+  const dependents = fieldDependents(table, field)
+  const removedIndexes = new Set(dependents.removedIndexes)
+  const removedUniques = new Set(dependents.removedUniques)
+
+  if (table.indexes !== undefined) {
+    const kept = table.indexes
+      .filter((item) => !removedIndexes.has(item.name))
       .map((item) => ({ ...item, fields: item.fields.filter((name) => name !== field) }))
-      .filter((item) => item.fields.length > 0)
-    if (kept.length === 0) delete next[key]
-    else next[key] = kept
+    if (kept.length === 0) delete next.indexes
+    else next.indexes = kept
+  }
+  if (table.uniques !== undefined) {
+    const kept = table.uniques.filter(
+      (item) =>
+        !removedUniques.has(item.name) && !(item.fields.length === 1 && item.fields[0] === field),
+    )
+    if (kept.length === 0) delete next.uniques
+    else next.uniques = kept
   }
   return next
+}
+
+/**
+ * Nombres de los índices y únicos de una copia de tabla (FR-040).
+ *
+ * El nombre de la tabla dentro del nombre —`idx_pago_mes`, o `pago_mes_idx`
+ * en archivos antiguos— pasa a ser el de la copia, y el resultado no repite
+ * ningún nombre del modelo ni de la propia copia.
+ *
+ * @param items Índices o únicos de la tabla original.
+ * @param from Nombre de la tabla original.
+ * @param to Nombre de la copia.
+ * @param taken Nombres de índices y únicos ya usados; se amplía con los nuevos.
+ */
+function copyConstraintNames<T extends NamedFields>(
+  items: T[],
+  from: string,
+  to: string,
+  taken: Set<string>,
+): T[] {
+  // Los nombres de tabla son nombres técnicos: no llevan caracteres especiales
+  // de una expresión regular que haga falta escapar (RS-03).
+  const segment = new RegExp(`(^|_)${from}(_|$)`)
+  return items.map((item) => {
+    const base = item.name.replace(segment, `$1${to}$2`).slice(0, TECHNICAL_NAME_MAX_LENGTH)
+    const name = freeName(base, taken)
+    taken.add(name)
+    return { ...item, name, fields: [...item.fields] }
+  })
 }
 
 /** El campo con la longitud y la escala que su tipo nuevo admite (FR-015). */
@@ -560,11 +615,16 @@ export const createTablesSlice: AppSlice<TablesSlice> = (set, get) => ({
       size,
     )
 
+    const usedNames = constraintNames(model)
     const table: Table = {
       ...current,
       name: copy,
-      ...(current.uniques ? { uniques: renamePrefix(current.uniques, name, copy) } : {}),
-      ...(current.indexes ? { indexes: renamePrefix(current.indexes, name, copy) } : {}),
+      ...(current.uniques
+        ? { uniques: copyConstraintNames(current.uniques, name, copy, usedNames) }
+        : {}),
+      ...(current.indexes
+        ? { indexes: copyConstraintNames(current.indexes, name, copy, usedNames) }
+        : {}),
       fields: current.fields.map((field) => ({ ...field })),
       position: spot,
     }
@@ -805,9 +865,11 @@ export const createTablesSlice: AppSlice<TablesSlice> = (set, get) => ({
    * Marca un campo como llave primaria, única o ninguna (FR-025, FR-026).
    *
    * `PK` añade el campo a la llave primaria —que puede ser de varios campos— y
-   * lo deja no nulo. `UK` crea el único `uq_<tabla>_<campo>`. Un único de
-   * varios campos no se toca: eso se edita en su propia sección, de otro
-   * incremento (research R12).
+   * lo deja no nulo. `UK` crea el único de un campo, con el nombre que propone
+   * el prefijo de únicos de Ajustes y sin repetir ninguno del modelo; con el
+   * prefijo inicial es `uq_<tabla>_<campo>`, como antes. Un campo que ya era
+   * UK conserva su único tal cual (FR-038a). Un único de varios campos no se
+   * toca: se edita en la ficha «Únicos» (research R13).
    *
    * @param table Nombre técnico de la tabla.
    * @param field Nombre técnico del campo.
@@ -822,7 +884,17 @@ export const createTablesSlice: AppSlice<TablesSlice> = (set, get) => ({
     if (current.fields.every((item) => item.name !== field)) return
 
     const next: Table = { ...current }
-    const uniqueName = `uq_${table}_${field}`
+    const existing = (current.uniques ?? []).find(
+      (item) => item.fields.length === 1 && item.fields[0] === field,
+    )
+    const uniqueName =
+      existing?.name ??
+      proposeConstraintName(
+        state.preferences.uniquePrefix,
+        table,
+        [field],
+        constraintNames(model),
+      )
 
     const primaryKey = (current.primaryKey ?? []).filter((item) => item !== field)
     const uniques = (current.uniques ?? []).filter(
@@ -840,7 +912,13 @@ export const createTablesSlice: AppSlice<TablesSlice> = (set, get) => ({
     } else if (primaryKey.length === 0) delete next.primaryKey
     else next.primaryKey = primaryKey
 
-    if (key === 'UK') next.uniques = [...uniques, { name: uniqueName, fields: [field] }]
+    if (key === 'UK') {
+      // Un campo que ya era UK se queda con su único, en su sitio de la lista.
+      next.uniques =
+        existing === undefined
+          ? [...uniques, { name: uniqueName, fields: [field] }]
+          : (current.uniques ?? [])
+    }
     else if (uniques.length === 0) delete next.uniques
     else next.uniques = uniques
 

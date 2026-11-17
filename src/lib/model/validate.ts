@@ -54,6 +54,7 @@ const ALLOWED_KEYS = {
   table: ['name', 'schema', 'comment', 'fields', 'primaryKey', 'uniques', 'indexes', 'position'],
   field: ['name', 'type', 'length', 'scale', 'nullable', 'default', 'comment'],
   namedFields: ['name', 'fields'],
+  index: ['name', 'fields', 'unique'],
   position: ['x', 'y'],
   relation: ['name', 'fromTable', 'fromFields', 'toTable', 'toFields', 'onDelete', 'onUpdate'],
   enum: ['name', 'schema', 'values', 'comment'],
@@ -204,17 +205,32 @@ function technicalNameList(
   return names
 }
 
-/** Comprueba un índice o un único: nombre y campos de la tabla. */
+/**
+ * Comprueba un índice o un único: nombre y campos de la tabla.
+ *
+ * Un índice admite además la marca `unique`, que tiene que ser verdadero o
+ * falso; en un único es una clave desconocida, porque un único ya lo es
+ * (research R8).
+ */
 function validateNamedFields(
   report: Report,
   value: unknown,
   path: ValuePath,
   label: string,
   fieldNames: Set<string>,
+  kind: 'uniques' | 'indexes',
 ): void {
   const record = requireRecord(report, value, path, label)
   if (record === null) return
-  rejectUnknownKeys(report, record, path, ALLOWED_KEYS.namedFields)
+  rejectUnknownKeys(
+    report,
+    record,
+    path,
+    kind === 'indexes' ? ALLOWED_KEYS.index : ALLOWED_KEYS.namedFields,
+  )
+  if (kind === 'indexes' && record['unique'] !== undefined && typeof record['unique'] !== 'boolean') {
+    report.add([...path, 'unique'], '«unique» tiene que ser verdadero o falso.')
+  }
   requireTechnicalName(report, record['name'], [...path, 'name'], `El nombre de ${label}`)
   const names = technicalNameList(report, record['fields'], [...path, 'fields'], `los campos de ${label}`)
   names.forEach((name, index) => {
@@ -405,7 +421,7 @@ function validateTable(
     if (list === null) continue
     const label = key === 'uniques' ? 'cada único' : 'cada índice'
     list.forEach((item, index) => {
-      validateNamedFields(report, item, [...path, key, index], label, fieldNames)
+      validateNamedFields(report, item, [...path, key, index], label, fieldNames, key)
     })
   }
 

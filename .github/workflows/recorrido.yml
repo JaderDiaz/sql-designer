@@ -1,4 +1,4 @@
-# El recorrido sobre la aplicación de verdad: los doce escenarios de
+# El recorrido sobre la aplicación de verdad: los trece escenarios de
 # `e2e/specs/`, uno por cada `quickstart.md` de los incrementos cerrados.
 #
 # Va aparte de las puertas porque es lento: compila el binario con la bandera

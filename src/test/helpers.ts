@@ -100,6 +100,7 @@ export function resetStore(
     focusedSchema: null,
     selectedSchema: null,
     selectedTable: null,
+    enumTarget: null,
     isGesturing: false,
     needsCenter: false,
     isSidebarHidden: false,

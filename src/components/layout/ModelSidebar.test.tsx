@@ -153,3 +153,78 @@ describe('filas de tabla de la barra lateral (FR-036, FR-041)', () => {
     expect(screen.getByRole('menuitem', { name: /^Eliminar tabla…/ })).toBeInTheDocument()
   })
 })
+
+describe('ModelSidebar · Enums (FR-010, FR-020)', () => {
+  /** Deja el modelo de enums abierto y dibuja la barra lateral. */
+  function renderEnums() {
+    const result = parseModel(readFixture('modelo-enums'))
+    if (!result.ok) throw new Error('el ejemplo no es un modelo válido')
+    resetStore()
+    act(() => {
+      useAppStore.setState({
+        screen: 'editor',
+        model: result.model,
+        savedModel: result.model,
+        viewport: { x: 0, y: 0, width: 800, height: 600 },
+      })
+    })
+    return render(<ModelSidebar />)
+  }
+
+  /** La sección Enums. */
+  function enumsSection(): HTMLElement {
+    return screen.getByRole('region', { name: /^Enums/ })
+  }
+
+  beforeEach(() => renderEnums())
+
+  it('lista los enums con su número de valores', () => {
+    const section = enumsSection()
+    expect(within(section).getByRole('button', { name: /^estado_pago, 4 valores/ })).toBeInTheDocument()
+    expect(within(section).getByRole('button', { name: /^tipo_documento, 3 valores/ })).toBeInTheDocument()
+  })
+
+  it('el icono lleva el color de su esquema y el nombre dice cuál es (RS-11)', () => {
+    const row = within(enumsSection()).getByRole('button', {
+      name: 'estado_pago, 4 valores, esquema FIN · finanzas',
+    })
+    const icon = row.querySelector('span[aria-hidden="true"]') as HTMLElement
+    expect(icon.style.color).toBe('var(--green)')
+    expect(row).toHaveTextContent('FIN')
+  })
+
+  it('la sección va antes que «Tablas», como en el tablero', () => {
+    const headings = screen.getAllByRole('heading').map((item) => item.textContent)
+    expect(headings.indexOf('Enums')).toBeLessThan(headings.indexOf('Tablas'))
+  })
+
+  it('«Nuevo enum» y pulsar un enum abren su hoja', async () => {
+    await userEvent.click(within(enumsSection()).getByRole('button', { name: 'Nuevo enum' }))
+    expect(useAppStore.getState().dialog).toBe('enum')
+    expect(useAppStore.getState().enumTarget).toBeNull()
+
+    await userEvent.click(within(enumsSection()).getByRole('button', { name: /^estado_pago, 4 valores/ }))
+    expect(useAppStore.getState().enumTarget).toBe('estado_pago')
+  })
+
+  it('con un esquema enfocado lista solo sus enums y lo dice', async () => {
+    await userEvent.click(screen.getByRole('option', { name: /^personas/ }))
+
+    const section = enumsSection()
+    expect(within(section).getByRole('heading', { name: 'Enums de personas' })).toBeInTheDocument()
+    expect(within(section).queryByRole('button', { name: /^estado_pago/ })).toBeNull()
+    expect(within(section).getByRole('button', { name: /^tipo_documento/ })).toBeInTheDocument()
+  })
+
+  it('su menú contextual dice valores y usos, y duplica', async () => {
+    const row = within(enumsSection()).getByRole('button', { name: /^estado_pago, 4 valores/ })
+    fireEvent.contextMenu(row)
+
+    expect(await screen.findByText('Enum · 4 valores · 2 campos')).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: /Editar enum/ })).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: /Eliminar enum/ })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('menuitem', { name: /Duplicar enum/ }))
+
+    expect(useAppStore.getState().model?.enums?.map((item) => item.name)).toContain('estado_pago_copia')
+  })
+})

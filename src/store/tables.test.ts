@@ -408,3 +408,133 @@ describe('deleteTable', () => {
     ).toBe(true)
   })
 })
+
+describe('índices y únicos al cambiar campos y tablas (Incremento 5)', () => {
+  /** El modelo de enums: `pago` con un índice de dos columnas, `cuota` con un índice único. */
+  function enums(): Model {
+    const result = parseModel(readFixture('modelo-enums'))
+    if (!result.ok) throw new Error('el ejemplo no es un modelo válido')
+    return result.model
+  }
+
+  /** La tabla del almacén, que tiene que existir. */
+  function mustTable(name: string) {
+    const table = tableNamed(name)
+    if (table === undefined) throw new Error(`no hay tabla ${name}`)
+    return table
+  }
+
+  /** `pago` con los cuatro casos de FR-039 a la vez. */
+  function pagoConTodo(): Model {
+    const model = enums()
+    const pago = model.tables?.find((table) => table.name === 'pago')
+    if (pago) {
+      pago.uniques = [
+        { name: 'uq_pago_referencia', fields: ['referencia'] },
+        { name: 'uq_pago_residente_id_mes', fields: ['residente_id', 'mes'] },
+      ]
+      pago.indexes = [
+        { name: 'idx_pago_mes_cuota_id', fields: ['mes', 'cuota_id'] },
+        { name: 'idx_pago_mes', fields: ['mes'] },
+        { name: 'idx_pago_mes_estado', fields: ['mes', 'estado'], unique: true },
+      ]
+    }
+    return model
+  }
+
+  it('eliminar un campo: el índice normal lo pierde, el único y el compuesto se van (FR-039)', () => {
+    openModel(pagoConTodo())
+
+    useAppStore.getState().deleteField('pago', 'mes')
+
+    const pago = mustTable('pago')
+    expect(pago.indexes).toEqual([{ name: 'idx_pago_mes_cuota_id', fields: ['cuota_id'] }])
+    expect(pago.uniques).toEqual([{ name: 'uq_pago_referencia', fields: ['referencia'] }])
+  })
+
+  it('el único de un campo se va con su campo, y deshacer lo devuelve todo', () => {
+    const before = pagoConTodo()
+    openModel(before)
+
+    useAppStore.getState().deleteField('pago', 'referencia')
+    expect(mustTable('pago').uniques).toEqual([
+      { name: 'uq_pago_residente_id_mes', fields: ['residente_id', 'mes'] },
+    ])
+
+    useAppStore.getState().undo()
+    expect(useAppStore.getState().model).toEqual(before)
+  })
+
+  it('marcar UK nombra el único con el prefijo de Ajustes (FR-038a)', () => {
+    openModel(enums())
+
+    useAppStore.getState().setFieldKey('pago', 'mes', 'UK')
+    expect(mustTable('pago').uniques?.at(-1)).toEqual({ name: 'uq_pago_mes', fields: ['mes'] })
+
+    resetStore({ preferences: { uniquePrefix: 'un_' } })
+    const model = enums()
+    useAppStore.setState({ screen: 'editor', model, savedModel: model, isDirty: false })
+    useAppStore.getState().setFieldKey('pago', 'mes', 'UK')
+    expect(mustTable('pago').uniques?.at(-1)?.name).toBe('un_pago_mes')
+  })
+
+  it('marcar UK no repite un nombre del modelo y conserva el que ya hay (FR-038a)', () => {
+    const model = enums()
+    const cuota = model.tables?.find((table) => table.name === 'cuota')
+    if (cuota) cuota.indexes = [{ name: 'uq_pago_mes', fields: ['valor'] }]
+    openModel(model)
+
+    useAppStore.getState().setFieldKey('pago', 'mes', 'UK')
+    expect(mustTable('pago').uniques?.at(-1)?.name).toBe('uq_pago_mes_2')
+
+    useAppStore.getState().setFieldKey('pago', 'referencia', 'UK')
+    expect(mustTable('pago').uniques?.[0]).toEqual({ name: 'uq_pago_referencia', fields: ['referencia'] })
+  })
+
+  it('renombrar un campo lo propaga a índices y únicos, con su marca (FR-040)', () => {
+    openModel(pagoConTodo())
+
+    useAppStore.getState().updateField('pago', 'mes', { name: 'periodo' })
+
+    const pago = mustTable('pago')
+    expect(pago.indexes?.[2]).toEqual({
+      name: 'idx_pago_mes_estado',
+      fields: ['periodo', 'estado'],
+      unique: true,
+    })
+    expect(pago.uniques?.[1]?.fields).toEqual(['residente_id', 'periodo'])
+  })
+
+  it('duplicar copia índices y únicos con nombres que no se repiten (FR-040)', () => {
+    openModel(pagoConTodo())
+
+    useAppStore.getState().duplicateTable('pago')
+
+    const copy = mustTable('pago_copia')
+    expect(copy.indexes).toEqual([
+      { name: 'idx_pago_copia_mes_cuota_id', fields: ['mes', 'cuota_id'] },
+      { name: 'idx_pago_copia_mes', fields: ['mes'] },
+      { name: 'idx_pago_copia_mes_estado', fields: ['mes', 'estado'], unique: true },
+    ])
+    expect(copy.uniques?.map((item) => item.name)).toEqual([
+      'uq_pago_copia_referencia',
+      'uq_pago_copia_residente_id_mes',
+    ])
+    const names = (useAppStore.getState().model?.tables ?? []).flatMap((table) => [
+      ...(table.indexes ?? []).map((item) => item.name),
+      ...(table.uniques ?? []).map((item) => item.name),
+    ])
+    expect(new Set(names).size).toBe(names.length)
+  })
+
+  it('eliminar la tabla se lleva sus índices y únicos', () => {
+    openModel(pagoConTodo())
+
+    useAppStore.getState().deleteTable('pago')
+
+    const names = (useAppStore.getState().model?.tables ?? []).flatMap((table) =>
+      (table.indexes ?? []).map((item) => item.name),
+    )
+    expect(names).not.toContain('idx_pago_mes')
+  })
+})
