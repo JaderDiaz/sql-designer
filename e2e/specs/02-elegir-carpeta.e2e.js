@@ -38,6 +38,9 @@ describe('Escenario 2 · Elegir la carpeta', () => {
 
     await pulsar('Atrás')
     await esperarTexto(basename(carpeta))
+    // El nombre de la carpeta también está en el diálogo de debajo; lo que
+    // dice que se volvió de verdad es que la lista trae su contenido.
+    await esperarTexto('vacia')
     expect((await estado('Adelante')).deshabilitado).toBe(false)
   })
 
