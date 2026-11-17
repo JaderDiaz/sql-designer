@@ -164,6 +164,16 @@ export function isSelectable(entry: DirectoryEntry, only: ListOnly): boolean {
 }
 
 /**
+ * Número del último listado que se pidió.
+ *
+ * Los listados no vuelven en el orden en que salen: una carpeta lenta —un
+ * disco de red, o Documentos mientras el sistema pregunta por el permiso—
+ * puede contestar después de que ya se haya ido a otra. Solo el último pedido
+ * tiene derecho a escribir en el almacén.
+ */
+let lastListing = 0
+
+/**
  * Crea la parte del explorador.
  *
  * @param set Escritura del almacén compuesto.
@@ -317,7 +327,10 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
     await get().loadPlaces()
     const { places, preferences, draftFolder } = get()
     const start = folder ?? preferences.lastFolder ?? draftFolder ?? initialFolder(places)
+    // Lo que quedara por contestar era de la vez anterior que se abrió.
+    lastListing += 1
     set({
+      isListing: false,
       only,
       query: '',
       selection: null,
@@ -401,21 +414,30 @@ export const createBrowserSlice: AppSlice<BrowserSlice> = (set, get) => ({
     await get().refreshEntries()
   },
 
-  /** Vuelve a leer el contenido de la carpeta actual. */
+  /**
+   * Vuelve a leer el contenido de la carpeta actual.
+   *
+   * Si mientras se lee se pide otro listado, la respuesta de este se tira: el
+   * contenido que se ve es siempre el de la carpeta en la que se está.
+   */
   async refreshEntries() {
     const { browsePath, only } = get()
     if (browsePath === null) return
+    lastListing += 1
+    const listing = lastListing
     set({ isListing: true, browseError: null })
     try {
-      set({ entries: await fsListDirectory(browsePath, only) })
+      const entries = await fsListDirectory(browsePath, only)
+      if (listing !== lastListing) return
+      set({ entries, isListing: false })
     } catch (error) {
+      if (listing !== lastListing) return
       set({
         entries: [],
+        isListing: false,
         browseError:
           error instanceof Error ? error.message : 'No se pudo leer el contenido de la carpeta.',
       })
-    } finally {
-      set({ isListing: false })
     }
   },
 

@@ -218,4 +218,47 @@ describe('explorador de archivos (FR-007 a FR-013)', () => {
     expect(useAppStore.getState().entries).toEqual([])
     expect(useAppStore.getState().browseError).toBe('El sistema no da acceso a esa ruta.')
   })
+
+  it('un listado que llega tarde no pisa el de la carpeta a la que ya se fue', async () => {
+    await useAppStore.getState().startBrowsing('folders')
+
+    // Documentos tarda —un disco lento, el permiso del sistema— y mientras
+    // tanto se vuelve atrás, a una carpeta que contesta enseguida.
+    let answerSlow: (entries: DirectoryEntry[]) => void = () => undefined
+    const slow = new Promise<DirectoryEntry[]>((resolve) => {
+      answerSlow = resolve
+    })
+    vi.mocked(fsListDirectory).mockReturnValueOnce(slow)
+    const leaving = useAppStore.getState().goToFolder('/Users/ada/Desktop')
+
+    vi.mocked(fsListDirectory).mockResolvedValueOnce([entry('vacia', 'folder')])
+    await useAppStore.getState().goBack()
+    expect(useAppStore.getState().isListing).toBe(false)
+
+    answerSlow([entry('del-escritorio', 'folder')])
+    await leaving
+
+    const state = useAppStore.getState()
+    expect(state.browsePath).toBe('/Users/ada/Documents')
+    expect(state.entries.map((item) => item.name)).toEqual(['vacia'])
+    expect(state.isListing).toBe(false)
+  })
+
+  it('un fallo que llega tarde tampoco se cuelga de otra carpeta', async () => {
+    await useAppStore.getState().startBrowsing('folders')
+
+    let failSlow: (error: Error) => void = () => undefined
+    const slow = new Promise<DirectoryEntry[]>((_, reject) => {
+      failSlow = reject
+    })
+    vi.mocked(fsListDirectory).mockReturnValueOnce(slow)
+    const leaving = useAppStore.getState().goToFolder('/Users/ada/Desktop')
+    await useAppStore.getState().goBack()
+
+    failSlow(new Error('El sistema no da acceso a esa ruta.'))
+    await leaving
+
+    expect(useAppStore.getState().browseError).toBe(null)
+    expect(useAppStore.getState().entries).toHaveLength(4)
+  })
 })
