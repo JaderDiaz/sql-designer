@@ -1418,24 +1418,48 @@ export async function marcarColumnas(etiqueta, columnas) {
     }`
     await esperar(pulsa, `El selector «${etiqueta}» no trae «${columna}».`)
   }
-  // El Escape se manda dentro de la página, al propio menú: en WebView2 el que
-  // envía WebDriver no le llega cuando la última pulsación fue un clic hecho
-  // desde un guion, y el menú se quedaba abierto.
-  await browser.execute(`
-    const menu = [...document.querySelectorAll('[role="menu"]')].pop()
-    if (menu) {
-      menu.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
-      )
+  // El menú se cierra probando tres vías hasta que desaparece. En WebView2 el
+  // Escape que manda WebDriver no siempre le llega tras un clic hecho desde
+  // un guion, sobre todo si el cambio se rechazó y la fila se volvió a pintar.
+  const abierto = async () =>
+    (await browser.execute(
+      'return document.querySelectorAll(\'[role="menuitemcheckbox"]\').length',
+    )) > 0
+  const vias = [
+    // Escape dentro de la página, desde una opción del propio menú.
+    () =>
+      browser.execute(`
+        const menu = [...document.querySelectorAll('[role="menu"]')].pop()
+        const item = menu && menu.querySelector('[role="menuitemcheckbox"]')
+        if (item) {
+          item.focus()
+          item.dispatchEvent(
+            new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+          )
+        }
+      `),
+    // Escape de WebDriver, con el foco ya dentro del menú.
+    () => browser.keys('Escape'),
+    // Un clic fuera del menú, que el primitivo trata como «cerrar».
+    () =>
+      browser.execute(`
+        const fuera = document.querySelector('[role="grid"]') || document.body
+        const comun = { bubbles: true, cancelable: true, composed: true, pointerId: 1, pointerType: 'mouse', isPrimary: true, button: 0 }
+        fuera.dispatchEvent(new PointerEvent('pointerdown', { ...comun, buttons: 1 }))
+        fuera.dispatchEvent(new PointerEvent('pointerup', { ...comun, buttons: 0 }))
+      `),
+  ]
+  for (const via of vias) {
+    if (!(await abierto())) return
+    await via()
+    try {
+      await browser.waitUntil(async () => !(await abierto()), { timeout: 3000 })
+      return
+    } catch {
+      // Sigue con la vía siguiente.
     }
-  `)
-  await browser.waitUntil(
-    async () =>
-      (await browser.execute(
-        'return document.querySelectorAll(\'[role="menuitemcheckbox"]\').length',
-      )) === 0,
-    { timeout: ESPERA_MS, timeoutMsg: `El selector «${etiqueta}» siguió abierto.` },
-  )
+  }
+  if (await abierto()) throw new Error(`El selector «${etiqueta}» siguió abierto.`)
 }
 
 /**
