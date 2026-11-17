@@ -82,7 +82,8 @@ Seis de geometría, en `src/lib/canvas/relations.ts`:
 | ------- | ------- | ------ |
 | `relationAnchors` | modelo, layout, relación | Los dos extremos, su lado y el tipo de recorrido (`h`, `loop`, `self`) |
 | `assignLanes` | lista de anclas | El carril de cada relación, repartido cada 14 px y con los cruces minimizados (R2) |
-| `pathOf` | anclas, carril, trazado | La cadena `d` del `path` |
+| `assignDetours` | anclas, carriles, cajas de las tablas | El carril y el rodeo de cada línea ortogonal que toparía con una tarjeta (R3, T082) |
+| `pathOf` | anclas, carril, trazado, rodeo | La cadena `d` del `path` |
 | `glyphOf` | extremo, punto, lado | La cadena `d` del glifo de cardinalidad |
 | `relationLayer` | modelo, layout, trazado | Todo lo anterior junto: una lista lista para pintar, con color y clases |
 | `touchedRelations` | modelo, tabla o esquema | Qué relaciones hay que repintar durante un arrastre (R6) |

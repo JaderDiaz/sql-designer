@@ -484,4 +484,14 @@ pruebas), todas en verde.
 
 ## Trabajo pendiente detectado al cerrar
 
-- [ ] T082 Esquivar las tarjetas también con el tramo horizontal de la línea ortogonal: hoy 20 de las 60 relaciones de `modelo-50-tablas.yaml` cruzan una tarjeta intermedia cuando las dos tablas están a varias columnas de distancia, porque el trazado de tres tramos de research R3 solo aparta el tramo vertical (`src/lib/canvas/relations.ts`, FR-016, SC-005)
+- [X] T082 Esquivar las tarjetas también con el tramo horizontal de la línea ortogonal: hoy 20 de las 60 relaciones de `modelo-50-tablas.yaml` cruzan una tarjeta intermedia cuando las dos tablas están a varias columnas de distancia, porque el trazado de tres tramos de research R3 solo aparta el tramo vertical (`src/lib/canvas/relations.ts`, FR-016, SC-005)
+
+**T082 · El tramo horizontal.** `assignDetours` en `src/lib/canvas/relations.ts`
+busca otro carril o un rodeo de cinco tramos para las líneas ortogonales que
+toparían con una tarjeta; `RelationLine` gana `detour` y `pathOf` lo recibe
+como cuarto argumento, así que el arrastre repinta con el rodeo congelado. De
+las 60 relaciones de `modelo-50-tablas.yaml`, 20 llevan rodeo y ninguna
+atraviesa ya una tarjeta; componer la capa cuesta unos 7 ms con ese modelo.
+`npx tsc --noEmit`, `npm run lint` y `npx vitest run` (825 pruebas en 77
+archivos) en verde; Rust no se toca. El recorrido automatizado no se ha
+ejecutado en local: lo pasa `.github/workflows/recorrido.yml` en la PR.

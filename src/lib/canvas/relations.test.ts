@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { TABLE_WIDTH, tableHeight } from '@/lib/canvas/constants'
 import {
+  assignDetours,
   assignLanes,
   glyphOf,
   pathOf,
@@ -404,6 +405,7 @@ describe('relationLayer (FR-015)', () => {
         name: 'fk_pedidos_cliente_id',
         d: 'M200 78 H260 V54 H320',
         lane: 260,
+        detour: null,
         glyphA: glyphOf('many', { x: 200, y: 78 }, 1),
         glyphB: glyphOf('one', { x: 320, y: 54 }, -1),
         color: 'purple',
@@ -514,7 +516,7 @@ describe('los carriles a escala (T004, SC-005)', () => {
     }
   })
 
-  it('ningún tramo vertical atraviesa una tarjeta, ni con cincuenta (FR-016)', () => {
+  it('ninguna línea ortogonal atraviesa una tarjeta, ni con cincuenta (FR-016, SC-005)', () => {
     for (const nombre of ['modelo-50-tablas', 'modelo-relaciones'] as const) {
       const result = parseModel(readFixture(nombre))
       expect(result.ok).toBe(true)
@@ -525,72 +527,212 @@ describe('los carriles a escala (T004, SC-005)', () => {
       const boxes = tableBoxes(model, layout)
       const lines = relationLayer(model, layout, 'orthogonal')
 
-      const crossings: string[] = []
-      for (const line of lines) {
-        const relation = (model.relations ?? []).find((item) => item.name === line.name) as Relation
-        const anchors = relationAnchors(model, layout, relation)
-        if (anchors === null) continue
-        // El tramo que baja por el carril es el que la evasión de
-        // `assignLanes` mantiene en un pasillo libre.
-        const top = Math.min(anchors.ay, anchors.by)
-        const bottom = Math.max(anchors.ay, anchors.by)
-        const steps = Math.max(1, Math.round((bottom - top) / 4))
-        for (let step = 0; step <= steps; step += 1) {
-          const y = top + ((bottom - top) * step) / steps
-          const hit = boxes.find(
-            (box) =>
-              line.lane > box.left + 3 &&
-              line.lane < box.right - 3 &&
-              y > box.top + 3 &&
-              y < box.bottom - 3,
-          )
-          if (hit !== undefined) {
-            crossings.push(`${nombre}: ${line.name} en ${hit.left},${hit.top}`)
-            break
-          }
-        }
-      }
-
+      const crossings = lines.flatMap((line) =>
+        cardsUnder(line.d, boxes).map((hit) => `${nombre}: ${line.name} en ${hit}`),
+      )
       expect(crossings).toEqual([])
     }
   })
 
-  it('el modelo del incremento no tiene ninguna línea sobre una tarjeta (SC-005)', () => {
-    const result = parseModel(readFixture('modelo-relaciones'))
+  it('las veinte líneas que saltan una columna llevan rodeo y las demás no', () => {
+    const result = parseModel(readFixture('modelo-50-tablas'))
     expect(result.ok).toBe(true)
     if (!result.ok) return
 
-    const model = result.model
-    const layout = resolveLayout(model)
-    const boxes = tableBoxes(model, layout)
-    const lines = relationLayer(model, layout, 'orthogonal')
+    const layout = resolveLayout(result.model)
+    const lines = relationLayer(result.model, layout, 'orthogonal')
+    const rerouted = lines.filter((line) => line.detour !== null)
 
-    const crossings: string[] = []
-    for (const line of lines) {
-      const relation = (model.relations ?? []).find((item) => item.name === line.name) as Relation
-      const anchors = relationAnchors(model, layout, relation)
-      if (anchors === null) continue
-      const segments = [
-        { x0: anchors.ax, y0: anchors.ay, x1: line.lane, y1: anchors.ay },
-        { x0: line.lane, y0: anchors.ay, x1: line.lane, y1: anchors.by },
-        { x0: line.lane, y0: anchors.by, x1: anchors.bx, y1: anchors.by },
-      ]
-      for (const segment of segments) {
-        const steps = Math.max(
-          1,
-          Math.round(Math.hypot(segment.x1 - segment.x0, segment.y1 - segment.y0) / 4),
-        )
-        for (let step = 0; step <= steps; step += 1) {
-          const x = segment.x0 + ((segment.x1 - segment.x0) * step) / steps
-          const y = segment.y0 + ((segment.y1 - segment.y0) * step) / steps
-          const hit = boxes.find(
-            (box) => x > box.left + 3 && x < box.right - 3 && y > box.top + 3 && y < box.bottom - 3,
-          )
-          if (hit !== undefined) crossings.push(`${line.name} en ${hit.left},${hit.top}`)
-        }
-      }
+    expect(rerouted).toHaveLength(20)
+    // Los otros dos trazados no tienen tramos que apartar.
+    expect(relationLayer(result.model, layout, 'curved').every((line) => line.detour === null)).toBe(
+      true,
+    )
+  })
+})
+
+/** Un tramo recto de un trazo ortogonal. */
+interface Stretch {
+  x0: number
+  y0: number
+  x1: number
+  y1: number
+}
+
+/**
+ * Los tramos de un trazo ortogonal, leyendo su atributo `d`.
+ *
+ * Solo entiende `M`, `H` y `V`, que es todo lo que escribe ese trazado.
+ */
+function stretchesOf(d: string): Stretch[] {
+  const stretches: Stretch[] = []
+  let x = 0
+  let y = 0
+  for (const [, command, values] of d.matchAll(/([MHV])([^MHV]*)/g)) {
+    const numbers = (values as string).trim().split(/[ ,]+/).map(Number)
+    if (command === 'M') {
+      x = numbers[0] as number
+      y = numbers[1] as number
+      continue
     }
+    const x1 = command === 'H' ? (numbers[0] as number) : x
+    const y1 = command === 'V' ? (numbers[0] as number) : y
+    stretches.push({ x0: x, y0: y, x1, y1 })
+    x = x1
+    y = y1
+  }
+  return stretches
+}
 
-    expect(crossings).toEqual([])
+/**
+ * Tarjetas por las que pasa un trazo ortogonal: muestrea cada tramo cada 4 px
+ * con 3 px de holgura en el borde de la tarjeta.
+ */
+function cardsUnder(
+  d: string,
+  boxes: ReadonlyArray<{ left: number; right: number; top: number; bottom: number }>,
+): string[] {
+  const hits = new Set<string>()
+  for (const { x0, y0, x1, y1 } of stretchesOf(d)) {
+    const steps = Math.max(1, Math.round(Math.hypot(x1 - x0, y1 - y0) / 4))
+    for (let step = 0; step <= steps; step += 1) {
+      const px = x0 + ((x1 - x0) * step) / steps
+      const py = y0 + ((y1 - y0) * step) / steps
+      const hit = boxes.find(
+        (box) => px > box.left + 3 && px < box.right - 3 && py > box.top + 3 && py < box.bottom - 3,
+      )
+      if (hit !== undefined) hits.add(`${hit.left},${hit.top}`)
+    }
+  }
+  return [...hits]
+}
+
+/**
+ * Dice si dos trazos ortogonales comparten algún trecho, uno encima del otro.
+ *
+ * El último tramo no cuenta: dos claves que apuntan al mismo campo entran a la
+ * tarjeta por el mismo sitio, y eso no lo decide el rodeo.
+ */
+function shareStretch(first: string, second: string): boolean {
+  return stretchesOf(first).slice(0, -1).some((a) =>
+    stretchesOf(second).slice(0, -1).some((b) => {
+      const bothVertical = a.x0 === a.x1 && b.x0 === b.x1 && Math.abs(a.x0 - b.x0) < 4
+      const bothHorizontal = a.y0 === a.y1 && b.y0 === b.y1 && Math.abs(a.y0 - b.y0) < 4
+      if (bothVertical) {
+        return Math.min(a.y0, a.y1) < Math.max(b.y0, b.y1) - 1 && Math.max(a.y0, a.y1) > Math.min(b.y0, b.y1) + 1
+      }
+      if (bothHorizontal) {
+        return Math.min(a.x0, a.x1) < Math.max(b.x0, b.x1) - 1 && Math.max(a.x0, a.x1) > Math.min(b.x0, b.x1) + 1
+      }
+      return false
+    }),
+  )
+}
+
+describe('assignDetours (FR-016, SC-005, T082)', () => {
+  /** Tres tarjetas en fila: la de en medio estorba entre las de los extremos. */
+  const tables = [
+    tableWith('origen', ['id', 'destino_id']),
+    tableWith('medio', ['id', 'nota']),
+    tableWith('destino', ['id']),
+  ]
+  const model = modelWith(tables, [relationWith('fk', 'origen', 'destino_id', 'destino', 'id')])
+  const layout = new Map<string, Position>([
+    ['origen', { x: 0, y: 0 }],
+    ['medio', { x: 240, y: 0 }],
+    ['destino', { x: 480, y: 0 }],
+  ])
+  const boxes = tableBoxes(model, layout)
+
+  it('una línea que pasa limpia conserva su carril y no lleva rodeo', () => {
+    const near = modelWith(tables, [relationWith('fk', 'origen', 'destino_id', 'medio', 'id')])
+    const anchors = [anchorsOf(near, layout)]
+    const lanes = assignLanes(anchors, boxes)
+
+    expect(assignDetours(anchors, lanes, boxes)).toEqual([{ lane: lanes[0], detour: null }])
+  })
+
+  it('sin cajas no se rodea nada', () => {
+    const anchors = [anchorsOf(model, layout)]
+    expect(assignDetours(anchors, [450], [])).toEqual([{ lane: 450, detour: null }])
+  })
+
+  it('la tarjeta de en medio se rodea por un pasillo libre', () => {
+    const anchors = anchorsOf(model, layout)
+    const lanes = assignLanes([anchors], boxes)
+    const [routing] = assignDetours([anchors], lanes, boxes)
+
+    expect(routing?.detour).not.toBeNull()
+    const d = pathOf(anchors, routing?.lane as number, 'orthogonal', routing?.detour)
+    expect(cardsUnder(d, boxes)).toEqual([])
+    // Sale hacia la derecha de la tarjeta de origen y deja sitio al glifo.
+    expect(routing?.detour?.exit).toBeGreaterThanOrEqual(10)
+    // Y cruza por encima o por debajo de la tarjeta de en medio, con su aire.
+    const corridor = routing?.detour?.corridor as number
+    const middle = boxes[1] as { top: number; bottom: number }
+    expect(corridor <= middle.top - 10 || corridor >= middle.bottom + 10).toBe(true)
+  })
+
+  it('dos rodeos por el mismo hueco no se pisan', () => {
+    const twin = modelWith(
+      [
+        tableWith('origen', ['id', 'destino_id', 'otro_id']),
+        tableWith('medio', ['id', 'nota', 'alta', 'baja']),
+        tableWith('destino', ['id']),
+      ],
+      [
+        relationWith('fk_a', 'origen', 'destino_id', 'destino', 'id'),
+        relationWith('fk_b', 'origen', 'otro_id', 'destino', 'id'),
+      ],
+    )
+    const twinBoxes = tableBoxes(twin, layout)
+    const anchors = [anchorsOf(twin, layout, 0), anchorsOf(twin, layout, 1)]
+    const routings = assignDetours(anchors, assignLanes(anchors, twinBoxes), twinBoxes)
+
+    expect(routings.every((routing) => routing.detour !== null)).toBe(true)
+    const [first, second] = routings.map((routing, index) =>
+      pathOf(anchors[index] as RelationAnchors, routing.lane, 'orthogonal', routing.detour),
+    )
+    expect(cardsUnder(first as string, twinBoxes)).toEqual([])
+    expect(cardsUnder(second as string, twinBoxes)).toEqual([])
+    expect(shareStretch(first as string, second as string)).toBe(false)
+  })
+
+  it('una línea encajonada sin pasillo se queda con sus tres tramos', () => {
+    // Las tarjetas se tocan: no hay hueco por el que salir.
+    const tight = new Map<string, Position>([
+      ['origen', { x: 0, y: 0 }],
+      ['medio', { x: 200, y: 0 }],
+      ['destino', { x: 448, y: 0 }],
+    ])
+    const tightBoxes = tableBoxes(model, tight)
+    const anchors = [anchorsOf(model, tight)]
+    const lanes = assignLanes(anchors, tightBoxes)
+
+    expect(assignDetours(anchors, lanes, tightBoxes)).toEqual([{ lane: lanes[0], detour: null }])
+  })
+})
+
+describe('pathOf con rodeo (T082)', () => {
+  const anchors: RelationAnchors = {
+    ax: 200,
+    ay: 78,
+    bx: 480,
+    by: 54,
+    oa: 1,
+    ob: -1,
+    kind: 'h',
+    base: 450,
+  }
+  const detour = { exit: 22, corridor: 196 }
+
+  it('el ortogonal dibuja los cinco tramos', () => {
+    expect(pathOf(anchors, 458, 'orthogonal', detour)).toBe('M200 78 H222 V196 H458 V54 H480')
+  })
+
+  it('el curvo y el recto no lo usan', () => {
+    for (const route of ['curved', 'straight'] as const) {
+      expect(pathOf(anchors, 458, route, detour)).toBe(pathOf(anchors, 458, route))
+    }
   })
 })
