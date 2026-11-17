@@ -1418,7 +1418,17 @@ export async function marcarColumnas(etiqueta, columnas) {
     }`
     await esperar(pulsa, `El selector «${etiqueta}» no trae «${columna}».`)
   }
-  await browser.keys('Escape')
+  // El Escape se manda dentro de la página, al propio menú: en WebView2 el que
+  // envía WebDriver no le llega cuando la última pulsación fue un clic hecho
+  // desde un guion, y el menú se quedaba abierto.
+  await browser.execute(`
+    const menu = [...document.querySelectorAll('[role="menu"]')].pop()
+    if (menu) {
+      menu.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+      )
+    }
+  `)
   await browser.waitUntil(
     async () =>
       (await browser.execute(
