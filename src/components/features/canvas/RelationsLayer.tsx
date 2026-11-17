@@ -124,6 +124,12 @@ export function RelationsLayer({
     [lines],
   )
 
+  /** El rodeo de cada línea, congelado igual que su carril (R2). */
+  const detours = useMemo(
+    () => new Map(lines.map((line) => [line.name, line.detour] as const)),
+    [lines],
+  )
+
   /** Qué tablas mueve el gesto: la arrastrada, o todas las de su esquema. */
   const tablesOfTarget = useCallback(
     (target: DragTarget): Set<string> => {
@@ -172,7 +178,7 @@ export function RelationsLayer({
         if (anchors === null) continue
         const lane = lanes.get(name)
         if (lane === undefined) continue
-        group.line?.setAttribute('d', pathOf(anchors, lane, route))
+        group.line?.setAttribute('d', pathOf(anchors, lane, route, detours.get(name) ?? null))
         group.glyphA?.setAttribute(
           'd',
           glyphOf(detail.ends.to, { x: anchors.ax, y: anchors.ay }, anchors.oa),
@@ -183,7 +189,7 @@ export function RelationsLayer({
         )
       }
     },
-    [details, lanes, layout, model, route, tablesOfTarget],
+    [details, detours, lanes, layout, model, route, tablesOfTarget],
   )
 
   // Un modelo o un layout nuevos invalidan lo que el gesto tenía resuelto: al

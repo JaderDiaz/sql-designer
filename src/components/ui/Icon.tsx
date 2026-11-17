@@ -37,6 +37,7 @@ import {
   Info,
   KeyRound,
   LayoutTemplate,
+  Lock,
   Minus,
   Layers,
   Monitor,
@@ -123,6 +124,7 @@ export type IconName =
   | 'key-round'
   | 'layers'
   | 'layout-template'
+  | 'lock'
   | 'maximize'
   | 'mouse-pointer-click'
   | 'panel-left'
@@ -205,6 +207,7 @@ const ICONS: Record<IconName, LucideIcon> = {
   'key-round': KeyRound,
   layers: Layers,
   'layout-template': LayoutTemplate,
+  lock: Lock,
   maximize: Maximize,
   'mouse-pointer-click': MousePointerClick,
   'panel-left': PanelLeft,

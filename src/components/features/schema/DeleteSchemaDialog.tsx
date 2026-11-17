@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { Sheet } from '@/components/ui/Sheet'
 import { Switch } from '@/components/ui/Switch'
+import { enumUsage, replacementTypeLabel, replacementTypeOf } from '@/lib/model/enums'
 import { useAppStore } from '@/store'
 
 /**
@@ -20,6 +21,9 @@ import { useAppStore } from '@/store'
  * Cuando el esquema es el único del modelo no hay interruptor que valga: no
  * existe destino al que mover sus tablas, así que se van con él y el diálogo
  * lo dice en lugar de ofrecer una elección que no existe (FR-035).
+ *
+ * Desde el Incremento 5, si sus enums se van y alguna tabla de otro esquema
+ * los usa, el diálogo nombra esos campos y el tipo al que pasarán (FR-019).
  */
 
 /** Cómo se lee el número de tablas afectadas. */
@@ -63,6 +67,16 @@ export function DeleteSchemaDialog() {
   const tables = (model?.tables ?? []).filter((table) => table.schema === schema.name)
   const enums = (model?.enums ?? []).filter((value) => value.schema === schema.name)
   const views = (model?.views ?? []).filter((view) => view.schema === schema.name)
+
+  // Campos de tablas que se quedan y usan un enum que se va (FR-019).
+  const leaving = new Set(tables.map((table) => table.name))
+  const retyped =
+    model === null || !deletesTables
+      ? []
+      : enums.flatMap((value) =>
+          enumUsage(model, value.name).filter((item) => !leaving.has(item.table)),
+        )
+  const replacement = replacementTypeLabel(replacementTypeOf(model?.engine ?? 'postgres'))
 
   /** Lo que se mueve o se va con el esquema, dicho en una frase. */
   const alsoMoves = [
@@ -155,6 +169,15 @@ export function DeleteSchemaDialog() {
           <p className="m-0 text-[12px] leading-4 text-label-secondary">
             {deletesTables ? 'También se eliminan ' : 'También se mueven '}
             {alsoMoves.join(' y ')}.
+          </p>
+        ) : null}
+
+        {retyped.length > 0 ? (
+          <p className="m-0 text-[12px] leading-4 text-label-secondary">
+            {retyped.length === 1 ? 'El campo ' : 'Los campos '}
+            {retyped.map((item) => `${item.table}.${item.field}`).join(', ')}
+            {retyped.length === 1 ? ' usa uno de sus enums y pasará a ' : ' usan sus enums y pasarán a '}
+            {replacement}.
           </p>
         ) : null}
 

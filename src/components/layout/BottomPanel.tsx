@@ -11,11 +11,12 @@ import {
 } from '@/store/fieldsPanel'
 import type { PanelTab } from '@/store/fieldsPanel'
 import { useAppStore } from '@/store'
+import { splitUniques } from '@/lib/model/indexes'
 import type { Table } from '@/lib/model/types'
 
 /**
- * Marco del panel inferior del Editor, con sus dos fichas (FR-003, FR-022,
- * FR-023).
+ * Marco del panel inferior del Editor, con sus cuatro fichas (FR-003, FR-022,
+ * FR-023, FR-030, FR-038).
  *
  * El panel cede su alto al lienzo: va debajo de él y encima de la barra de
  * estado, así que al abrirlo el lienzo se encoge y al cerrarlo lo recupera,
@@ -23,7 +24,8 @@ import type { Table } from '@/lib/model/types'
  *
  * Desde el Incremento 4 es el «Editor de tabla» y no solo el de campos: la
  * lista de fichas vive aquí, y el contenido de la que esté activa lo decide
- * quien usa el panel. El tirador es un `role="separator"` enfocable: con el
+ * quien usa el panel. El Incremento 5 añade «Índices» y «Únicos», en el orden
+ * del tablero: Campos · Índices · Claves foráneas · Únicos. El tirador es un `role="separator"` enfocable: con el
  * puntero sigue el gesto y con el teclado cambia el alto en pasos de 24 px, y
  * la preferencia se escribe al soltar, no en cada `pointermove`
  * (contracts/tables.md §2.3).
@@ -31,7 +33,7 @@ import type { Table } from '@/lib/model/types'
 
 /** Props del panel. */
 export interface BottomPanelProps {
-  /** Tabla abierta; de ella salen los dos contadores de las fichas. */
+  /** Tabla abierta; de ella salen los contadores de las fichas. */
   table: Table
   /** Contenido de la ficha activa. */
   children: ReactNode
@@ -45,14 +47,22 @@ export function BottomPanel({ table, children }: BottomPanelProps) {
   const setPanelTab = useAppStore((state) => state.setPanelTab)
   const relations = useAppStore((state) => state.model?.relations)
 
-  /** Las dos fichas con su contador (FR-034). */
+  /**
+   * Las cuatro fichas con su contador (FR-030, FR-034, FR-038).
+   *
+   * «Índices» cuenta los propios de la tabla, no los que crean las
+   * restricciones; «Únicos» cuenta los de un campo y los compuestos.
+   */
+  const uniques = splitUniques(table)
   const items: Array<TabItem<PanelTab>> = [
     { value: 'fields', label: 'Campos', count: table.fields.length },
+    { value: 'indexes', label: 'Índices', count: (table.indexes ?? []).length },
     {
       value: 'foreignKeys',
       label: 'Claves foráneas',
       count: (relations ?? []).filter((relation) => relation.fromTable === table.name).length,
     },
+    { value: 'uniques', label: 'Únicos', count: uniques.single.length + uniques.compound.length },
   ]
 
   /**

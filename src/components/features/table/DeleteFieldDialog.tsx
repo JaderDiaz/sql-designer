@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button'
 import { Sheet } from '@/components/ui/Sheet'
+import { fieldDependents, fieldDependentsMessages } from '@/lib/model/indexes'
 import { relationsTouching } from '@/lib/model/marks'
 import { useAppStore } from '@/store'
 
@@ -8,7 +9,8 @@ import { useAppStore } from '@/store'
  *
  * Un campo se puede llevar más que su columna: la relación que lo usa se va
  * con él, y como un solo paso deshacible, así que el diálogo la nombra antes
- * de tocar nada (RS-08).
+ * de tocar nada (RS-08). Desde el Incremento 5 nombra también los índices y
+ * los únicos compuestos que pierden la columna o se van con ella (FR-039).
  *
  * El último campo de una tabla no se elimina: el archivo exige al menos uno,
  * y en lugar de fallar al confirmar el botón queda deshabilitado con el
@@ -35,6 +37,9 @@ export function DeleteFieldDialog() {
   if (target === null || table === undefined || model === null) return null
 
   const relations = relationsTouching(model, { table: target.table, field: target.field })
+  // Lo mismo que aplicará la acción: el diálogo y el almacén leen la misma
+  // función, así que lo anunciado es lo que pasa (FR-039, research R15).
+  const dependents = fieldDependentsMessages(fieldDependents(table, target.field))
   const isLast = table.fields.length <= 1
 
   return (
@@ -82,6 +87,12 @@ export function DeleteFieldDialog() {
         {relations.map((relation) => (
           <p key={relation.name} className="m-0 text-[12px] leading-4 text-label-secondary">
             {alsoDeletedMessage(relation.name)}
+          </p>
+        ))}
+
+        {dependents.map((message) => (
+          <p key={message} className="m-0 text-[12px] leading-4 text-label-secondary">
+            {message}
           </p>
         ))}
 

@@ -277,3 +277,56 @@ describe('relaciones del Incremento 4 (FR-028, data-model.md §6)', () => {
     expect(parseModel(text).ok).toBe(true)
   })
 })
+
+describe('índices y únicos del Incremento 5 (FR-042, research R8)', () => {
+  /** Dos campos de la tabla de prueba. */
+  const FIELDS = ['      - name: a', '        type: integer', '      - name: b', '        type: integer'].join(
+    '\n',
+  )
+
+  it('acepta la marca unique en un índice y la conserva al leer', () => {
+    const extra = ['    indexes:', '      - name: idx_cosas_a', '        fields: [a, b]', '        unique: true'].join(
+      '\n',
+    )
+    const result = parseModel(modelWith(FIELDS, extra))
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.model.tables?.[0]?.indexes).toEqual([
+      { name: 'idx_cosas_a', fields: ['a', 'b'], unique: true },
+    ])
+  })
+
+  it('un índice con unique en false se lee sin la marca', () => {
+    const extra = ['    indexes:', '      - name: idx_cosas_a', '        fields: [a]', '        unique: false'].join(
+      '\n',
+    )
+    const result = parseModel(modelWith(FIELDS, extra))
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.model.tables?.[0]?.indexes).toEqual([{ name: 'idx_cosas_a', fields: ['a'] }])
+  })
+
+  it('un índice sin unique sigue siendo válido', () => {
+    const extra = ['    indexes:', '      - name: idx_cosas_a', '        fields: [a]'].join('\n')
+
+    expect(parseModel(modelWith(FIELDS, extra)).ok).toBe(true)
+  })
+
+  it('rechaza unique que no es verdadero ni falso', () => {
+    const extra = ['    indexes:', '      - name: idx_cosas_a', '        fields: [a]', '        unique: "sí"'].join(
+      '\n',
+    )
+
+    expect(messagesOf(modelWith(FIELDS, extra))).toContain('«unique» tiene que ser verdadero o falso.')
+  })
+
+  it('rechaza unique dentro de un único', () => {
+    const extra = ['    uniques:', '      - name: uq_cosas_a', '        fields: [a, b]', '        unique: true'].join(
+      '\n',
+    )
+
+    expect(parseModel(modelWith(FIELDS, extra)).ok).toBe(false)
+  })
+})

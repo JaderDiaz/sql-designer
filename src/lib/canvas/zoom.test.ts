@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { FIT_MARGIN, ZOOM_MAX, ZOOM_MIN } from '@/lib/canvas/constants'
+import { FIT_MARGIN, FIT_ZOOM_MAX, ZOOM_MAX, ZOOM_MIN } from '@/lib/canvas/constants'
 import type { Rect, View } from '@/lib/canvas/constants'
 import { clampZoom, fitToContent, toModelPoint, zoomAt } from '@/lib/canvas/zoom'
 
@@ -85,10 +85,22 @@ describe('fitToContent', () => {
     expect(Number.isFinite(left)).toBe(true)
   })
 
-  it('no pasa de los topes del zoom con un modelo diminuto', () => {
-    const view = fitToContent({ x: 0, y: 0, width: 10, height: 10 }, VIEWPORT)
+  it('no pasa del 100 % con un modelo diminuto, y lo centra (FR-010)', () => {
+    const bounds: Rect = { x: 0, y: 0, width: 10, height: 10 }
+    const view = fitToContent(bounds, VIEWPORT)
 
-    expect(view.zoom).toBe(ZOOM_MAX)
+    expect(view.zoom).toBe(FIT_ZOOM_MAX)
+    expect(view.zoom).toBeLessThan(ZOOM_MAX)
+    expect(5 * view.zoom + view.pan.x).toBeCloseTo(VIEWPORT.width / 2, 6)
+    expect(5 * view.zoom + view.pan.y).toBeCloseTo(VIEWPORT.height / 2, 6)
+  })
+
+  it('un modelo que cabe al 150 % se queda al 100 % (FR-010)', () => {
+    const width = (VIEWPORT.width - FIT_MARGIN * 2) / 1.5
+    const height = (VIEWPORT.height - FIT_MARGIN * 2) / 1.5
+    const view = fitToContent({ x: 0, y: 0, width, height }, VIEWPORT)
+
+    expect(view.zoom).toBe(1)
   })
 
   it('devuelve el 100 % centrado con el modelo vacío', () => {

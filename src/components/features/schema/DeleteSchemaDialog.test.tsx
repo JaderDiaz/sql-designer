@@ -172,3 +172,25 @@ describe('DeleteSchemaDialog con un solo esquema', () => {
     expect(model?.tables ?? []).toEqual([])
   })
 })
+
+describe('DeleteSchemaDialog · enums en uso fuera (FR-019)', () => {
+  /** Modelo de enums con un campo de `personas` que usa un enum de `finanzas`. */
+  function enums(): Model {
+    const result = parseModel(readFixture('modelo-enums'))
+    if (!result.ok) throw new Error('el ejemplo no es un modelo válido')
+    const residente = result.model.tables?.find((table) => table.name === 'residente')
+    if (residente) residente.fields = [...residente.fields, { name: 'ultimo_estado', type: 'estado_pago' }]
+    return result.model
+  }
+
+  it('al eliminar también las tablas, nombra el campo de fuera y su tipo nuevo', async () => {
+    renderOpen('finanzas', enums())
+
+    expect(screen.queryByText(/ultimo_estado/)).toBeNull()
+    await userEvent.click(screen.getByRole('switch', { name: /Eliminar también/ }))
+
+    expect(
+      screen.getByText('El campo residente.ultimo_estado usa uno de sus enums y pasará a varchar(40).'),
+    ).toBeInTheDocument()
+  })
+})

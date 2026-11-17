@@ -1,6 +1,6 @@
 import { stringify } from 'yaml'
 
-import type { Enum, Model, NamedFields, Relation, Schema, Table, View } from '@/lib/model/types'
+import type { Enum, Index, Model, NamedFields, Relation, Schema, Table, View } from '@/lib/model/types'
 
 /**
  * Escritura del archivo del modelo: {@link Model} a texto YAML.
@@ -38,9 +38,22 @@ function fromSchema(schema: Schema): Record<string, unknown> {
   return out
 }
 
-/** Pone un índice o un único en el orden del formato. */
+/** Pone un único en el orden del formato. */
 function fromNamedFields(named: NamedFields): Record<string, unknown> {
   return ordered(named, ['name', 'fields'])
+}
+
+/**
+ * Pone un índice en el orden del formato.
+ *
+ * `unique` solo se escribe cuando es verdadero: un índice no único sale igual
+ * que antes del Incremento 5, y un archivo anterior se guarda idéntico
+ * (research R8).
+ */
+function fromIndex(index: Index): Record<string, unknown> {
+  const out = fromNamedFields(index)
+  if (index.unique === true) out['unique'] = true
+  return out
 }
 
 /** Pone una tabla y sus campos en el orden del formato. */
@@ -59,7 +72,7 @@ function fromTable(table: Table): Record<string, unknown> {
     ordered(field, ['name', 'type', 'length', 'scale', 'nullable', 'default', 'comment']),
   )
   if (table.uniques) out['uniques'] = table.uniques.map(fromNamedFields)
-  if (table.indexes) out['indexes'] = table.indexes.map(fromNamedFields)
+  if (table.indexes) out['indexes'] = table.indexes.map(fromIndex)
   if (table.position) out['position'] = ordered(table.position, ['x', 'y'])
   return out
 }

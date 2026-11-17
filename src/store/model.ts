@@ -244,6 +244,7 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       // elegida en el anterior ya no existe, y «Relación» o la tecla `R`
       // acababan pidiendo la clave foránea de una tabla que no está (FR-002).
       selectedTable: null,
+      enumTarget: null,
       isFieldsPanelOpen: false,
       fieldsPanelTable: null,
       focusedCell: null,
@@ -357,6 +358,7 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       // elegida en el anterior ya no existe, y «Relación» o la tecla `R`
       // acababan pidiendo la clave foránea de una tabla que no está (FR-002).
       selectedTable: null,
+      enumTarget: null,
       isFieldsPanelOpen: false,
       fieldsPanelTable: null,
       focusedCell: null,
@@ -532,6 +534,7 @@ export const createModelSlice: AppSlice<ModelSlice> = (set, get) => ({
       // elegida en el anterior ya no existe, y «Relación» o la tecla `R`
       // acababan pidiendo la clave foránea de una tabla que no está (FR-002).
       selectedTable: null,
+      enumTarget: null,
       isFieldsPanelOpen: false,
       fieldsPanelTable: null,
       focusedCell: null,

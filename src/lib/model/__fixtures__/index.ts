@@ -29,6 +29,7 @@ export type FixtureName =
   | 'modelo-posiciones-extremas'
   | 'modelo-tipos-ajenos'
   | 'modelo-relaciones'
+  | 'modelo-enums'
 
 /**
  * Lee un modelo de ejemplo.

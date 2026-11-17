@@ -284,21 +284,21 @@ describe('zoom en el puntero y encuadre (FR-008 a FR-011, FR-014)', () => {
     expect(text).not.toContain('focus')
   })
 
-  it('abrir un modelo pide el centrado y el lienzo lo consume (FR-014)', () => {
+  it('abrir un modelo pide el ajuste y el lienzo lo consume (FR-014)', () => {
     useAppStore.getState().requestCenter()
     expect(useAppStore.getState().needsCenter).toBe(true)
 
-    useAppStore.getState().centerOnModel()
+    useAppStore.getState().fitToModel()
 
     expect(useAppStore.getState().needsCenter).toBe(false)
   })
 
-  it('centrar el modelo no cambia el porcentaje (FR-014)', () => {
+  it('el ajuste al abrir no pasa del 100 % aunque el zoom estuviera más alto (FR-010, FR-014)', () => {
     useAppStore.getState().zoomTo(1.5)
 
-    useAppStore.getState().centerOnModel()
+    useAppStore.getState().fitToModel()
 
-    expect(useAppStore.getState().zoom).toBe(1.5)
+    expect(useAppStore.getState().zoom).toBeLessThanOrEqual(1)
   })
 
   it('enfocar un esquema centra su zona sin tocar el zoom (FR-029)', () => {
@@ -309,5 +309,44 @@ describe('zoom en el puntero y encuadre (FR-008 a FR-011, FR-014)', () => {
 
     expect(useAppStore.getState().zoom).toBe(0.8)
     expect(useAppStore.getState().pan).not.toEqual(antes)
+  })
+})
+
+describe('selectTable con el panel abierto (FR-010 del Incremento 3)', () => {
+  beforeEach(() => {
+    resetStore()
+    const model = threeSchemas()
+    useAppStore.setState({ screen: 'editor', model, savedModel: model })
+  })
+
+  it('el panel pasa a la tabla seleccionada y conserva su ficha', () => {
+    useAppStore.getState().openFieldsPanel('facturas', { field: 'id', column: 'name' }, 'indexes')
+
+    useAppStore.getState().selectTable('pagos')
+
+    const state = useAppStore.getState()
+    expect(state.isFieldsPanelOpen).toBe(true)
+    expect(state.fieldsPanelTable).toBe('pagos')
+    expect(state.panelTab).toBe('indexes')
+    expect(state.focusedCell).toBeNull()
+  })
+
+  it('soltar la selección no cambia el panel', () => {
+    useAppStore.getState().openFieldsPanel('facturas')
+
+    useAppStore.getState().selectTable(null)
+
+    expect(useAppStore.getState().fieldsPanelTable).toBe('facturas')
+    expect(useAppStore.getState().isFieldsPanelOpen).toBe(true)
+  })
+
+  it('con el panel cerrado solo cambia la selección', () => {
+    useAppStore.getState().openFieldsPanel('facturas')
+    useAppStore.getState().closeFieldsPanel()
+
+    useAppStore.getState().selectTable('pagos')
+
+    expect(useAppStore.getState().isFieldsPanelOpen).toBe(false)
+    expect(useAppStore.getState().fieldsPanelTable).toBe('facturas')
   })
 })

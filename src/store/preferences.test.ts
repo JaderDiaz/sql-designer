@@ -147,4 +147,30 @@ describe('almacén de preferencias', () => {
     expect(useAppStore.getState().preferences.relationRoute).toBe('orthogonal')
     expect(useAppStore.getState().writeError).toMatch(/disco lleno/)
   })
+
+  it('los prefijos del Incremento 5 nacen con idx_ y uq_ (FR-043)', () => {
+    const { preferences } = useAppStore.getState()
+
+    expect(preferences.indexPrefix).toBe('idx_')
+    expect(preferences.uniquePrefix).toBe('uq_')
+  })
+
+  it('el almacén se queda con el prefijo saneado que devuelve Rust (FR-043)', async () => {
+    vi.mocked(preferencesUpdate).mockResolvedValue({ ...DEFAULT_PREFERENCES, indexPrefix: 'ix_' })
+
+    await useAppStore.getState().setNamePrefix('indexPrefix', ' IX_ ')
+
+    expect(preferencesUpdate).toHaveBeenCalledWith({ indexPrefix: ' IX_ ' })
+    expect(useAppStore.getState().preferences.indexPrefix).toBe('ix_')
+    expect(useAppStore.getState().preferences.uniquePrefix).toBe('uq_')
+  })
+
+  it('revierte el prefijo si la escritura falla', async () => {
+    vi.mocked(preferencesUpdate).mockRejectedValue(new CommandError({ code: 'preferences_write_failed', message: 'disco lleno' }))
+
+    await useAppStore.getState().setNamePrefix('uniquePrefix', 'un_')
+
+    expect(useAppStore.getState().preferences.uniquePrefix).toBe('uq_')
+    expect(useAppStore.getState().writeError).toMatch(/prefijo/)
+  })
 })

@@ -1,5 +1,6 @@
 import { schemaZones } from '@/lib/canvas/geometry'
 import { resolveLayout } from '@/lib/canvas/layout'
+import { dropEnums } from '@/lib/model/enums'
 import type { Model, Position, Schema } from '@/lib/model/types'
 import { pushHistory } from '@/store/model'
 import type { AppSlice } from '@/store/types'
@@ -196,7 +197,9 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
    * Se puede eliminar cualquiera, también el último: un modelo sin esquemas es
    * el estado con el que nace (FR-005a, FR-035). Con `withTables` se van
    * también sus enums, sus vistas y las relaciones que tocaban a sus tablas,
-   * porque una relación sin sus dos extremos no es nada.
+   * porque una relación sin sus dos extremos no es nada. Los campos de tablas
+   * de otros esquemas que usaban uno de esos enums pasan al tipo de
+   * reemplazo, con la misma regla que eliminar un enum (FR-019, research R16).
    *
    * @param name Nombre técnico del esquema.
    * @param options Si se eliminan sus tablas y, si no, a qué esquema pasan.
@@ -213,21 +216,25 @@ export const createSchemasSlice: AppSlice<SchemasSlice> = (set, get) => ({
         (model.tables ?? []).filter((table) => table.schema === name).map((table) => table.name),
       )
       const tables = model.tables?.filter((table) => table.schema !== name)
-      const enums = model.enums?.filter((value) => value.schema !== name)
+      const gone = (model.enums ?? [])
+        .filter((value) => value.schema === name)
+        .map((value) => value.name)
       const views = model.views?.filter(
         (view) => view.schema !== name && !view.tables.some((table) => doomed.has(table)),
       )
       const relations = model.relations?.filter(
         (relation) => !doomed.has(relation.fromTable) && !doomed.has(relation.toTable),
       )
-      next = {
-        ...model,
-        schemas: model.schemas.filter((schema) => schema.name !== name),
-        ...(enums ? { enums } : {}),
-        ...(tables ? { tables } : {}),
-        ...(relations ? { relations } : {}),
-        ...(views ? { views } : {}),
-      }
+      next = dropEnums(
+        {
+          ...model,
+          schemas: model.schemas.filter((schema) => schema.name !== name),
+          ...(tables ? { tables } : {}),
+          ...(relations ? { relations } : {}),
+          ...(views ? { views } : {}),
+        },
+        gone,
+      )
     } else {
       const target = options.target
       if (target === null || model.schemas.every((schema) => schema.name !== target)) return

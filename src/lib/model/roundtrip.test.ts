@@ -21,6 +21,7 @@ const FIXTURES: FixtureName[] = [
   'modelo-posiciones-extremas',
   'modelo-tipos-ajenos',
   'modelo-relaciones',
+  'modelo-enums',
 ]
 
 describe('ida y vuelta del modelo', () => {
@@ -144,5 +145,48 @@ describe('ida y vuelta del modelo', () => {
 
     expect(text).not.toContain('enums:')
     expect(text).not.toContain('views:')
+  })
+
+  it('conserva los enums, los índices con su marca y los únicos compuestos (SC-007)', () => {
+    // La puerta 3 con lo que estrena el Incremento 5: el orden de los valores
+    // de un enum y el de las columnas de un índice no se tocan, y `unique`
+    // solo aparece en el índice que lo es (research R8).
+    const file = readFixture('modelo-enums')
+    const result = parseModel(file)
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    expect(serializeModel(result.model)).toBe(file)
+    const model = result.model
+    expect(model.formatVersion).toBe(1)
+    expect(model.enums?.find((item) => item.name === 'estado_pago')?.values).toEqual([
+      'pendiente',
+      'pagado',
+      'vencido',
+      'anulado',
+    ])
+    expect(model.enums?.find((item) => item.name === 'tipo_documento')?.comment).toBe(
+      'Todavía sin uso',
+    )
+    const tables = model.tables ?? []
+    expect(tables.find((table) => table.name === 'pago')?.indexes).toEqual([
+      { name: 'idx_pago_residente_id_mes', fields: ['residente_id', 'mes'] },
+    ])
+    expect(tables.find((table) => table.name === 'cuota')?.indexes).toEqual([
+      { name: 'idx_cuota_unidad_id', fields: ['unidad_id'], unique: true },
+    ])
+    expect(tables.find((table) => table.name === 'unidad')?.uniques).toEqual([
+      { name: 'uq_unidad_torre_numero', fields: ['torre', 'numero'] },
+    ])
+    expect(file.match(/unique: true/g)).toHaveLength(1)
+  })
+
+  it('un modelo anterior al Incremento 5 se guarda sin ninguna marca unique', () => {
+    for (const name of ['modelo-postgres', 'modelo-relaciones', 'modelo-50-tablas'] as const) {
+      const result = parseModel(readFixture(name))
+      expect(result.ok).toBe(true)
+      if (!result.ok) continue
+      expect(serializeModel(result.model)).not.toContain('unique:')
+    }
   })
 })

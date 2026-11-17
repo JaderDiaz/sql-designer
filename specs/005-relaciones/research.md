@@ -64,6 +64,20 @@ pura, tres ramas, tres pruebas.
 `dagre`). Son cientos de kilobytes para un trazado que cabe en veinte líneas, y
 el principio I pide empaquetar lo mínimo.
 
+**Añadido al cerrar (T082)**: los tres tramos del ortogonal solo pueden elegir
+el carril, así que el tramo horizontal atravesaba las tarjetas de en medio
+cuando las dos tablas estaban a varias columnas (20 de las 60 relaciones de
+`modelo-50-tablas.yaml`). `assignDetours(anchors, lanes, obstacles)` da a esas
+líneas —y solo a esas— otro carril o un rodeo de cinco tramos,
+`M ax ay H salida V pasillo H lane V by H bx`: sale por un pasillo junto a la
+tarjeta, cruza por uno entre filas y entra por el carril. Los candidatos salen
+de los bordes de las tarjetas con 10 px de aire, en pasos de 7 px para que dos
+rodeos no se pisen, y la búsqueda está acotada (12 pasillos verticales por
+lado, 8 horizontales por par): con el modelo de 50 tablas cuesta unos 7 ms por
+cambio de modelo y nada durante el arrastre, donde el rodeo viaja congelado
+como el carril (R2). Sigue sin hacer falta una biblioteca de enrutado. El
+curvo y el recto no cambian.
+
 ## R4 · El bucle de una tabla hacia sí misma
 
 **Decisión**: cuando `fromTable === toTable`, los dos extremos salen por el

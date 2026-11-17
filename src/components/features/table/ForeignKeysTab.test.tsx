@@ -400,4 +400,21 @@ describe('ForeignKeysTab', () => {
 
     expect(stops).toHaveLength(1)
   })
+
+  it('crear un índice sobre la columna la pasa a «Indexada» y eliminarlo la devuelve (FR-031, SC-012)', () => {
+    renderTab()
+    expect(screen.getByLabelText('Índice de fk_pagos_pedido_id')).toHaveTextContent('Sin índice')
+
+    let name: string | null = null
+    act(() => {
+      name = useAppStore.getState().addIndex('pagos')
+    })
+    expect(tableNamed('pagos').indexes?.at(-1)?.fields).toEqual(['pedido_id'])
+    expect(screen.getByLabelText('Índice de fk_pagos_pedido_id')).toHaveTextContent('Indexada')
+
+    act(() => {
+      useAppStore.getState().deleteIndex('pagos', name as unknown as string)
+    })
+    expect(screen.getByLabelText('Índice de fk_pagos_pedido_id')).toHaveTextContent('Sin índice')
+  })
 })

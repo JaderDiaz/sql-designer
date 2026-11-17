@@ -110,6 +110,15 @@ pub struct Preferences {
     /// Patrón del nombre de la columna propuesta, de hasta 64 caracteres (FR-004).
     #[serde(default = "default_foreign_key_pattern")]
     pub foreign_key_pattern: String,
+    /// Prefijo del nombre propuesto de un índice, de hasta 16 caracteres (FR-024).
+    ///
+    /// `serde(default)` como los campos del Incremento 4: un archivo anterior no
+    /// lo trae y cae a `idx_`.
+    #[serde(default = "default_index_prefix")]
+    pub index_prefix: String,
+    /// Prefijo del nombre propuesto de un único, de hasta 16 caracteres (FR-034).
+    #[serde(default = "default_unique_prefix")]
+    pub unique_prefix: String,
 }
 
 /// Alto del editor de campos cuando el archivo no lo trae (FR-022).
@@ -154,6 +163,46 @@ fn clamp_foreign_key_pattern(pattern: &str) -> String {
         .collect()
 }
 
+/// Prefijo de los índices cuando el archivo no lo trae (FR-043).
+const INDEX_DEFAULT_PREFIX: &str = "idx_";
+
+/// Prefijo de los únicos cuando el archivo no lo trae (FR-043).
+const UNIQUE_DEFAULT_PREFIX: &str = "uq_";
+
+/// Largo máximo de un prefijo de nombre (FR-043).
+const NAME_PREFIX_MAX_LENGTH: usize = 16;
+
+/// Valor por defecto de `index_prefix` para `serde`.
+fn default_index_prefix() -> String {
+    INDEX_DEFAULT_PREFIX.to_string()
+}
+
+/// Valor por defecto de `unique_prefix` para `serde`.
+fn default_unique_prefix() -> String {
+    UNIQUE_DEFAULT_PREFIX.to_string()
+}
+
+/// Sanea un prefijo de nombre para que pueda empezar un nombre técnico (FR-043).
+///
+/// Recorta los espacios, pasa a minúsculas, descarta todo lo que no sea letra
+/// sin acento, número o guion bajo y se queda con los primeros 16 caracteres.
+/// Si no queda nada, o lo que queda empieza por número, vuelve al valor por
+/// defecto: un nombre técnico no puede empezar por número.
+fn clamp_name_prefix(text: &str, default: &str) -> String {
+    let clean: String = text
+        .trim()
+        .to_lowercase()
+        .chars()
+        .filter(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || *c == '_')
+        .take(NAME_PREFIX_MAX_LENGTH)
+        .collect();
+    match clean.chars().next() {
+        None => default.to_string(),
+        Some(first) if first.is_ascii_digit() => default.to_string(),
+        Some(_) => clean,
+    }
+}
+
 /// Recorta un alto del editor de campos a sus topes (FR-022).
 ///
 /// Se aplica al leer y al escribir: un archivo editado a mano con 40 o con
@@ -179,6 +228,8 @@ impl Default for Preferences {
             relation_route: RelationRoute::Orthogonal,
             relation_animation: RelationAnimation::Subtle,
             foreign_key_pattern: default_foreign_key_pattern(),
+            index_prefix: default_index_prefix(),
+            unique_prefix: default_unique_prefix(),
         }
     }
 }
@@ -210,6 +261,10 @@ pub struct PreferencesPatch {
     pub relation_animation: Option<RelationAnimation>,
     /// Patrón del nombre de la columna propuesta; se recorta a 64 (FR-004).
     pub foreign_key_pattern: Option<String>,
+    /// Prefijo de los índices; se sanea con `clamp_name_prefix` (FR-043).
+    pub index_prefix: Option<String>,
+    /// Prefijo de los únicos; se sanea con `clamp_name_prefix` (FR-043).
+    pub unique_prefix: Option<String>,
 }
 
 /// Distingue «campo ausente» de «campo a `null`» en un parche.
@@ -423,6 +478,16 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         .and_then(serde_json::Value::as_str)
         .map(clamp_foreign_key_pattern)
         .unwrap_or(defaults.foreign_key_pattern);
+    let index_prefix = value
+        .get("indexPrefix")
+        .and_then(serde_json::Value::as_str)
+        .map(|text| clamp_name_prefix(text, INDEX_DEFAULT_PREFIX))
+        .unwrap_or(defaults.index_prefix);
+    let unique_prefix = value
+        .get("uniquePrefix")
+        .and_then(serde_json::Value::as_str)
+        .map(|text| clamp_name_prefix(text, UNIQUE_DEFAULT_PREFIX))
+        .unwrap_or(defaults.unique_prefix);
 
     Preferences {
         format_version: FORMAT_VERSION,
@@ -439,6 +504,8 @@ fn from_value_field_by_field(value: &serde_json::Value) -> Preferences {
         relation_route,
         relation_animation,
         foreign_key_pattern,
+        index_prefix,
+        unique_prefix,
     }
 }
 
@@ -526,6 +593,12 @@ pub fn apply_patch(current: &Preferences, patch: &PreferencesPatch) -> Preferenc
     }
     if let Some(foreign_key_pattern) = patch.foreign_key_pattern.as_deref() {
         next.foreign_key_pattern = clamp_foreign_key_pattern(foreign_key_pattern);
+    }
+    if let Some(index_prefix) = patch.index_prefix.as_deref() {
+        next.index_prefix = clamp_name_prefix(index_prefix, INDEX_DEFAULT_PREFIX);
+    }
+    if let Some(unique_prefix) = patch.unique_prefix.as_deref() {
+        next.unique_prefix = clamp_name_prefix(unique_prefix, UNIQUE_DEFAULT_PREFIX);
     }
     next.format_version = FORMAT_VERSION;
     next
@@ -624,6 +697,8 @@ mod tests {
             relation_route: RelationRoute::Curved,
             relation_animation: RelationAnimation::Off,
             foreign_key_pattern: "fk_{tabla}_{pk}".to_string(),
+            index_prefix: "ix_".to_string(),
+            unique_prefix: "un_".to_string(),
         };
 
         save_to(&path, &preferences).expect("guardar");
@@ -904,5 +979,62 @@ mod tests {
         );
         assert_eq!(solo_patron.foreign_key_pattern.chars().count(), 64);
         assert_eq!(solo_patron.relation_route, RelationRoute::Curved);
+    }
+
+    #[test]
+    fn un_archivo_sin_prefijos_cae_a_idx_y_uq() {
+        let dir = temp_dir("prefijos-ausentes");
+        let path = file_path(&dir);
+        fs::write(&path, r#"{"formatVersion":1}"#).expect("escribir");
+
+        let result = load_from(&path);
+
+        assert!(!result.recovered);
+        assert_eq!(result.preferences.index_prefix, "idx_");
+        assert_eq!(result.preferences.unique_prefix, "uq_");
+    }
+
+    #[test]
+    fn un_prefijo_de_otro_tipo_cae_a_su_valor_por_defecto() {
+        let dir = temp_dir("prefijos-otro-tipo");
+        let path = file_path(&dir);
+        fs::write(&path, r#"{"formatVersion":1,"indexPrefix":7,"uniquePrefix":null}"#)
+            .expect("escribir");
+
+        let result = load_from(&path);
+
+        assert!(!result.recovered);
+        assert_eq!(result.preferences.index_prefix, "idx_");
+        assert_eq!(result.preferences.unique_prefix, "uq_");
+    }
+
+    #[test]
+    fn el_prefijo_se_sanea_para_poder_empezar_un_nombre_tecnico() {
+        // Mayúsculas y espacios.
+        assert_eq!(clamp_name_prefix("  IX_ ", INDEX_DEFAULT_PREFIX), "ix_");
+        // Solo símbolos: no queda nada.
+        assert_eq!(clamp_name_prefix("-*-", INDEX_DEFAULT_PREFIX), "idx_");
+        // Empieza por número.
+        assert_eq!(clamp_name_prefix("1ix_", UNIQUE_DEFAULT_PREFIX), "uq_");
+        // Más de 16 caracteres.
+        assert_eq!(clamp_name_prefix(&"p".repeat(40), INDEX_DEFAULT_PREFIX).len(), 16);
+        // Acentos y guiones se descartan.
+        assert_eq!(clamp_name_prefix("índ-ice_", INDEX_DEFAULT_PREFIX), "ndice_");
+    }
+
+    #[test]
+    fn el_parche_sanea_los_prefijos_sin_tocar_lo_demas() {
+        let current = Preferences::default();
+        let next = apply_patch(
+            &current,
+            &PreferencesPatch {
+                index_prefix: Some("IX ".to_string()),
+                unique_prefix: Some("9".to_string()),
+                ..PreferencesPatch::default()
+            },
+        );
+        assert_eq!(next.index_prefix, "ix");
+        assert_eq!(next.unique_prefix, "uq_");
+        assert_eq!(next.foreign_key_pattern, "{tabla}_{pk}");
     }
 }

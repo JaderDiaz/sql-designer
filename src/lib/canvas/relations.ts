@@ -47,6 +47,23 @@ const LOOP_CLEARANCE = 18
 /** Aire que el carril deja a cada lado de una tarjeta que esquiva (FR-016). */
 const CLEARANCE = 10
 
+/** Hueco que el rodeo deja junto a la tarjeta para que quepa el glifo del extremo. */
+const GLYPH_ROOM = 22
+
+/** Paso con el que se prueban pasillos vecinos para que dos rodeos no se pisen. */
+const DETOUR_STEP = LANE / 2
+
+/** Cuántos pasillos verticales se prueban, como mucho, a cada lado de un rodeo. */
+const DETOUR_CANDIDATES = 12
+
+/**
+ * Cuántos pasillos horizontales libres se prueban por cada par de verticales,
+ * empezando por los más cercanos a la tarjeta de la que sale la línea. Acota
+ * el coste del rodeo en un lienzo grande, donde los pasillos libres son
+ * cientos y los lejanos nunca ganan.
+ */
+const DETOUR_CORRIDORS = 8
+
 /** Los dos extremos de una relación y por dónde salen. */
 export interface RelationAnchors {
   /** Extremo de la tabla que lleva la clave foránea. */
@@ -78,6 +95,33 @@ export interface LaneObstacle {
   bottom: number
 }
 
+/**
+ * Rodeo de una línea ortogonal cuyo tramo horizontal toparía con una tarjeta
+ * (FR-016, SC-005).
+ *
+ * Con él el trazado pasa de tres tramos a cinco: sale de la tarjeta, baja por
+ * un pasillo junto a ella, cruza por un pasillo entre filas y entra por el
+ * carril.
+ */
+export interface RelationDetour {
+  /**
+   * Pasillo vertical por el que la línea deja la tarjeta de la clave foránea,
+   * como distancia con signo desde su extremo: así acompaña a la tarjeta
+   * mientras se arrastra.
+   */
+  exit: number
+  /** Altura del pasillo horizontal por el que cruza, en coordenadas del modelo. */
+  corridor: number
+}
+
+/** El carril de una línea y, si le hace falta, su rodeo. */
+export interface LineRouting {
+  /** Carril por el que la línea llega a la tarjeta referenciada. */
+  lane: number
+  /** Rodeo, o `null` cuando los tres tramos de siempre pasan limpios. */
+  detour: RelationDetour | null
+}
+
 /** Una relación lista para pintar. */
 export interface RelationLine {
   /** Nombre técnico de la relación; es la clave del mapa de refs. */
@@ -92,6 +136,11 @@ export interface RelationLine {
    * como estaban y solo se recalculan al soltar (research R2, R6).
    */
   lane: number
+  /**
+   * Rodeo del trazado ortogonal, o `null` si no le hace falta. Se guarda por
+   * lo mismo que el carril: el arrastre repinta sin volver a enrutar.
+   */
+  detour: RelationDetour | null
   /** Atributo `d` del glifo del extremo de la clave foránea. */
   glyphA: string
   /** Atributo `d` del glifo del extremo referenciado. */
@@ -369,6 +418,325 @@ export function assignLanes(
   return lanes
 }
 
+/** Tramo recto, horizontal o vertical, de una línea ya colocada. */
+interface Segment {
+  /** `true` si el tramo es vertical. */
+  vertical: boolean
+  /** La `x` de un tramo vertical o la `y` de uno horizontal. */
+  at: number
+  from: number
+  to: number
+}
+
+/** Construye un tramo con sus extremos ordenados. */
+function segment(vertical: boolean, at: number, a: number, b: number): Segment {
+  return { vertical, at, from: Math.min(a, b), to: Math.max(a, b) }
+}
+
+/** Dice si un tramo pasa por dentro de alguna tarjeta, con `pad` de aire. */
+function isBlocked(
+  part: Segment,
+  obstacles: ReadonlyArray<LaneObstacle>,
+  pad: number,
+): boolean {
+  return obstacles.some((box) =>
+    part.vertical
+      ? part.at > box.left - pad &&
+        part.at < box.right + pad &&
+        part.from < box.bottom + pad &&
+        part.to > box.top - pad
+      : part.at > box.top - pad &&
+        part.at < box.bottom + pad &&
+        part.from < box.right + pad &&
+        part.to > box.left - pad,
+  )
+}
+
+/** Los tramos de una línea ortogonal, con su rodeo si lo lleva. */
+function segmentsOf(anchor: RelationAnchors, routing: LineRouting): Segment[] {
+  const { ax, ay, bx, by } = anchor
+  const { lane, detour } = routing
+  if (detour === null) {
+    return [segment(false, ay, ax, lane), segment(true, lane, ay, by), segment(false, by, lane, bx)]
+  }
+  const exit = ax + detour.exit
+  return [
+    segment(false, ay, ax, exit),
+    segment(true, exit, ay, detour.corridor),
+    segment(false, detour.corridor, exit, lane),
+    segment(true, lane, detour.corridor, by),
+    segment(false, by, lane, bx),
+  ]
+}
+
+/**
+ * Los tramos ya colocados, ordenados para preguntar rápido cuáles pisaría uno
+ * nuevo: se guardan por orientación y por franja de {@link DETOUR_STEP}.
+ */
+class PlacedSegments {
+  private readonly buckets = new Map<number, Segment[]>()
+
+  private static key(vertical: boolean, slot: number): number {
+    return slot * 2 + (vertical ? 1 : 0)
+  }
+
+  /** Apunta los tramos de una línea que ya tiene recorrido. */
+  add(parts: ReadonlyArray<Segment>): void {
+    for (const part of parts) {
+      const key = PlacedSegments.key(part.vertical, Math.round(part.at / DETOUR_STEP))
+      const bucket = this.buckets.get(key)
+      if (bucket === undefined) this.buckets.set(key, [part])
+      else bucket.push(part)
+    }
+  }
+
+  /** Cuántos tramos ya colocados quedarían debajo de estos. */
+  overlaps(parts: ReadonlyArray<Segment>): number {
+    let overlaps = 0
+    for (const part of parts) {
+      const slot = Math.round(part.at / DETOUR_STEP)
+      for (let near = slot - 1; near <= slot + 1; near += 1) {
+        for (const other of this.buckets.get(PlacedSegments.key(part.vertical, near)) ?? []) {
+          if (
+            Math.abs(part.at - other.at) < DETOUR_STEP - 1 &&
+            part.from < other.to - 1 &&
+            part.to > other.from + 1
+          ) {
+            overlaps += 1
+          }
+        }
+      }
+    }
+    return overlaps
+  }
+}
+
+/**
+ * Pasillos verticales a los que un extremo llega sin cruzar ninguna tarjeta.
+ *
+ * @param x Borde de la tarjeta del que sale el extremo.
+ * @param y Altura del extremo.
+ * @param side Hacia dónde sale: `1` derecha, `-1` izquierda.
+ * @param lane Carril repartido, que se prefiere si sirve.
+ * @param obstacles Cajas de las tablas del lienzo.
+ * @param air Aire que se deja a cada tarjeta.
+ * @returns Las `x` candidatas, de la más cercana al extremo a la más lejana.
+ */
+function reachableAisles(
+  x: number,
+  y: number,
+  side: 1 | -1,
+  lane: number,
+  obstacles: ReadonlyArray<LaneObstacle>,
+  air: number,
+): number[] {
+  // Hasta dónde llega el tramo que sale del extremo: la primera tarjeta que
+  // tiene delante a su misma altura.
+  let reach = Infinity
+  for (const box of obstacles) {
+    if (y <= box.top || y >= box.bottom) continue
+    const distance = side === 1 ? box.left - x : x - box.right
+    if (distance >= 0 && distance < reach) reach = distance
+  }
+  const nearest = air
+  const farthest = reach - air
+  if (farthest < nearest) return []
+
+  const bases = [GLYPH_ROOM, (lane - x) * side, nearest]
+  if (Number.isFinite(farthest)) bases.push(farthest)
+  const distances = new Set<number>()
+  for (const base of bases) {
+    for (let step = -2; step <= 2; step += 1) distances.add(base + step * DETOUR_STEP)
+  }
+  // Los bordes de las demás tarjetas abren pasillos cuando el lienzo no es una
+  // rejilla y el de al lado de la tarjeta está tapado.
+  for (const box of obstacles) {
+    distances.add((box.left - air - x) * side)
+    distances.add((box.right + air - x) * side)
+  }
+
+  return [...distances]
+    .filter((distance) => distance >= nearest && distance <= farthest)
+    .sort((a, b) => a - b)
+    .slice(0, DETOUR_CANDIDATES)
+    .map((distance) => x + side * distance)
+}
+
+/**
+ * Entre qué alturas puede moverse un tramo vertical sin tocar una tarjeta.
+ *
+ * @param x Pasillo por el que baja el tramo.
+ * @param y Altura de la que parte.
+ * @param obstacles Cajas de las tablas del lienzo.
+ * @param pad Aire que se deja a cada tarjeta.
+ * @returns El intervalo libre alrededor de `y`, o `null` si ya nace tapado.
+ */
+function freeSpan(
+  x: number,
+  y: number,
+  obstacles: ReadonlyArray<LaneObstacle>,
+  pad: number,
+): [number, number] | null {
+  let low = -Infinity
+  let high = Infinity
+  for (const box of obstacles) {
+    if (x <= box.left - pad || x >= box.right + pad) continue
+    const top = box.top - pad
+    const bottom = box.bottom + pad
+    if (y > top && y < bottom) return null
+    if (bottom <= y) low = Math.max(low, bottom)
+    else high = Math.min(high, top)
+  }
+  return [low, high]
+}
+
+/** El mejor recorrido libre de una línea tapada con `air` de aire, o `null`. */
+function findRouting(
+  anchor: RelationAnchors,
+  lane: number,
+  obstacles: ReadonlyArray<LaneObstacle>,
+  used: PlacedSegments,
+  air: number,
+): LineRouting | null {
+  const { ax, ay, bx, by, oa, ob } = anchor
+  const pad = air - 1
+  const exits = reachableAisles(ax, ay, oa, lane, obstacles, air)
+  const entries = reachableAisles(bx, by, ob, lane, obstacles, air)
+  if (exits.length === 0 || entries.length === 0) return null
+
+  const heights = new Set<number>()
+  for (const box of obstacles) {
+    for (let step = 0; step <= 2; step += 1) {
+      heights.add(box.top - air - step * DETOUR_STEP)
+      heights.add(box.bottom + air + step * DETOUR_STEP)
+    }
+  }
+  // De cada pasillo horizontal solo importan las tarjetas que tiene a su
+  // altura; se apartan una vez y no por cada par de pasillos verticales.
+  const corridors = [...heights]
+    .sort((a, b) => Math.abs(a - ay) - Math.abs(b - ay))
+    .map((y) => ({
+    y,
+      inWay: obstacles.filter((box) => y > box.top - pad && y < box.bottom + pad),
+    }))
+  const exitSpans = new Map(exits.map((x) => [x, freeSpan(x, ay, obstacles, pad)] as const))
+  const entrySpans = new Map(entries.map((x) => [x, freeSpan(x, by, obstacles, pad)] as const))
+
+  const found: { routing: LineRouting | null; cost: number } = { routing: null, cost: Infinity }
+  const consider = (routing: LineRouting, length: number, exit: number): void => {
+    // Se prefiere conservar el carril que ya estaba repartido y, a igualdad,
+    // dejar sitio al glifo y cruzar cerca de la tarjeta de la que se sale.
+    const floor =
+      length +
+      (routing.lane === lane || exit === lane ? 0 : 20) +
+      Math.abs(Math.abs(exit - ax) - GLYPH_ROOM) * 0.01 +
+      Math.abs((routing.detour?.corridor ?? ay) - ay) * 0.0001
+    // Pisar a otra línea solo suma: si sin contarlo ya no gana, no se cuenta.
+    if (floor >= found.cost) return
+    const cost = floor + used.overlaps(segmentsOf(anchor, routing)) * 10000
+    if (cost < found.cost) {
+      found.cost = cost
+      found.routing = routing
+    }
+  }
+
+  for (const exit of exits) {
+    const exitSpan = exitSpans.get(exit)
+    if (exitSpan === null || exitSpan === undefined) continue
+
+    // Antes del rodeo, otro carril: si el pasillo de salida llega también al
+    // otro extremo, bastan los tres tramos de siempre.
+    if (
+      entrySpans.has(exit) &&
+      Math.min(ay, by) >= exitSpan[0] &&
+      Math.max(ay, by) <= exitSpan[1]
+    ) {
+      consider({ lane: exit, detour: null }, Math.abs(exit - ax) + Math.abs(by - ay) + Math.abs(bx - exit), exit)
+    }
+
+    for (const entry of entries) {
+      const entrySpan = entrySpans.get(entry)
+      if (entrySpan === null || entrySpan === undefined || entry === exit) continue
+      const low = Math.max(exitSpan[0], entrySpan[0])
+      const high = Math.min(exitSpan[1], entrySpan[1])
+      let tried = 0
+      for (const { y: corridor, inWay } of corridors) {
+        if (tried >= DETOUR_CORRIDORS) break
+        if (corridor < low || corridor > high) continue
+        if (isBlocked(segment(false, corridor, exit, entry), inWay, pad)) continue
+        tried += 1
+        consider(
+          { lane: entry, detour: { exit: exit - ax, corridor } },
+          Math.abs(exit - ax) +
+            Math.abs(corridor - ay) +
+            Math.abs(entry - exit) +
+            Math.abs(by - corridor) +
+            Math.abs(bx - entry),
+          exit,
+        )
+      }
+    }
+  }
+
+  return found.routing
+}
+
+/**
+ * El recorrido de cada línea ortogonal, con rodeo donde hace falta (FR-016,
+ * SC-005).
+ *
+ * El trazado de tres tramos solo puede elegir su carril, y la altura de cada
+ * extremo la fija la fila del campo: cuando las dos tablas están a varias
+ * columnas, el tramo horizontal atraviesa las tarjetas de en medio. A esas
+ * líneas —y solo a esas— se les busca otro recorrido: primero otro carril y,
+ * si no lo hay, un rodeo de cinco tramos que sale por un pasillo junto a la
+ * tarjeta, cruza por un pasillo entre filas y entra por otro junto al destino.
+ * Entre los recorridos libres gana el que menos pisa a las líneas ya
+ * colocadas y, a igualdad, el más corto.
+ *
+ * Es un cálculo de cuando cambia el modelo, como el de los carriles: durante
+ * un arrastre el rodeo se queda como estaba (research R2, R3).
+ *
+ * @param anchors Las anclas de todas las relaciones, en el orden del modelo.
+ * @param lanes El carril de cada una, de {@link assignLanes}.
+ * @param obstacles Cajas de las tablas del lienzo.
+ * @returns El carril y el rodeo de cada relación, en el mismo orden. Una línea
+ *   tapada que no tiene recorrido libre conserva sus tres tramos.
+ */
+export function assignDetours(
+  anchors: ReadonlyArray<RelationAnchors>,
+  lanes: ReadonlyArray<number>,
+  obstacles: ReadonlyArray<LaneObstacle>,
+): LineRouting[] {
+  const routings: LineRouting[] = anchors.map((_, index) => ({
+    lane: lanes[index] as number,
+    detour: null,
+  }))
+  if (obstacles.length === 0) return routings
+
+  const used = new PlacedSegments()
+  const blocked: number[] = []
+  anchors.forEach((anchor, index) => {
+    const parts = segmentsOf(anchor, routings[index] as LineRouting)
+    if (parts.some((part) => isBlocked(part, obstacles, 0))) blocked.push(index)
+    else used.add(parts)
+  })
+
+  for (const index of blocked) {
+    const anchor = anchors[index] as RelationAnchors
+    const lane = lanes[index] as number
+    // Con el aire de siempre y, si las tarjetas están tan juntas que no cabe,
+    // con el mínimo para no tocarlas.
+    const found =
+      findRouting(anchor, lane, obstacles, used, CLEARANCE) ??
+      findRouting(anchor, lane, obstacles, used, 2)
+    if (found !== null) routings[index] = found
+    used.add(segmentsOf(anchor, routings[index] as LineRouting))
+  }
+
+  return routings
+}
+
 /**
  * El atributo `d` del trazo, en el trazado elegido (FR-017).
  *
@@ -380,9 +748,16 @@ export function assignLanes(
  * @param anchors Extremos de la relación.
  * @param lane Carril que le tocó.
  * @param route Trazado elegido en Ajustes.
+ * @param detour Rodeo del trazado ortogonal, de {@link assignDetours}; los
+ *   otros dos trazados no lo usan.
  * @returns La cadena del atributo `d`.
  */
-export function pathOf(anchors: RelationAnchors, lane: number, route: RelationRoute): string {
+export function pathOf(
+  anchors: RelationAnchors,
+  lane: number,
+  route: RelationRoute,
+  detour: RelationDetour | null = null,
+): string {
   const { ax, ay, bx, by, oa, ob, kind } = anchors
 
   if (route === 'curved') {
@@ -395,6 +770,10 @@ export function pathOf(anchors: RelationAnchors, lane: number, route: RelationRo
 
   if (route === 'straight') {
     return `M${ax} ${ay} L${ax + oa * 16} ${ay} L${bx + ob * 16} ${by} L${bx} ${by}`
+  }
+
+  if (detour !== null) {
+    return `M${ax} ${ay} H${ax + detour.exit} V${detour.corridor} H${lane} V${by} H${bx}`
   }
 
   return `M${ax} ${ay} H${lane} V${by} H${bx}`
@@ -462,10 +841,15 @@ export function relationLayer(
     if (anchors !== null) pairs.push({ relation, anchors })
   }
 
-  const lanes = assignLanes(
-    pairs.map((pair) => pair.anchors),
-    tableBoxes(model, layout),
-  )
+  const all = pairs.map((pair) => pair.anchors)
+  const boxes = tableBoxes(model, layout)
+  const lanes = assignLanes(all, boxes)
+  // El rodeo es cosa del trazado ortogonal: el curvo y el recto no tienen
+  // tramos que apartar.
+  const routings =
+    route === 'orthogonal'
+      ? assignDetours(all, lanes, boxes)
+      : lanes.map((lane): LineRouting => ({ lane, detour: null }))
   const schemaOf = new Map(
     (model.tables ?? []).map((table) => [table.name, table.schema] as const),
   )
@@ -475,10 +859,12 @@ export function relationLayer(
 
   return pairs.map(({ relation, anchors }, index) => {
     const cardinality = cardinalityOf(model, relation)
+    const { lane, detour } = routings[index] as LineRouting
     return {
       name: relation.name,
-      d: pathOf(anchors, lanes[index] as number, route),
-      lane: lanes[index] as number,
+      d: pathOf(anchors, lane, route, detour),
+      lane,
+      detour,
       glyphA: glyphOf(cardinality.to, { x: anchors.ax, y: anchors.ay }, anchors.oa),
       glyphB: glyphOf(cardinality.from, { x: anchors.bx, y: anchors.by }, anchors.ob),
       color: colorOf.get(schemaOf.get(relation.toTable) ?? '') ?? resolveSchemaColor(undefined),

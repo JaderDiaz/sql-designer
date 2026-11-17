@@ -2,7 +2,9 @@ import type { StateCreator } from 'zustand'
 
 import type { BrowserSlice } from '@/store/browser'
 import type { CanvasSlice } from '@/store/canvas'
+import type { EnumsSlice } from '@/store/enums'
 import type { FieldsPanelSlice } from '@/store/fieldsPanel'
+import type { IndexesSlice } from '@/store/indexes'
 import type { ModelSlice } from '@/store/model'
 import type { NavigationSlice } from '@/store/navigation'
 import type { PreferencesSlice } from '@/store/preferences'
@@ -28,6 +30,8 @@ export type AppState = PreferencesSlice &
   TablesSlice &
   FieldsPanelSlice &
   RelationsSlice &
+  EnumsSlice &
+  IndexesSlice &
   CanvasSlice &
   BrowserSlice &
   RecentsSlice

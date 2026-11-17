@@ -55,6 +55,10 @@ export interface Preferences {
   relationAnimation: RelationAnimation
   /** Patrón del nombre de la columna propuesta, de hasta 64 caracteres (FR-004). */
   foreignKeyPattern: string
+  /** Prefijo del nombre propuesto de un índice, ya saneado por Rust (FR-024, FR-043). */
+  indexPrefix: string
+  /** Prefijo del nombre propuesto de un único, ya saneado por Rust (FR-034, FR-043). */
+  uniquePrefix: string
 }
 
 /**
@@ -76,6 +80,8 @@ export interface PreferencesPatch {
   relationRoute?: RelationRoute
   relationAnimation?: RelationAnimation
   foreignKeyPattern?: string
+  indexPrefix?: string
+  uniquePrefix?: string
 }
 
 /**

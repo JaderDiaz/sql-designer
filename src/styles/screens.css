@@ -1076,6 +1076,80 @@ button.sm-zoom-value:hover {
   color: var(--label-secondary);
   white-space: nowrap;
 }
+/* ---------- Fichas «Índices» y «Únicos» (FR-021, FR-022, FR-032) ---------- */
+/* Nombre, columnas, único y eliminar: la casilla solo la llevan los índices. */
+.sm-idxgrid {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(220px, 1.6fr) 72px 48px;
+}
+.sm-uqgrid {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(260px, 2fr) 48px;
+}
+/* Las dos fichas tienen dos bloques, el de solo lectura y la rejilla, y se
+   desplazan juntos: la rejilla no lleva su propio desplazamiento. */
+.sm-constraint-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+.sm-constraint-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1\.5);
+  padding: var(--space-2) var(--space-3);
+}
+.sm-constraint-block + .sm-constraint-block {
+  border-top: var(--hairline) solid var(--separator);
+}
+.sm-constraint-grid {
+  padding-left: 0;
+  padding-right: 0;
+}
+.sm-constraint-grid > .sm-refby-label,
+.sm-constraint-grid > .sm-constraint-empty {
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+}
+.sm-constraint-grid > .sm-grid {
+  overflow: visible;
+}
+.sm-constraint-empty {
+  margin: 0;
+  max-width: 68ch;
+  font: 400 12px/16px var(--font-sans);
+  color: var(--label-secondary);
+}
+/* Un índice que crea una restricción: se lee y no se edita (FR-021). */
+.sm-auto-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sm-auto-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1\.5);
+  font: 400 12px/16px var(--font-sans);
+  color: var(--label);
+}
+.sm-auto-row > code {
+  font: 400 12px/16px var(--font-mono, var(--font-sans));
+}
+.sm-auto-cols {
+  font: 400 12px/16px var(--font-mono, var(--font-sans));
+  color: var(--label-secondary);
+}
+.sm-auto-kind {
+  margin-left: auto;
+  font: 600 10px/14px var(--font-sans);
+  letter-spacing: 0.04em;
+  color: var(--label-secondary);
+}
+
 /* Texto de la ficha sin filas, con su salida a mano (FR-032). */
 .sm-panel-empty {
   margin: 0;
@@ -1242,3 +1316,46 @@ button.sm-zoom-value:hover {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
+
+/* ---------- Hoja del enum (FR-002, FR-007) ---------- */
+/* La lista de valores va en su propio pozo, como en el componente `EnumForm`
+   del lienzo de diseño: una fila por valor, con su número y sus mandos. */
+.sm-enum-values {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 260px;
+  overflow-y: auto;
+  padding: var(--space-1\.5);
+  border-radius: var(--radius-md);
+  background: var(--bg-inset);
+}
+.sm-enum-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+/* El número de la fila se alinea con la primera línea del campo, no con su
+   mensaje de error, que puede ocupar una segunda. */
+.sm-enum-num {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 28px;
+  font: 500 11px/14px var(--font-sans);
+  font-variant-numeric: tabular-nums;
+  color: var(--label-secondary);
+}
+.sm-enum-row .au-btn {
+  margin-top: 2px;
+}
+
+/* ---------- Iconos con el color del esquema en la barra lateral ---------- */
+/* Aura pinta en gris todo icono de una fila lateral (`.au-side-item .au-icon`);
+   el de una tabla o un enum toma en cambio el color de su esquema, que le
+   pone su envoltorio, como en el tablero de diseño. */
+.au-side-item .sm-side-tint > .au-icon {
+  color: inherit;
+}
+

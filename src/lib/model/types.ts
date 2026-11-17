@@ -139,6 +139,23 @@ export interface NamedFields {
   fields: string[]
 }
 
+/**
+ * Índice propio de una tabla (FR-022).
+ *
+ * Es un {@link NamedFields} con la marca de único. El orden de `fields` es el
+ * del índice: en uno compuesto solo la primera columna sirve para buscar por
+ * ella sola (FR-025). No lleva método: usa el que el motor tenga por defecto
+ * (Clarifications del Incremento 5).
+ */
+export interface Index extends NamedFields {
+  /**
+   * Si el índice es único. Por defecto `false`; se omite cuando es `false`,
+   * así que un archivo anterior se lee igual y la versión del formato no sube
+   * (research R8, FR-042).
+   */
+  unique?: boolean
+}
+
 /** Tabla del modelo. */
 export interface Table {
   /** Nombre técnico, único en el modelo (RS-03). */
@@ -153,8 +170,8 @@ export interface Table {
   primaryKey?: string[]
   /** Restricciones de unicidad. */
   uniques?: NamedFields[]
-  /** Índices. */
-  indexes?: NamedFields[]
+  /** Índices, con su marca de único. */
+  indexes?: Index[]
   /** Posición en el lienzo. */
   position?: Position
 }

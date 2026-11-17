@@ -22,6 +22,10 @@ export type Screen = 'welcome' | 'editor'
  * `schema` es el diálogo de Nuevo esquema y de Editar esquema, que son el
  * mismo con otro título (FR-015, FR-020); `delete-schema` es la confirmación
  * de eliminar (FR-034).
+ *
+ * `enum` es la hoja «Nuevo enum» / «Editar enum» y `delete-enum` su
+ * confirmación de eliminar; qué enum miran lo dice `enumTarget` (Incremento 5,
+ * research R5).
  */
 export type Dialog =
   | 'new-model'
@@ -39,6 +43,8 @@ export type Dialog =
   | 'rename-table'
   | 'delete-table'
   | 'delete-field'
+  | 'enum'
+  | 'delete-enum'
 
 /**
  * Qué se quería hacer cuando se preguntó por los cambios sin guardar, para

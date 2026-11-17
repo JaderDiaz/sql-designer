@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode } from 'react'
 
+import { EnumContextMenu } from '@/components/features/enum/EnumContextMenu'
 import { SchemaContextMenu } from '@/components/features/schema/SchemaContextMenu'
 import { TableContextMenu } from '@/components/features/table/TableContextMenu'
 import { Titlebar } from '@/components/layout/Titlebar'
@@ -7,14 +8,19 @@ import { Button } from '@/components/ui/Button'
 import { Icon } from '@/components/ui/Icon'
 import { ScrollRegion } from '@/components/layout/ScrollRegion'
 import { resolveSchemaColor } from '@/lib/model/colors'
+import { valueCountLabel } from '@/lib/model/enums'
 import { useAppStore } from '@/store'
 
 /**
  * Barra lateral del Editor: el contenido del modelo (FR-002).
  *
- * Dos secciones. «Esquemas» lista los del modelo con su color, su abreviatura
- * y su número de tablas, con «Todos los esquemas» arriba; «Tablas» lista las
- * del modelo, o solo las del esquema enfocado.
+ * Tres secciones, en el orden del tablero. «Esquemas» lista los del modelo con
+ * su color, su abreviatura y su número de tablas, con «Todos los esquemas»
+ * arriba; «Enums», desde el Incremento 5, lista los enums con su número de
+ * valores; y «Tablas» lista las tablas. Las dos últimas siguen el esquema
+ * enfocado, y el icono de cada fila lleva el color de su esquema. Pulsar un
+ * enum abre su hoja, y su menú contextual ofrece editar, duplicar y eliminar
+ * (FR-010, FR-020).
  *
  * Pulsar la fila de un esquema lo enfoca: el lienzo se centra en su zona, el
  * resto se atenúa y esta lista se filtra (FR-029, FR-030). Enfocar también
@@ -73,6 +79,7 @@ export function ModelSidebar() {
   const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
   const isDirty = useAppStore((state) => state.isDirty)
   const requestClose = useAppStore((state) => state.requestClose)
+  const openEnumDialog = useAppStore((state) => state.openEnumDialog)
 
   if (model === null) return null
 
@@ -81,6 +88,10 @@ export function ModelSidebar() {
   // Con un esquema enfocado, la lista de tablas es la de ese esquema (FR-030).
   const listed =
     focusedSchema === null ? tables : tables.filter((table) => table.schema === focusedSchema)
+  // Los enums siguen el mismo filtro que las tablas (FR-010).
+  const enums = (model.enums ?? []).filter(
+    (value) => focusedSchema === null || value.schema === focusedSchema,
+  )
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -159,6 +170,71 @@ export function ModelSidebar() {
           </ul>
         </section>
 
+        <section className="flex flex-col gap-px" aria-labelledby="sm-side-enums">
+          <SectionHead
+            id="sm-side-enums"
+            title={focusedSchema === null ? 'Enums' : `Enums de ${focusedSchema}`}
+            action={
+              <Button
+                variant="plain"
+                size="sm"
+                icon="plus"
+                aria-label="Nuevo enum"
+                title="Nuevo enum"
+                onClick={() => openEnumDialog(null)}
+              />
+            }
+          />
+
+          {enums.length === 0 ? (
+            <p className="m-0 px-2 text-[12px] leading-4 text-label-tertiary">
+              {focusedSchema === null
+                ? 'Este modelo aún no tiene enums.'
+                : 'Este esquema aún no tiene enums.'}
+            </p>
+          ) : (
+            <ul className="m-0 list-none p-0">
+              {enums.map((value) => {
+                const enumSchema = model.schemas.find((item) => item.name === value.schema)
+                return (
+                  <li key={value.name}>
+                    <EnumContextMenu value={value}>
+                      <button
+                        type="button"
+                        aria-label={`${value.name}, ${valueCountLabel(value.values.length)}, esquema ${enumSchema?.abbreviation ?? value.schema} · ${value.schema}`}
+                        className="au-side-item w-full"
+                        onClick={() => openEnumDialog(value.name)}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="sm-side-tint flex flex-none items-center"
+                          style={
+                            {
+                              // Como el de las tablas: el color del esquema del
+                              // enum. Quién es el esquema lo dice el nombre
+                              // accesible, no el color (RS-11).
+                              color: `var(--${resolveSchemaColor(enumSchema?.color)})`,
+                            } as CSSProperties
+                          }
+                        >
+                          <Icon name="tags" size={14} />
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-left">{value.name}</span>
+                        <span className="font-mono text-[10px] tracking-[0.04em] text-label-tertiary">
+                          {enumSchema?.abbreviation ?? ''}
+                        </span>
+                        <span className="text-[11px] tabular-nums text-label-tertiary">
+                          {value.values.length}
+                        </span>
+                      </button>
+                    </EnumContextMenu>
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </section>
+
         <section className="flex flex-col gap-px" aria-labelledby="sm-side-tables">
           <SectionHead
             id="sm-side-tables"
@@ -188,7 +264,7 @@ export function ModelSidebar() {
                       >
                         <span
                           aria-hidden="true"
-                          className="flex flex-none items-center"
+                          className="sm-side-tint flex flex-none items-center"
                           style={
                             {
                               // El icono lleva el color del esquema de la tabla,

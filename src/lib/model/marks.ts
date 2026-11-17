@@ -92,9 +92,11 @@ const END_LABELS: Record<CardinalityEnd, string> = {
  * Es la **única** fuente de la cardinalidad: {@link relationCardinality} la
  * formatea para el inspector y `glyphOf` la dibuja en el lienzo, así que la
  * línea y el texto no pueden discrepar. Sale de dos datos de la tabla que
- * lleva la llave foránea —si sus campos admiten nulos y si son además únicos—
- * y no se guarda en el archivo porque no hace falta: la relación, el
- * `NOT NULL` y el único ya lo dicen (research R5).
+ * lleva la llave foránea: si sus campos admiten nulos y si son además únicos
+ * —por la llave primaria, por un único o, desde el Incremento 5, por un
+ * índice único de una sola columna—. No se guarda en el archivo porque no
+ * hace falta: la relación, el `NOT NULL` y el único ya lo dicen (research R5,
+ * R14 del Incremento 5).
  *
  * @param model Modelo completo.
  * @param relation Relación que se lee.
@@ -107,7 +109,16 @@ export function cardinalityOf(model: Model, relation: Relation): Cardinality {
   const fields = from.fields.filter((field) => relation.fromFields.includes(field.name))
   const nullable = fields.some((field) => field.nullable === true)
 
-  const keys = [from.primaryKey ?? [], ...(from.uniques ?? []).map((item) => item.fields)]
+  // Un índice único de una sola columna hace única esa columna, como la marca
+  // UK; los de varias columnas no tienen una lectura clara como cardinalidad
+  // de una relación de una columna, así que no cuentan (FR-029a).
+  const keys = [
+    from.primaryKey ?? [],
+    ...(from.uniques ?? []).map((item) => item.fields),
+    ...(from.indexes ?? [])
+      .filter((item) => item.unique === true && item.fields.length === 1)
+      .map((item) => item.fields),
+  ]
   const unique = keys.some(
     (key) =>
       key.length === relation.fromFields.length &&

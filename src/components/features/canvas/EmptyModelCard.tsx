@@ -8,10 +8,10 @@ import { useAppStore } from '@/store'
  * Tarjeta «Empieza a diseñar tu modelo» (FR-005, SC-009).
  *
  * Es el estado vacío del lienzo: un modelo sin tablas no tiene nada que
- * dibujar, y en lugar de un lienzo en blanco se dice por dónde empezar. De
- * De sus tres filas, «Crear la primera tabla» y «Agregar un esquema» actúan;
- * «Definir un enum» anuncia lo que trae un incremento posterior y por eso no
- * es un botón.
+ * dibujar, y en lugar de un lienzo en blanco se dice por dónde empezar. Sus
+ * tres filas actúan: «Crear la primera tabla», «Agregar un esquema» y, desde
+ * el Incremento 5, «Definir un enum», que abre la hoja «Nuevo enum»
+ * (FR-001).
  */
 
 /** Una fila de la tarjeta: qué se podrá hacer con el modelo. */
@@ -23,8 +23,8 @@ interface StartRow {
   tint: string
   /** Color del propio icono. */
   color: string
-  /** Si la fila actúa, y qué diálogo abre. */
-  action?: 'new-schema' | 'new-table'
+  /** Qué diálogo abre la fila. */
+  action: 'new-schema' | 'new-table' | 'new-enum'
 }
 
 const START_ROWS: StartRow[] = [
@@ -50,6 +50,7 @@ const START_ROWS: StartRow[] = [
     icon: 'tags',
     tint: 'sm-tint-purple',
     color: 'text-purple',
+    action: 'new-enum',
   },
 ]
 
@@ -57,6 +58,7 @@ export function EmptyModelCard() {
   const model = useAppStore((state) => state.model)
   const openSchemaDialog = useAppStore((state) => state.openSchemaDialog)
   const openTableDialog = useAppStore((state) => state.openTableDialog)
+  const openEnumDialog = useAppStore((state) => state.openEnumDialog)
 
   const schema = model?.schemas[0]
 
@@ -104,21 +106,18 @@ export function EmptyModelCard() {
 
           return (
             <li key={row.label}>
-              {row.action ? (
-                <button
-                  type="button"
-                  className="sm-start-row sm-start-row-action w-full"
-                  onClick={() => {
-                    if (row.action === 'new-table') openTableDialog()
-                    else openSchemaDialog(null)
-                  }}
-                >
-                  {content}
-                  <Icon name="chevron-right" size={14} className="text-label-tertiary" />
-                </button>
-              ) : (
-                <span className="sm-start-row">{content}</span>
-              )}
+              <button
+                type="button"
+                className="sm-start-row sm-start-row-action w-full"
+                onClick={() => {
+                  if (row.action === 'new-table') openTableDialog()
+                  else if (row.action === 'new-enum') openEnumDialog(null)
+                  else openSchemaDialog(null)
+                }}
+              >
+                {content}
+                <Icon name="chevron-right" size={14} className="text-label-tertiary" />
+              </button>
             </li>
           )
         })}

@@ -108,6 +108,11 @@ export function FieldsGrid({ table }: FieldsGridProps) {
 
   const engine = model?.engine ?? 'postgres'
   const fields = table.fields
+  // Los enums se ofrecen como tipo; uno con el nombre de un tipo del motor no,
+  // porque ese nombre ya es el del motor (FR-011, research R1).
+  const enums = (model?.enums ?? [])
+    .map((value) => value.name)
+    .filter((name) => !typesOf(engine).includes(name))
   const marks = fieldMarks(table, model?.relations ?? [])
   const primaryKey = table.primaryKey ?? []
 
@@ -190,6 +195,7 @@ export function FieldsGrid({ table }: FieldsGridProps) {
           index={index}
           count={fields.length}
           engine={engine}
+          enums={enums}
           mark={marks.get(field.name) ?? null}
           isPrimaryKey={primaryKey.includes(field.name)}
           relation={
@@ -219,6 +225,11 @@ interface FieldRowProps {
   index: number
   count: number
   engine: Model['engine']
+  /**
+   * Enums del modelo que se ofrecen como tipo, después de los del motor
+   * (FR-011). Un campo de uno de estos tipos no es un tipo desconocido.
+   */
+  enums: readonly string[]
   mark: ReturnType<typeof fieldMarks> extends Map<string, infer T> ? T : never
   isPrimaryKey: boolean
   relation: string | null
@@ -258,6 +269,7 @@ function FieldRow({
   index,
   count,
   engine,
+  enums,
   mark,
   isPrimaryKey,
   relation,
@@ -271,6 +283,10 @@ function FieldRow({
   onDelete,
 }: FieldRowProps) {
   const traits = typeTraits(engine, field.type)
+  // Un enum no lo conoce el motor, pero tampoco es un tipo desconocido: es un
+  // tipo del modelo, sin longitud ni escala (FR-011).
+  const isEnum = enums.includes(field.type)
+  const isUnknownType = traits.isUnknown && !isEnum
   /** Celdas de la fila, para llevarles el foco con las flechas (FR-046a). */
   const cells = useRef<Partial<Record<FieldColumn, HTMLElement | null>>>({})
   const [name, setName] = useState(field.name)
@@ -390,9 +406,12 @@ function FieldRow({
   }
 
   const known = typesOf(engine).map((type) => ({ value: type, label: type }))
-  const typeOptions = traits.isUnknown
-    ? [{ value: field.type, label: field.type }, ...known]
-    : known
+  const enumOptions = enums.map((name) => ({ value: name, label: name, description: 'enum' }))
+  const typeOptions = [
+    ...(isUnknownType ? [{ value: field.type, label: field.type }] : []),
+    ...known,
+    ...enumOptions,
+  ]
 
   const isFocusedRow = grid.active?.row === field.name
 
@@ -443,10 +462,11 @@ function FieldRow({
 
         <span
           {...cell('type')}
-          title={traits.isUnknown ? unknownTypeMessage(field.type, engine) : undefined}
+          title={isUnknownType ? unknownTypeMessage(field.type, engine) : undefined}
+          data-enum={isEnum ? '' : undefined}
         >
           <Select
-            label={`${cellLabel('type')}${traits.isUnknown ? `. ${unknownTypeMessage(field.type, engine)}` : ''}`}
+            label={`${cellLabel('type')}${isUnknownType ? `. ${unknownTypeMessage(field.type, engine)}` : ''}`}
             value={field.type}
             options={typeOptions}
             tabIndex={tab('type')}

@@ -376,7 +376,9 @@ un modelo de un solo esquema la opción está deshabilitada.
   escrito recortado a los topes de FR-008, y Esc MUST dejar el zoom como
   estaba.
 - **FR-010**: El sistema MUST ofrecer «Ajustar», que MUST dejar visible todo el
-  modelo con un margen, y con un modelo vacío MUST volver al 100 % centrado.
+  modelo con un margen, centrado y sin pasar del 100 % de zoom —un modelo que
+  cabría más grande se queda a tamaño real—, y con un modelo vacío MUST volver
+  al 100 % centrado. (Techo del 100 % pedido por el usuario el 2026-11-17.)
 - **FR-011**: El sistema MUST garantizar que ninguna tabla queda inalcanzable:
   «Ajustar» MUST traer a la vista cualquier posición guardada en el archivo.
 - **FR-012**: El sistema MUST mostrar un minimapa con la posición de todas las
@@ -387,8 +389,10 @@ un modelo de un solo esquema la opción está deshabilitada.
   marcar el modelo como «Editado» por esa colocación.
 - **FR-014**: La vista del lienzo (desplazamiento y zoom) MUST ser estado de la
   sesión: MUST NOT escribirse en el archivo del modelo. Al abrir un modelo la
-  vista MUST arrancar al 100 % centrada en su contenido; solo «Ajustar» MUST
-  cambiar el porcentaje.
+  vista MUST arrancar ajustada como con «Ajustar» —todo el modelo a la vista,
+  centrado y sin pasar del 100 %— (pedido por el usuario el 2026-11-17; antes
+  arrancaba al 100 % sin encuadrar). Después, solo «Ajustar» y los mandos de
+  zoom MUST cambiar el porcentaje.
 
 **Crear y editar un esquema**
 

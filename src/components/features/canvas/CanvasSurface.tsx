@@ -86,7 +86,7 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
   const openFieldsPanel = useAppStore((state) => state.openFieldsPanel)
   const setViewport = useAppStore((state) => state.setViewport)
   const needsCenter = useAppStore((state) => state.needsCenter)
-  const centerOnModel = useAppStore((state) => state.centerOnModel)
+  const fitToModel = useAppStore((state) => state.fitToModel)
   const setGesturing = useAppStore((state) => state.setGesturing)
   const moveSchema = useAppStore((state) => state.moveSchema)
   const moveTable = useAppStore((state) => state.moveTable)
@@ -130,11 +130,12 @@ export function CanvasSurface({ overlay, className }: CanvasSurfaceProps) {
     return () => observer.disconnect()
   }, [setViewport])
 
-  // Abrir un modelo lo deja entero a la vista, pero solo se puede encuadrar
-  // cuando la caja del lienzo ya está medida (FR-014).
+  // Abrir un modelo lo ajusta como «Ajustar» —entero a la vista, centrado y
+  // sin pasar del 100 %—, pero solo se puede encuadrar cuando la caja del
+  // lienzo ya está medida (FR-014).
   useEffect(() => {
-    if (needsCenter) centerOnModel()
-  }, [centerOnModel, needsCenter])
+    if (needsCenter) fitToModel()
+  }, [fitToModel, needsCenter])
 
   // La geometría se recalcula solo cuando el modelo cambia: mover la vista no
   // la toca, porque no depende de ella.

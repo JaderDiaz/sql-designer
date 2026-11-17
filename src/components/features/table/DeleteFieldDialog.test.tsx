@@ -105,3 +105,27 @@ describe('DeleteFieldDialog', () => {
     expect(screen.getByRole('button', { name: 'Eliminar campo' })).toBeDisabled()
   })
 })
+
+describe('DeleteFieldDialog · índices y únicos (FR-039)', () => {
+  it('nombra el índice que pierde la columna, el que se va y el único compuesto', () => {
+    const result = parseModel(readFixture('modelo-enums'))
+    if (!result.ok) throw new Error('el ejemplo no es un modelo válido')
+    const model = result.model
+    const pago = model.tables?.find((table) => table.name === 'pago')
+    if (pago) {
+      pago.uniques = [
+        ...(pago.uniques ?? []),
+        { name: 'uq_pago_residente_id_mes', fields: ['residente_id', 'mes'] },
+      ]
+      pago.indexes = [
+        { name: 'idx_pago_mes_cuota_id', fields: ['mes', 'cuota_id'] },
+        { name: 'idx_pago_mes', fields: ['mes'] },
+      ]
+    }
+    renderOpen('pago', 'mes', model)
+
+    expect(screen.getByText('El índice idx_pago_mes_cuota_id perderá esta columna.')).toBeInTheDocument()
+    expect(screen.getByText('El índice idx_pago_mes se eliminará con él.')).toBeInTheDocument()
+    expect(screen.getByText('El único uq_pago_residente_id_mes se eliminará con él.')).toBeInTheDocument()
+  })
+})
