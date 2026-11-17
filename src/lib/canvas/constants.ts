@@ -59,6 +59,14 @@ export const ZOOM_MAX = 2
 /** Aire que «Ajustar» deja alrededor del modelo (FR-010). */
 export const FIT_MARGIN = 48
 
+/**
+ * Zoom máximo de «Ajustar»: 100 % (FR-010).
+ *
+ * Un modelo pequeño se encuadra a tamaño real y centrado, en lugar de
+ * agrandarse hasta el 200 %. El zoom manual sigue llegando a {@link ZOOM_MAX}.
+ */
+export const FIT_ZOOM_MAX = 1
+
 /** Separación entre dos tablas de la misma rejilla. */
 export const GRID_GAP = 40
 

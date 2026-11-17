@@ -70,7 +70,6 @@ export interface CanvasSlice {
   zoomBy: (delta: number, pointer?: Position) => void
   zoomTo: (zoom: number, pointer?: Position) => void
   fitToModel: () => void
-  centerOnModel: () => void
   focusSchema: (name: string | null) => void
   selectSchema: (name: string | null) => void
   selectTable: (name: string | null) => void
@@ -112,7 +111,7 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
     set({ viewport })
   },
 
-  /** Pide que la vista se centre con la primera medida del lienzo (FR-014). */
+  /** Pide que la vista se ajuste con la primera medida del lienzo (FR-014). */
   requestCenter() {
     set({ needsCenter: true })
   },
@@ -184,19 +183,7 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
     set({ pan: next.pan, zoom: next.zoom, needsCenter: false })
   },
 
-  /**
-   * Centra el modelo sin tocar el zoom, que es como abre un modelo (FR-014).
-   *
-   * El porcentaje es del usuario: un modelo recién abierto se ve al 100 % y
-   * solo «Ajustar» cambia la escala.
-   */
-  centerOnModel() {
-    const { model, viewport, zoom } = get()
-    const bounds =
-      model === null ? null : contentBounds(schemaZones(model, resolveLayout(model)))
-    const next = centerOnContent(bounds, viewport, zoom)
-    set({ pan: next.pan, zoom: next.zoom, needsCenter: false })
-  },
+
 
   /**
    * Enfoca un esquema y centra el lienzo en su zona (FR-029, FR-031).
@@ -249,10 +236,21 @@ export const createCanvasSlice: AppSlice<CanvasSlice> = (set, get) => ({
    * Seleccionar una tabla suelta el esquema seleccionado: el inspector muestra
    * una ficha o la otra, nunca las dos.
    *
+   * Con el panel inferior abierto, el panel pasa a la tabla nueva y se queda en
+   * la ficha que tenía: el panel es el de «la tabla seleccionada» (FR-010 del
+   * Incremento 3). La celda enfocada se suelta, porque era de la otra tabla.
+   * Soltar la selección no toca el panel, que sigue con la que tenía.
+   *
    * @param name Nombre técnico de la tabla, o `null` para soltar la selección.
    */
   selectTable(name) {
-    set({ selectedTable: name, ...(name === null ? {} : { selectedSchema: null }) })
+    const { isFieldsPanelOpen, fieldsPanelTable } = get()
+    const follows = name !== null && isFieldsPanelOpen && fieldsPanelTable !== name
+    set({
+      selectedTable: name,
+      ...(name === null ? {} : { selectedSchema: null }),
+      ...(follows ? { fieldsPanelTable: name, focusedCell: null } : {}),
+    })
   },
 
   /**

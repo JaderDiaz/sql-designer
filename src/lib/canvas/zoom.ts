@@ -1,4 +1,4 @@
-import { FIT_MARGIN, ZOOM_MAX, ZOOM_MIN } from '@/lib/canvas/constants'
+import { FIT_MARGIN, FIT_ZOOM_MAX, ZOOM_MAX, ZOOM_MIN } from '@/lib/canvas/constants'
 import type { Rect, View } from '@/lib/canvas/constants'
 import type { Position } from '@/lib/model/types'
 
@@ -51,8 +51,10 @@ export function zoomAt(view: View, zoom: number, pointer: Position): View {
  *
  * Parte del envolvente del contenido, no de un rectángulo fijo, así que trae a
  * la vista cualquier posición que traiga el archivo, también negativa o
- * enorme. El zoom se recorta a los topes: un modelo gigante se queda al 40 % y
- * puede no caber entero, que es la única salida honesta sin romper el tope.
+ * enorme. El zoom nunca pasa del 100 % ({@link FIT_ZOOM_MAX}): un modelo
+ * pequeño queda a tamaño real y centrado, no agrandado. Por abajo se recorta
+ * al 40 %: un modelo gigante se queda ahí y puede no caber entero, que es la
+ * única salida honesta sin romper el tope.
  *
  * @param bounds Envolvente del contenido, o `null` si no hay nada que mostrar.
  * @param viewport Caja del lienzo en pantalla.
@@ -65,7 +67,10 @@ export function fitToContent(bounds: Rect | null, viewport: Rect): View {
 
   const usableWidth = Math.max(viewport.width - FIT_MARGIN * 2, 1)
   const usableHeight = Math.max(viewport.height - FIT_MARGIN * 2, 1)
-  const zoom = clampZoom(Math.min(usableWidth / bounds.width, usableHeight / bounds.height))
+  const zoom = Math.min(
+    FIT_ZOOM_MAX,
+    clampZoom(Math.min(usableWidth / bounds.width, usableHeight / bounds.height)),
+  )
 
   const centerX = bounds.x + bounds.width / 2
   const centerY = bounds.y + bounds.height / 2
